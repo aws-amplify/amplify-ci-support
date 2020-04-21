@@ -1,3 +1,14 @@
+# OS generated files #
+.COMPONENT_CACHED
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -136,3 +147,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# PyCharm
+.idea
