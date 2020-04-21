@@ -1,7 +1,7 @@
 
-# Welcome to your CDK Python project!
+# Default Initialization Instructions
 
-This is a blank project for Python development with CDK.
+This is a AWS CDK project for creating resources/policies needed for [aws-sdk-ios](https://github.com/aws-amplify/aws-sdk-ios) Integration Test Suite.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
@@ -54,5 +54,3 @@ command.
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
-
-Enjoy!
