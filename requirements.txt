@@ -1,0 +1,5 @@
+aws-cdk.aws-apigateway
+aws-cdk.aws-lambda
+black
+boto3
+request
