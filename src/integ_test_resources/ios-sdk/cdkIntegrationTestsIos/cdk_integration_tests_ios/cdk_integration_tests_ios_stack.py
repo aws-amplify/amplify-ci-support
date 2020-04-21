@@ -18,8 +18,6 @@ class CdkIntegrationTestsIosStack(core.Stack):
         )
 
         apiEndpoint = apigw.LambdaRestApi(
-                        self, 'Endpoint',
+                        self, 'apiEndpoint',
                         handler=echo_lambda,
                       )
-        print(apiEndpoint)
-
