@@ -150,3 +150,11 @@ cython_debug/
 
 # PyCharm
 .idea
+
+# CDK asset staging directory
+src/integ_test_resources/ios-sdk/cdkIntegrationTestsIos/.cdk.staging
+src/integ_test_resources/ios-sdk/cdkIntegrationTestsIos/cdk.out
+
+# IDEA Default ignored files
+/shelf/
+/workspace.xml
