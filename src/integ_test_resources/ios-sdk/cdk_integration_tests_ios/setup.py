@@ -19,7 +19,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where="cdk_integration_tests_ios"),
 
     install_requires=[
-        "aws-cdk.core==1.33.1",
+        "aws-cdk.core==1.34.1",
         "aws-cdk.aws-lambda",
         "aws-cdk.aws-apigateway"
     ],

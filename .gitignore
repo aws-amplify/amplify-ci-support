@@ -1,7 +1,7 @@
 # OS generated files #
 .COMPONENT_CACHED
-.DS_Store
-.DS_Store?
+**/.DS_Store
+**/.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
@@ -148,13 +148,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# PyCharm
+# IDE Artifacts
 .idea
-
-# CDK asset staging directory
-src/integ_test_resources/ios-sdk/cdkIntegrationTestsIos/.cdk.staging
-src/integ_test_resources/ios-sdk/cdkIntegrationTestsIos/cdk.out
-
-# IDEA Default ignored files
 /shelf/
 /workspace.xml
+
+# CDK asset staging directory
+**/.cdk.staging
+**/cdk.out
+
