@@ -1,7 +1,7 @@
 # OS generated files #
 .COMPONENT_CACHED
-.DS_Store
-.DS_Store?
+**/.DS_Store
+**/.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
@@ -148,5 +148,12 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# PyCharm
+# IDE Artifacts
 .idea
+/shelf/
+/workspace.xml
+
+# CDK asset staging directory
+**/.cdk.staging
+**/cdk.out
+
