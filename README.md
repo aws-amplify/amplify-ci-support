@@ -1,6 +1,13 @@
 ## Amplify CI Support
-<img src="https://s3.amazonaws.com/aws-mobile-hub-images/aws-amplify-logo.png" alt="AWS Amplify" width="550" >
 
-AWS Amplify provides a declarative and easy-to-use interface across different categories of cloud operations. AWS Amplify goes well with any JavaScript based frontend workflow, and React Native for mobile developers.
+This package provides scripts and tools for managing Amplify projects in
+continuous integration environments, and for local developer setup of
+integration test environments.
 
-This package provides scripts and tools for managing Amplify projects in continuous integration environments, and for local developer setup of integration test environments.
+To deploy resources necessary to run the Android SDK's integration
+tests, [see here](./src/integ_test_resources/android/sdk/integration/cdk/README.md).
+
+----------------
+
+[amplify.aws](https://amplify.aws/)
+
