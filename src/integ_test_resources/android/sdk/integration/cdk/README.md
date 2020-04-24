@@ -1,12 +1,22 @@
-Each test suite has a separate CDK stack that can be used to set up the resources required to run that test suite.
+# Usage
 
-Let's take aws-android-sdk-pinpoint-test as an example. To bring up the resources required (which for this test suite are a Pinpoint application and a Cognito identity pool), run the following:
+Each test suite has a separate CDK stack that can be used to set up the
+resources required to run that test suite.
 
-$ npm install -g aws-cdk
-$ cd integ_test_resources/android-sdk/cdk_integration_tests_android
-$ pip install -r requirements.txt    # Best to do this in a virtualenv
-$ cdk synth PinpointStack            # Synthesizes the CloudFormation template
-$ cdk deploy PinpointStack           # Deploys the CloudFormation template
+Let's take aws-android-sdk-pinpoint-test as an example. To bring up the
+resources required (which for this test suite are a Pinpoint application and a
+Cognito identity pool), run the following:
 
-# Afterwards
-$ cdk destroy
+```console
+npm install -g aws-cdk
+cd integ_test_resources/android-sdk/cdk_integration_tests_android
+pip install -r requirements.txt    # Best to do this in a virtualenv
+cdk synth PinpointStack            # Synthesizes the CloudFormation template
+cdk deploy PinpointStack           # Deploys the CloudFormation template
+```
+
+Afterwards, to bring down the stack:
+
+```console
+cdk destroy
+```
