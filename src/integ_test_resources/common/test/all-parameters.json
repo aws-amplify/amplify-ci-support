@@ -1,0 +1,37 @@
+{
+    "Parameters": [
+        {
+            "Name": "/mobile-sdk/android/apigateway/api_key",
+            "Type": "String",
+            "Value": "someapikeyhere",
+            "Version": 1,
+            "LastModifiedDate": 1587870915.994,
+            "ARN": "arn:aws:ssm:us-east-1:000000000000:parameter/mobile-sdk/android/apigateway/api_key"
+        },
+        {
+            "Name": "/mobile-sdk/android/apigateway/endpoint_us_east_1",
+            "Type": "String",
+            "Value": "https://redactedapi.execute-api.us-east-1.amazonaws.com/prod/",
+            "Version": 1,
+            "LastModifiedDate": 1587870936.543,
+            "ARN": "arn:aws:ssm:us-east-1:000000000000:parameter/mobile-sdk/android/apigateway/endpoint_us_east_1"
+        },
+        {
+            "Name": "/mobile-sdk/android/apigateway/endpoint_us_east_2",
+            "Type": "String",
+            "Value": "https://redactedapi.execute-api.us-east-2.amazonaws.com/prod",
+            "Version": 1,
+            "LastModifiedDate": 1587870915.953,
+            "ARN": "arn:aws:ssm:us-east-1:000000000000:parameter/mobile-sdk/android/apigateway/endpoint_us_east_2"
+        },
+        {
+            "Name": "/mobile-sdk/android/core/identity_pool_id",
+            "Type": "String",
+            "Value": "us-east-1:00000000-3c37-43d7-8fe6-3e0a65985b02",
+            "Version": 1,
+            "LastModifiedDate": 1587871215.489,
+            "ARN": "arn:aws:ssm:us-east-1:000000000000:parameter/mobile-sdk/android/core/identity_pool_id"
+        }
+    ]
+}
+
