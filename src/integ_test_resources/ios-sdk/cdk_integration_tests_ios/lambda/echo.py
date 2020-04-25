@@ -1,19 +1,30 @@
 import json
 
-ECHO_EVENT_VERSION = 3
+ECHO_EVENT_VERSION = 2
 
 
 def handler(event, context):
+    print("request: {}".format(json.dumps(event)))
 
-    print('request: {}'.format(json.dumps(event)))
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'text/plain'
-        },
-        'body': json.dumps('{{echoEventVersion: {}}}'.format(ECHO_EVENT_VERSION)),
-        'isBase64Encoded': False
-    }
+    if "isError" in event and event["isError"]:
+        raise AttributeError("Invalid Request")
+
+    event["echoEventVersion"] = ECHO_EVENT_VERSION
+
+    if isProxyRequest(event):
+        response = {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "text/plain"
+            },
+            "body": json.dumps(event),
+            "isBase64Encoded": False
+        }
+    else:
+        response = event
+
+    return response
+
 
 def isProxyRequest(event):
-    return True
+    return "resource" in event and "requestContext" in event
