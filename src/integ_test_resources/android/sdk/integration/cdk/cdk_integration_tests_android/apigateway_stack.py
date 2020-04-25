@@ -11,8 +11,6 @@ class ApiGatewayStack(core.Stack):
     ENDPOINT = 'https://{id}.execute-api.us-east-2.amazonaws.com/prod'
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
-        self.stack = 'apigateway'
-
         super().__init__(scope, id, **kwargs)
 
         # Create API

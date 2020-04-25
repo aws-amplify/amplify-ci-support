@@ -10,9 +10,9 @@ from cdk_integration_tests_android.textract_stack import TextractStack
 
 app = core.App()
 
-ApiGatewayStack(app, 'cdk-integration-tests-android-apigateway')
-CoreStack(app, 'cdk-integration-tests-android-core')
-PinpointStack(app, 'cdk-integration-tests-android-pinpoint')
-TextractStack(app, 'cdk-integration-tests-android-textract')
+ApiGatewayStack(app, 'apigateway')
+CoreStack(app, 'core')
+PinpointStack(app, 'pinpoint')
+TextractStack(app, 'textract')
 
 app.synth()

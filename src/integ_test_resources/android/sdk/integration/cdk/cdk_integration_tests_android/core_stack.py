@@ -10,8 +10,6 @@ from parameters import string_parameter
 class CoreStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
-        self.stack = 'core'
-
         super().__init__(scope, id, **kwargs)
 
         # Create the Cognito identity pool

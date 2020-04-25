@@ -7,16 +7,12 @@ NAMESPACE = ('mobile-sdk', 'android')
 
 
 def string_parameter(
-        scope: core.Construct,
+        scope: core.Stack,
         key: str,
         value: str
 ) -> ssm.StringParameter:
     """
     Saves a string parameter to the AWS Systems Manager Parameter Store.
-
-    This method saves the given value under a key. Scopes passed to this method
-    must include a `stack` attribute which is used in forming the fully
-    qualified parameter name.
 
     The fully qualified parameter name will always start with mobile-sdk and
     android, followed by the stack name, and the passed key name. For example,
@@ -25,7 +21,7 @@ def string_parameter(
 
     /mobile-sdk/android/apigateway/api_name
     """
-    tail = (scope.stack, key)
+    tail = (scope.stack_name, key)
     resource_id = '_'.join(tail)
     fqpn = '/' + '/'.join(NAMESPACE + tail)
 
