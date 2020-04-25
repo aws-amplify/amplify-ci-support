@@ -1,16 +1,11 @@
 import setuptools
 
-
-with open("README.md") as fp:
-    long_description = fp.read()
-
-
 setuptools.setup(
     name="cdk_integration_tests_ios",
     version="0.0.1",
 
     description="An empty CDK Python app",
-    long_description=long_description,
+    long_description="TODO: Fill",
     long_description_content_type="text/markdown",
 
     author="author",
@@ -21,7 +16,9 @@ setuptools.setup(
     install_requires=[
         "aws-cdk.core==1.34.1",
         "aws-cdk.aws-lambda",
-        "aws-cdk.aws-apigateway"
+        "aws-cdk.aws-apigateway",
+        "aws-cdk.aws-cloudformation",
+        "aws-cdk.aws-cognito"
     ],
 
     python_requires=">=3.6",
