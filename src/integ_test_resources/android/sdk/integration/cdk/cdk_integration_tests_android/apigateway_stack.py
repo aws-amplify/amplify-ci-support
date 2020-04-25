@@ -3,12 +3,16 @@ import random
 from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import core
 
+from parameters import string_parameter
+
 
 class ApiGatewayStack(core.Stack):
     HTTPBIN_URL_TEMPLATE = 'http://httpbin.org/{method}'
     ENDPOINT = 'https://{id}.execute-api.us-east-2.amazonaws.com/prod'
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+        self.stack = 'apigateway'
+
         super().__init__(scope, id, **kwargs)
 
         # Create API
@@ -58,12 +62,13 @@ class ApiGatewayStack(core.Stack):
             integration = apigateway.HttpIntegration(url, http_method=method)
             echo.add_method(method.upper(), integration)
 
-        # Output endpoint of the API, the pretend endpoint, and API key
+        # Create SSM parameters for the endpoint of the API, a pretend
+        # endpoint, and the API key
         pretend_endpoint = self.ENDPOINT.format(id=self.random_hex(10))
 
-        core.CfnOutput(self, 'endpoint_us_east_1', value=api.url)
-        core.CfnOutput(self, 'endpoint_us_east_2', value=pretend_endpoint)
-        core.CfnOutput(self, 'api_key', value=api_key_value)
+        string_parameter(self, 'endpoint_us_east_1', api.url)
+        string_parameter(self, 'endpoint_us_east_2', pretend_endpoint)
+        string_parameter(self, 'api_key', api_key_value)
 
     def random_hex(self, length):
         rand = '%x' % random.randrange(10**80)
