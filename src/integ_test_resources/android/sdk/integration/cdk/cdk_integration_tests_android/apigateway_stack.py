@@ -60,12 +60,10 @@ class ApiGatewayStack(core.Stack):
             integration = apigateway.HttpIntegration(url, http_method=method)
             echo.add_method(method.upper(), integration)
 
-        # Create SSM parameters for the endpoint of the API, a pretend
-        # endpoint, and the API key
+        # Create SSM parameters for the endpoint of the API and the API key
         pretend_endpoint = self.ENDPOINT.format(id=self.random_hex(10))
 
-        string_parameter(self, 'endpoint_us_east_1', api.url)
-        string_parameter(self, 'endpoint_us_east_2', pretend_endpoint)
+        string_parameter(self, 'endpoint', api.url)
         string_parameter(self, 'api_key', api_key_value)
 
     def random_hex(self, length):
