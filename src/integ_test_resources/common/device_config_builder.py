@@ -60,7 +60,7 @@ class DeviceConfigBuilder:
         """
         key = key.strip('/')
         first_slash_pos = key.find('/')
-        if first_slash_pos is -1:
+        if first_slash_pos == -1:
             # If the key didn't have a '/', its just a simple leaf, and
             # we can store the value, here.
             all_package_data[key] = value
@@ -149,7 +149,7 @@ class DeviceConfigBuilder:
         }, indent=2))
 
 if __name__ == "__main__":
-    if len(sys.argv) is not 2:
+    if len(sys.argv) != 2:
         raise Exception('Usage: ' + sys.argv[0] + ' <ios|android>')
     config_builder = DeviceConfigBuilder(sys.argv[1])
     config_builder.print_device_config()
