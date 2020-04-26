@@ -5,6 +5,7 @@ from aws_cdk import(
     aws_cloudformation,
     aws_iam
 )
+from parameter_store import string_parameter
 
 
 class ApigatewayStack(core.Stack):
@@ -16,12 +17,18 @@ class ApigatewayStack(core.Stack):
                  circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
 
-        super().__init__(scope, id, **kwargs)
+        super().__init__(scope,
+                         id,
+                         **kwargs)
+
+        self.stackId = id
 
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
-        core.CfnOutput(self, "endpointurl", value=endpoint.url)
+        string_parameter(self,
+                         "apiEndpoint",
+                         endpoint.url)
 
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[

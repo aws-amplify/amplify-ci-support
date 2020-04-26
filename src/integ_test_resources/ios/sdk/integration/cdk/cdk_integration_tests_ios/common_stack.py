@@ -1,18 +1,25 @@
 from aws_cdk import(
     core,
-    aws_lambda,
-    aws_iam
+    aws_iam,
 )
+
+from parameter_store import string_parameter
 
 class CommonStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
+        super().__init__(scope,
+                         id,
+                         **kwargs)
+        self.stackId = id
 
         circleci_execution_role = aws_iam.Role(self,
                                                "circleci_execution_role",
                                                assumed_by=aws_iam.AccountPrincipal(self.account))
-        core.CfnOutput(self, "circleciexecutionrolearn", value=circleci_execution_role.role_arn)
+        string_parameter(self,
+                         "circleci_execution_role",
+                         circleci_execution_role.role_arn)
+
         self._circleci_execution_role = circleci_execution_role
 
     @property
