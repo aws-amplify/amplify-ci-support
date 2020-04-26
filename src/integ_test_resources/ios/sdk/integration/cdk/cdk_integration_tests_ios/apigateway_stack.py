@@ -5,8 +5,8 @@ from aws_cdk import(
     aws_cloudformation,
     aws_iam
 )
-from parameter_store import string_parameter
 
+from parameter_store import string_parameter
 
 class ApigatewayStack(core.Stack):
 
@@ -17,15 +17,12 @@ class ApigatewayStack(core.Stack):
                  circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
 
-        super().__init__(scope,
-                         id,
-                         **kwargs)
-
-        self.stackId = id
+        super().__init__(scope, id, **kwargs)
 
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
+
         string_parameter(self,
                          "apiEndpoint",
                          endpoint.url)

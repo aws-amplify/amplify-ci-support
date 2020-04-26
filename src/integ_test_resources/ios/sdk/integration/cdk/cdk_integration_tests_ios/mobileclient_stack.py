@@ -6,7 +6,6 @@ from aws_cdk import(
 )
 from parameter_store import string_parameter
 
-
 class MobileclientStack(core.Stack):
 
     def __init__(self,
@@ -15,10 +14,7 @@ class MobileclientStack(core.Stack):
                  circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
 
-        super().__init__(scope,
-                         id,
-                         **kwargs)
-        self.stackId = id
+        super().__init__(scope, id, **kwargs)
 
         user_pool = aws_cognito.UserPool(self,
                                          "mobileclient_userpool",

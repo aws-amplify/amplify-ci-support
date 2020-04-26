@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from aws_cdk import(
     core,
     aws_lambda,
@@ -48,7 +47,6 @@ class LambdaStack(core.Stack):
                          echo2.function_name)
 
         self._lambda_echo_function = echo
-
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[
                                                                           "lambda:*"],
