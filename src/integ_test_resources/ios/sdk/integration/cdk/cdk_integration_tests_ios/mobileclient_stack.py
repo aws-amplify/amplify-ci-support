@@ -18,7 +18,6 @@ class MobileclientStack(core.Stack):
         super().__init__(scope,
                          id,
                          **kwargs)
-        self.stackId = id
 
         user_pool = aws_cognito.UserPool(self,
                                          "mobileclient_userpool",

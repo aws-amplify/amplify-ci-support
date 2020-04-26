@@ -19,7 +19,6 @@ class LambdaStack(core.Stack):
         super().__init__(scope,
                          id,
                          **kwargs)
-        self.stackId = id
 
         echo = aws_lambda.Function(self,
                                    "echo",
