@@ -4,6 +4,7 @@ from aws_cdk import(
     aws_cognito,
     aws_iam
 )
+from parameter_store import string_parameter
 
 
 class MobileclientStack(core.Stack):
@@ -13,7 +14,11 @@ class MobileclientStack(core.Stack):
                  id: str,
                  circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
+
+        super().__init__(scope,
+                         id,
+                         **kwargs)
+        self.stackId = id
 
         user_pool = aws_cognito.UserPool(self,
                                          "mobileclient_userpool",
@@ -93,8 +98,8 @@ class MobileclientStack(core.Stack):
                                                                                   "authenticated": identity_pool_auth_role.role_arn
                                                                               })
 
-        core.CfnOutput(self, "userpoolid", value=user_pool.user_pool_id)
-        core.CfnOutput(self, "identitypoolid", value=identity_pool.ref)
+        string_parameter(self, "userpool_id", user_pool.user_pool_id)
+        string_parameter(self, "pool_id_dev_auth", identity_pool.ref)
 
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[
