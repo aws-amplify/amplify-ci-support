@@ -1,9 +1,9 @@
-from aws_cdk import (
-    core,
-    aws_pinpoint,
-    aws_cognito,
-    aws_iam
-)
+from aws_cdk import aws_pinpoint as pinpoint
+from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_iam as iam
+from aws_cdk import core
+
+from parameters import string_parameter
 
 
 class PinpointStack(core.Stack):
@@ -11,18 +11,18 @@ class PinpointStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        app = aws_pinpoint.CfnApp(self, 'android-integ-test',
+        app = pinpoint.CfnApp(self, 'android-integ-test',
                                   name='android-integ-test')
 
-        identity_pool = aws_cognito.CfnIdentityPool(
+        identity_pool = cognito.CfnIdentityPool(
             self,
             'pinpoint_integ_test_android',
             allow_unauthenticated_identities=True)
 
-        unauthenticated_role = aws_iam.Role(
+        unauthenticated_role = iam.Role(
             self,
             'CognitoDefaultUnauthenticatedRole',
-            assumed_by=aws_iam.FederatedPrincipal(
+            assumed_by=iam.FederatedPrincipal(
                 'cognito-identity.amazonaws.com', {
                     'StringEquals': {'cognito-identity.amazonaws.com:aud':
                                      identity_pool.ref},
@@ -30,15 +30,15 @@ class PinpointStack(core.Stack):
                         'cognito-identity.amazonaws.com:amr':
                         'unauthenticated'},
                 }, 'sts:AssumeRoleWithWebIdentity'))
-        unauthenticated_role.add_to_policy(aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        unauthenticated_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=[
                 'cognito-sync:*',
                 'mobiletargeting:PutEvents'
             ],
             resources=['*']
         ))
-        aws_cognito.CfnIdentityPoolRoleAttachment(
+        cognito.CfnIdentityPoolRoleAttachment(
             self,
             'DefaultValid',
             identity_pool_id=identity_pool.ref,
@@ -47,5 +47,6 @@ class PinpointStack(core.Stack):
             }
         )
 
-        core.CfnOutput(self, 'identity_pool_id', value=identity_pool.ref)
-        core.CfnOutput(self, 'app_id', value=app.ref)
+        string_parameter(self, 'identity_pool_id', identity_pool.ref)
+        string_parameter(self, 'AppId', app.ref)
+        string_parameter(self, 'Region', core.Aws.REGION)
