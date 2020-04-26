@@ -20,7 +20,8 @@ setuptools.setup(
         "aws-cdk.aws-cloudformation",
         "aws-cdk.aws-cognito",
         "aws-cdk.aws-iam",
-        "aws-cdk.aws-ssm"
+        "aws-cdk.aws-ssm",
+        "aws-cdk.aws-pinpoint"
     ],
 
     python_requires=">=3.6",

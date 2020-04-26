@@ -21,8 +21,6 @@ class ApigatewayStack(core.Stack):
                          id,
                          **kwargs)
 
-        self.stackId = id
-
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
@@ -34,5 +32,3 @@ class ApigatewayStack(core.Stack):
                                                                       actions=[
                                                                           "apigateway:*"],
                                                                       resources=["*"]))
-
-

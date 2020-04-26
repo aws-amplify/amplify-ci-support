@@ -11,7 +11,6 @@ class CommonStack(core.Stack):
         super().__init__(scope,
                          id,
                          **kwargs)
-        self.stackId = id
 
         circleci_execution_role = aws_iam.Role(self,
                                                "circleci_execution_role",
