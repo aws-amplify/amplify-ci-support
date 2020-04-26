@@ -44,3 +44,12 @@ Afterwards, to destroy the stack:
 cdk destroy 'pinpoint'
 ```
 
+## Caveats
+
+The S3 suite requires use of some public buckets. As a result, you need
+to *allow* public buckets in your account, at all. (By default, AWS no
+long does, for security reasons.) This step only needs to be performed
+once, on the test account.
+
+[Instructions to allow S3 public access, here](https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#console-block-public-access-options)
+
