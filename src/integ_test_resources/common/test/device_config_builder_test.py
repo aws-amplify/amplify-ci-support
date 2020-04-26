@@ -80,7 +80,7 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
         aws_config = self.underTest.aws_config_from_environment()
 
-        self.assertEquals(
+        self.assertEqual(
             DeviceConfigBuilder.AWSConfig('accessKey', 'secretKey', 'sessionToken', 'defaultRegion'),
             aws_config
         )

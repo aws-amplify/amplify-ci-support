@@ -4,7 +4,7 @@ import boto3
 import json
 import os
 import sys
-from enum import Enum
+from collections import namedtuple
 
 class DeviceConfigBuilder:
     """
@@ -28,38 +28,9 @@ class DeviceConfigBuilder:
             raise Exception('Platform must be one of: android, ios.')
         self.platform = platform
 
-    class AWSConfig:
-        """
-        A POPO to contain session credentials and the user's election of
-        default region of operation.
-        """
-        def __init__(self, accessKey, secretKey, sessionToken, defaultRegion):
-            self.accessKey = accessKey
-            self.secretKey = secretKey
-            self.sessionToken = sessionToken
-            self.defaultRegion = defaultRegion
-
-        def __eq__(self, obj):
-            if self.accessKey != obj.accessKey:
-                return False
-            elif self.secretKey != obj.secretKey:
-                return False
-            elif self.sessionToken != obj.sessionToken:
-                return False
-            return self.defaultRegion == obj.defaultRegion
+    AWSConfig = namedtuple('AWSConfig', 'accessKey secretKey sessionToken defaultRegion')
 
     def build_package_data(self, prefix: str, parameters: dict) -> dict:
-        """
-        {
-          "baz": {
-            "baz_key_1": "baz_value_1",
-            "baz_key_2": "baz_value_2"
-          },
-          "potato": {
-            "potato_key_1": "potato_value_1"
-          }
-        }
-        """
         all_packages_data = dict()
         for parameter in parameters:
             name = parameter['Name'][len(prefix):]
@@ -105,7 +76,7 @@ class DeviceConfigBuilder:
 
     def get_parameters_with_prefix(self, parameter_prefix: str, ssm) -> dict:
         """
-        Call SSM and get all paramers that begin with a given path.
+        Call SSM and get all parameters that begin with a given path.
         """
         parameters = list()
         paginator = ssm.get_paginator('get_parameters_by_path')
@@ -146,11 +117,11 @@ class DeviceConfigBuilder:
         running the CDK scripts.
         """
         return DeviceConfigBuilder.AWSConfig(
-            accessKey=os.environ['AWS_ACCESS_KEY_ID'],
-            secretKey=os.environ['AWS_SECRET_ACCESS_KEY'],
-            sessionToken=os.environ['AWS_SESSION_TOKEN'],
-            defaultRegion=os.environ['AWS_DEFAULT_REGION']
-        )
+            os.environ['AWS_ACCESS_KEY_ID'],
+            os.environ['AWS_SECRET_ACCESS_KEY'],
+            os.environ['AWS_SESSION_TOKEN'],
+            os.environ['AWS_DEFAULT_REGION']
+       )
     
     def print_device_config(self) -> None:
         """
