@@ -7,6 +7,7 @@ from cdk_integration_tests_android.cloudwatch_stack import CloudwatchStack
 from cdk_integration_tests_android.core_stack import CoreStack
 from cdk_integration_tests_android.iot_stack import IotStack
 from cdk_integration_tests_android.kinesis_stack import KinesisStack
+from cdk_integration_tests_android.lambda_stack import LambdaStack
 from cdk_integration_tests_android.pinpoint_stack import PinpointStack
 from cdk_integration_tests_android.s3_stack import S3Stack
 from common.common_stack import CommonStack
@@ -46,6 +47,10 @@ kinesis_stack = KinesisStack(app,
                              'kinesis',
                              common_stack)
 
+lambda_stack = LambdaStack(app,
+                           'lambda',
+                           common_stack)
+
 pinpoint_stack = PinpointStack(app,
                                'pinpoint',
                                common_stack)
@@ -60,6 +65,7 @@ stacks_in_app = [
     core_stack,
     iot_stack,
     kinesis_stack,
+    lambda_stack,
     pinpoint_stack,
     s3_stack
 ]
@@ -67,6 +73,5 @@ stacks_in_app = [
 add_stack_dependency_on_common_stack(stacks_in_app=stacks_in_app,
                                      common_stack=common_stack)
 main_stack.add_dependencies_with_region_filter(stacks_to_add=stacks_in_app)
-
 
 app.synth()
