@@ -27,7 +27,7 @@ The script will produce a JSON structure that looks like this:
     "pinpoint": {
       "key1": "val2"
     },
-    "textract": {
+    "s3": {
       "key1": "val2"
     }
   }
@@ -45,7 +45,7 @@ above are used to make the call. Only parameters that begin
 `/mobile-sdk/<platform>` are considered. Parameters are expected to have
 the form: `/mobile-sdk/<platform>/<suitelabel>/<keypath>`.
 
-`<suitelabel>` is like `pinpoint` or `textract`.
+`<suitelabel>` is like `pinpoint` or `s3`.
 
 `<platform>` is like `ios` or `android`.
 
