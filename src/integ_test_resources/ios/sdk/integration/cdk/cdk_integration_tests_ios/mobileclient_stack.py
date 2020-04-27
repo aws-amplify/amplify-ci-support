@@ -5,7 +5,7 @@ from aws_cdk import(
     aws_iam
 )
 from parameter_store import string_parameter
-
+from auth_utils import construct_identity_pool
 
 class MobileclientStack(core.Stack):
 
@@ -20,82 +20,23 @@ class MobileclientStack(core.Stack):
                          **kwargs)
 
         user_pool = aws_cognito.UserPool(self,
-                                         "mobileclient_userpool",
+                                         "userpool",
                                          required_attributes=aws_cognito.RequiredAttributes(email=True),
                                          self_sign_up_enabled=True,
                                          auto_verify=aws_cognito.AutoVerifiedAttrs(email=True))
 
         user_pool_client = aws_cognito.UserPoolClient(self,
-                                                      "mobileclient_userpool_client",
+                                                      "userpool_client",
                                                       generate_secret=False,
                                                       user_pool=user_pool)
+        cognito_identity_providers = [{
+            "client_id": user_pool_client.user_pool_client_id,
+            "provider_name": user_pool.user_pool_provider_name,
+            "server_side_token_check": False
+        }]
 
-        identity_pool = aws_cognito.CfnIdentityPool(self,
-                                                    "mobileclient_identity_pool",
-                                                    allow_unauthenticated_identities=True,
-                                                    # TODO:: Fix Identity Providers
-                                                    # cognito_identity_providers=[
-                                                    #     {"client_id" : user_pool_client.user_pool_client_id,
-                                                    #      "provider_name" : user_pool.user_pool_provider_name,
-                                                    #      "provider_type": "Google"}]
-                                                    )
-
-        identity_pool_auth_role_condition = {
-            "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": identity_pool.ref
-            },
-            "ForAnyValue:StringLike": {
-                "cognito-identity.amazonaws.com:amr": "authenticated"
-            },
-        }
-
-        identity_pool_unauth_role_condition = {
-            "StringEquals": {
-                "cognito-identity.amazonaws.com:aud": identity_pool.ref
-            },
-            "ForAnyValue:StringLike": {
-                "cognito-identity.amazonaws.com:amr": "unauthenticated"
-            },
-        }
-
-        identity_pool_unauth_role = aws_iam.Role(self,
-                                                 "CognitoDefaultUnauthenticatedRole",
-                                                 assumed_by=aws_iam.FederatedPrincipal("cognito-identity.amazonaws.com",
-                                                                                       identity_pool_unauth_role_condition,
-                                                                                       "sts:AssumeRoleWithWebIdentity")
-                                                 )
-        identity_pool_unauth_role.add_to_policy(aws_iam.PolicyStatement(
-                                                    effect=aws_iam.Effect.ALLOW,
-                                                    actions=[
-                                                        "mobileanalytics:PutEvents",
-                                                        "cognito-sync:*",
-                                                        "cognito-identity:*"
-                                                    ],
-                                                    resources=["*"]
-                                                ))
-        identity_pool_auth_role = aws_iam.Role(self,
-                                               "CognitoDefaultAuthenticatedRole",
-                                               assumed_by=aws_iam.FederatedPrincipal("cognito-identity.amazonaws.com",
-                                                                                    identity_pool_auth_role_condition,
-                                                                                     "sts:AssumeRoleWithWebIdentity")
-                                               )
-        identity_pool_auth_role.add_to_policy(aws_iam.PolicyStatement(
-                                                    effect=aws_iam.Effect.ALLOW,
-                                                    actions=[
-                                                        "mobileanalytics:PutEvents",
-                                                        "cognito-sync:*",
-                                                        "cognito-identity:*"
-                                                    ],
-                                                    resources=["*"]
-                                                ))
-
-        identity_pool_role_attach = aws_cognito.CfnIdentityPoolRoleAttachment(self,
-                                                                              "IdentityPoolRoleAttach",
-                                                                              identity_pool_id=identity_pool.ref,
-                                                                              roles={
-                                                                                  "unauthenticated": identity_pool_unauth_role.role_arn,
-                                                                                  "authenticated": identity_pool_auth_role.role_arn
-                                                                              })
+        (identity_pool, _, _) = construct_identity_pool(self,
+                                                        cognito_identity_providers = cognito_identity_providers)
 
         string_parameter(self, "userpool_id", user_pool.user_pool_id)
         string_parameter(self, "pool_id_dev_auth", identity_pool.ref)

@@ -8,11 +8,17 @@ from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileclientStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
+from cdk_integration_tests_ios.core_stack import CoreStack
 
 
 app = core.App()
 
 common_stack = CommonStack(app, "common")
+
+core_stack = CoreStack(app,
+                       "core",
+                       common_stack.circleci_execution_role)
+core_stack.add_dependency(common_stack)
 
 lambda_stack = LambdaStack(app,
                            "lambda",
@@ -38,6 +44,7 @@ pinpoint_stack.add_dependency(common_stack)
 
 main_stack = MainStack(app, "main")
 main_stack.add_dependency(common_stack)
+main_stack.add_dependency(core_stack)
 main_stack.add_dependency(lambda_stack)
 main_stack.add_dependency(apigateway_stack)
 main_stack.add_dependency(mobileclient_stack)
