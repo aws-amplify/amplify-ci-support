@@ -29,14 +29,16 @@ class MobileclientStack(core.Stack):
                                                       "userpool_client",
                                                       generate_secret=False,
                                                       user_pool=user_pool)
+
         cognito_identity_providers = [{
-            "client_id": user_pool_client.user_pool_client_id,
-            "provider_name": user_pool.user_pool_provider_name,
-            "server_side_token_check": False
+            "clientId": user_pool_client.user_pool_client_id,
+            "providerName": user_pool.user_pool_provider_name
         }]
 
         (identity_pool, _, _) = construct_identity_pool(self,
-                                                        cognito_identity_providers = cognito_identity_providers)
+                                                        resource_id_prefix="mobileclient",
+                                                        cognito_identity_providers = cognito_identity_providers,
+                                                        )
 
         string_parameter(self, "userpool_id", user_pool.user_pool_id)
         string_parameter(self, "pool_id_dev_auth", identity_pool.ref)
