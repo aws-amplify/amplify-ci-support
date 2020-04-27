@@ -1,16 +1,26 @@
 import random
 
 from aws_cdk import aws_apigateway as apigateway
+from aws_cdk import aws_iam as iam
 from aws_cdk import core
 
-from parameters import string_parameter
+import sys
+import os
+sys.path.append(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), '../../../../..'))
+from common.parameters import string_parameter
 
 
 class ApiGatewayStack(core.Stack):
     HTTPBIN_URL_TEMPLATE = 'http://httpbin.org/{method}'
     ENDPOINT = 'https://{id}.execute-api.us-east-2.amazonaws.com/prod'
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self,
+                 scope: core.Construct,
+                 id: str,
+                 circleci_execution_role: iam.Role,
+                 **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Create API
@@ -65,6 +75,11 @@ class ApiGatewayStack(core.Stack):
 
         string_parameter(self, 'endpoint', api.url)
         string_parameter(self, 'api_key', api_key_value)
+
+        circleci_execution_role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["apigateway:*"], resources=["*"]))
 
     def random_hex(self, length):
         rand = '%x' % random.randrange(10**80)

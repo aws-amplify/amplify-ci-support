@@ -1,7 +1,10 @@
 aws_cdk.aws_apigateway
 aws_cdk.aws_cognito
 aws_cdk.aws_iam
+aws_cdk.aws_kinesisfirehose
 aws_cdk.aws_kms
+aws_cdk.aws_logs
 aws_cdk.aws_pinpoint
+aws-cdk.aws_s3
 aws_cdk.aws_ssm
 aws_cdk.core
