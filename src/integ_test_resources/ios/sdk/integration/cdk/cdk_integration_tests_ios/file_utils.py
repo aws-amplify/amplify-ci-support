@@ -1,6 +1,8 @@
 import re, os
 
-def replace_in_file(file_path: str, pattern: str, substitute: str):
+def replace_in_file(file_path: str,
+                    pattern: str,
+                    substitute: str) -> None:
     """
     Find the pattern in the file and substitute it.
     """
