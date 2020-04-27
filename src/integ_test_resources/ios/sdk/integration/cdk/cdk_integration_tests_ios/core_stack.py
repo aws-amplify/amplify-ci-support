@@ -22,8 +22,8 @@ class CoreStack(core.Stack):
 
         ## TODO:: Move to Secrets Manager and fetch inside the tests
         ## Blocker:: Need Secrets Manager iOS SDK
-        FACEBOOK_APP_ID = "336035153157769"
-        FACEBOOK_APP_SECRET = "f5763dd3ca920305dadb7e1f794926e8"
+        FACEBOOK_APP_ID = ""
+        FACEBOOK_APP_SECRET = ""
         supported_login_providers = {
             "graph.facebook.com": FACEBOOK_APP_ID
         }
