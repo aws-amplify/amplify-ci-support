@@ -5,17 +5,21 @@ from aws_cdk import(
 )
 
 from parameter_store import save_string_parameter
+from common_stack import CommonStack
+from cdk_stack_extension import CDKStackExtension
 
-class PinpointStack(core.Stack):
+class PinpointStack(CDKStackExtension):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 circleci_execution_role: aws_iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
         super().__init__(scope,
                          id,
                          **kwargs)
+
+        self._supported_in_region = self.is_service_supported_in_region()
 
         app = aws_pinpoint.CfnApp(self,
                                   "integ_test_app",
@@ -25,19 +29,13 @@ class PinpointStack(core.Stack):
                               "pinpointAppId",
                               app.ref)
 
-        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
-                                                                      actions=[
-                                                                          "mobileanalytics:putEvents",
-                                                                          "mobiletargeting:PutEvents",
-                                                                          "mobiletargeting:UpdateEndpoint"
-                                                                      ],
-                                                                      resources=["*"]))
-        self._app = app
+        stack_policy = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                               actions=[
+                                                   "mobileanalytics:putEvents",
+                                                   "mobiletargeting:PutEvents",
+                                                   "mobiletargeting:UpdateEndpoint"
+                                               ],
+                                               resources=["*"])
 
-    # @property
-    # def app(self) -> aws_pinpoint.CfnApp:
-    #     return self._app
-    #
-    # @app.setter
-    # def app(self, value):
-    #     self._app = value
+        common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
+        self._app = app
