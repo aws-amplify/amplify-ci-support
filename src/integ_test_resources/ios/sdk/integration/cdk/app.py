@@ -3,15 +3,14 @@ import json
 
 from aws_cdk import core
 
-from cdk_integration_tests_ios.common_stack import CommonStack
-from cdk_integration_tests_ios.main_stack import MainStack
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
-from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
-from cdk_integration_tests_ios.lambda_stack import LambdaStack
-from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
+from cdk_integration_tests_ios.common_stack import CommonStack
 from cdk_integration_tests_ios.core_stack import CoreStack
+from cdk_integration_tests_ios.lambda_stack import LambdaStack
+from cdk_integration_tests_ios.main_stack import MainStack
+from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
+from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
 from secrets_manager import get_ios_integ_tests_secrets
-
 
 app = core.App()
 ios_integ_tests_secrets = json.loads(get_ios_integ_tests_secrets())
@@ -55,5 +54,3 @@ main_stack.add_dependency(apigateway_stack)
 main_stack.add_dependency(mobileclient_stack)
 main_stack.add_dependency(pinpoint_stack)
 app.synth()
-
-
