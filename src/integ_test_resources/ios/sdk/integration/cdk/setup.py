@@ -5,7 +5,7 @@ setuptools.setup(
     version="0.0.1",
 
     description="An empty CDK Python app",
-    long_description="TODO: Fill",
+    long_description="Set up AWS resources for running integration tests of the AWS SDK for iOS",
     long_description_content_type="text/markdown",
 
     author="author",

@@ -5,7 +5,7 @@ from aws_cdk import(
 )
 
 from auth_utils import construct_identity_pool
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 
 
 class CoreStack(core.Stack):
@@ -14,18 +14,16 @@ class CoreStack(core.Stack):
                  scope: core.Construct,
                  id: str,
                  circleci_execution_role: aws_iam.Role,
+                 facebook_app_id: str,
+                 facebook_app_secret: str,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
 
-        ## TODO:: Move to Secrets Manager and fetch inside the tests
-        ## Blocker:: Need Secrets Manager iOS SDK
-        FACEBOOK_APP_ID = ""
-        FACEBOOK_APP_SECRET = ""
         supported_login_providers = {
-            "graph.facebook.com": FACEBOOK_APP_ID
+            "graph.facebook.com": facebook_app_id
         }
 
         (identity_pool_with_facebook,
@@ -44,7 +42,7 @@ class CoreStack(core.Stack):
 
         wic_provider_test_role_condition = {
             "StringEquals": {
-                "graph.facebook.com:app_id": FACEBOOK_APP_ID
+                "graph.facebook.com:app_id": facebook_app_id
             }
         }
 
@@ -62,13 +60,13 @@ class CoreStack(core.Stack):
                                                 resources=["*"]
                                             ))
 
-        string_parameter(self, "identityPoolId", identity_pool_with_facebook.ref)
-        string_parameter(self, "unauthIdentityPoolId", unauth_identity_pool.ref)
-        string_parameter(self, "authRoleArn", identity_pool_auth_role.role_arn)
-        string_parameter(self, "unauthRoleArn", identity_pool_unauth_role.role_arn)
-        string_parameter(self, "WICProviderTestRoleArn", wic_provider_test_role.role_arn)
-        string_parameter(self, "facebookAppId", FACEBOOK_APP_ID)
-        string_parameter(self, "facebookAppSecret", FACEBOOK_APP_SECRET)
+        save_string_parameter(self, "identityPoolId", identity_pool_with_facebook.ref)
+        save_string_parameter(self, "unauthIdentityPoolId", unauth_identity_pool.ref)
+        save_string_parameter(self, "authRoleArn", identity_pool_auth_role.role_arn)
+        save_string_parameter(self, "unauthRoleArn", identity_pool_unauth_role.role_arn)
+        save_string_parameter(self, "WICProviderTestRoleArn", wic_provider_test_role.role_arn)
+        save_string_parameter(self, "facebookAppId", facebook_app_id)
+        save_string_parameter(self, "facebookAppSecret", facebook_app_secret)
 
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[

@@ -4,7 +4,7 @@ from aws_cdk import(
     aws_iam
 )
 
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 
 class PinpointStack(core.Stack):
 
@@ -20,9 +20,10 @@ class PinpointStack(core.Stack):
         app = aws_pinpoint.CfnApp(self,
                                   "integ_test_app",
                                   name="integ_test_app")
-        string_parameter(self,
-                         "pinpointAppId",
-                         app.ref)
+
+        save_string_parameter(self,
+                              "pinpointAppId",
+                              app.ref)
 
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[
@@ -33,10 +34,10 @@ class PinpointStack(core.Stack):
                                                                       resources=["*"]))
         self._app = app
 
-    @property
-    def app(self) -> aws_pinpoint.CfnApp:
-        return self._app
-
-    @app.setter
-    def app(self, value):
-        self._app = value
+    # @property
+    # def app(self) -> aws_pinpoint.CfnApp:
+    #     return self._app
+    #
+    # @app.setter
+    # def app(self, value):
+    #     self._app = value

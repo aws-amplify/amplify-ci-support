@@ -5,7 +5,7 @@ from aws_cdk import(
     aws_cloudformation,
     aws_iam
 )
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 
 
 class ApigatewayStack(core.Stack):
@@ -24,7 +24,7 @@ class ApigatewayStack(core.Stack):
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
-        string_parameter(self,
+        save_string_parameter(self,
                          "apiEndpoint",
                          endpoint.url)
 

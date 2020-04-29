@@ -4,10 +4,10 @@ from aws_cdk import(
     aws_cognito,
     aws_iam
 )
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 from auth_utils import construct_identity_pool
 
-class MobileclientStack(core.Stack):
+class MobileClientStack(core.Stack):
 
     def __init__(self,
                  scope: core.Construct,
@@ -40,8 +40,8 @@ class MobileclientStack(core.Stack):
                                                         cognito_identity_providers = cognito_identity_providers,
                                                         )
 
-        string_parameter(self, "userpool_id", user_pool.user_pool_id)
-        string_parameter(self, "pool_id_dev_auth", identity_pool.ref)
+        save_string_parameter(self, "userpool_id", user_pool.user_pool_id)
+        save_string_parameter(self, "pool_id_dev_auth", identity_pool.ref)
 
         circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                                       actions=[

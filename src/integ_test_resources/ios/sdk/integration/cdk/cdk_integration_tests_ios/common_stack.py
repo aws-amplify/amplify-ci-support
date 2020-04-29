@@ -3,7 +3,7 @@ from aws_cdk import(
     aws_iam,
 )
 
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 
 class CommonStack(core.Stack):
 
@@ -15,9 +15,9 @@ class CommonStack(core.Stack):
         circleci_execution_role = aws_iam.Role(self,
                                                "circleci_execution_role",
                                                assumed_by=aws_iam.AccountPrincipal(self.account))
-        string_parameter(self,
-                         "circleci_execution_role",
-                         circleci_execution_role.role_arn)
+        save_string_parameter(self,
+                              "circleci_execution_role",
+                              circleci_execution_role.role_arn)
 
         self._circleci_execution_role = circleci_execution_role
 
