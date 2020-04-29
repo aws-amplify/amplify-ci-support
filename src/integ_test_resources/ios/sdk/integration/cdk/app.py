@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
+import json
 
 from aws_cdk import core
 
 from cdk_integration_tests_ios.common_stack import CommonStack
 from cdk_integration_tests_ios.main_stack import MainStack
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
-from cdk_integration_tests_ios.mobileclient_stack import MobileclientStack
+from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
 from cdk_integration_tests_ios.core_stack import CoreStack
+from secrets_manager import get_ios_integ_tests_secrets
 
 
 app = core.App()
+ios_integ_tests_secrets = json.loads(get_ios_integ_tests_secrets())
 
 common_stack = CommonStack(app, "common")
 
 core_stack = CoreStack(app,
                        "core",
-                       common_stack.circleci_execution_role)
+                       common_stack.circleci_execution_role,
+                       facebook_app_id=ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_ID"],
+                       facebook_app_secret=ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_SECRET"])
 core_stack.add_dependency(common_stack)
 
 lambda_stack = LambdaStack(app,
@@ -32,7 +37,7 @@ apigateway_stack = ApigatewayStack(app,
 
 apigateway_stack.add_dependency(lambda_stack)
 
-mobileclient_stack = MobileclientStack(app,
+mobileclient_stack = MobileClientStack(app,
                                        "mobileclient",
                                        common_stack.circleci_execution_role)
 mobileclient_stack.add_dependency(common_stack)

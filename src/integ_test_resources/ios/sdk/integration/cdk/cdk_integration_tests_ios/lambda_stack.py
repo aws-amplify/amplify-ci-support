@@ -5,7 +5,7 @@ from aws_cdk import(
     aws_lambda,
     aws_iam
 )
-from parameter_store import string_parameter
+from parameter_store import save_string_parameter
 from file_utils import replace_in_file
 
 class LambdaStack(core.Stack):
@@ -28,8 +28,6 @@ class LambdaStack(core.Stack):
                                    description=datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)"),
                                    current_version_options=aws_lambda.VersionOptions(removal_policy=core.RemovalPolicy.RETAIN))
 
-        # echo_version_1 = self.create_version(echo, "1")
-        # echo_version_2 = self.create_version(echo, "2")
         self.attach_alias_to_version(echo.current_version, "Version2Alias")
 
         echo2 = aws_lambda.Function(self,
@@ -38,13 +36,13 @@ class LambdaStack(core.Stack):
                                     code=aws_lambda.Code.asset("lambda"),
                                     handler="echo.handler")
 
-        string_parameter(self,
-                         "echo_function_name",
-                         echo.function_name)
+        save_string_parameter(self,
+                              "echo_function_name",
+                              echo.function_name)
 
-        string_parameter(self,
-                         "echo2_function_name",
-                         echo2.function_name)
+        save_string_parameter(self,
+                              "echo2_function_name",
+                              echo2.function_name)
 
         self._lambda_echo_function = echo
 
@@ -81,10 +79,5 @@ class LambdaStack(core.Stack):
                         "ECHO_EVENT_VERSION = {}".format(version))
 
         current_version =  lambda_function.add_version(name=version)
-        ## Also tried using:
-        # current_version = aws_lambda.Version(self,
-        #                                      "Version" + version,
-        #                                      lambda_ = lambda_function,
-        #                                      removal_policy=core.RemovalPolicy.RETAIN)
         self.attach_alias_to_version(version_obj=current_version,
                                      alias="Version{}Alias".format(version))

@@ -8,7 +8,7 @@ from aws_cdk import(
 NAMESPACE = ('mobile-sdk', 'ios')
 
 
-def string_parameter(scope: core.Stack, key: str, value: str) -> None:
+def save_string_parameter(scope: core.Stack, key: str, value: str) -> None:
     """
     Saves a string parameter to the Amazon Systems Manager Parameter Store.
     This method saves the given value under a key. Scopes passed to this method
