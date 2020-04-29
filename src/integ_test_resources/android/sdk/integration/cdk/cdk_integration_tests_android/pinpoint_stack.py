@@ -3,11 +3,6 @@ from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
 from aws_cdk import core
 
-import sys
-import os
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '../../../../..'))
 from common.parameters import string_parameter
 
 

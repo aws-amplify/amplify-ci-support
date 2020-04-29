@@ -5,11 +5,6 @@ from aws_cdk import aws_kinesisfirehose as firehose
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
-import sys
-import os
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '../../../../..'))
 from common.parameters import string_parameter
 
 

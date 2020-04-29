@@ -11,11 +11,6 @@ from cdk_integration_tests_android.main_stack import MainStack
 from cdk_integration_tests_android.pinpoint_stack import PinpointStack
 from cdk_integration_tests_android.s3_stack import S3Stack
 
-import sys
-import os
-sys.path.append(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '../../../..'))
 from common.common_stack import CommonStack
 
 

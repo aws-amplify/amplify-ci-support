@@ -1,6 +1,4 @@
-from aws_cdk import(
-    core
-)
+from aws_cdk import core
 
 class MainStack(core.Stack):
 
