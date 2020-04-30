@@ -9,12 +9,10 @@ from cdk_integration_tests_android.iot_stack import IotStack
 from cdk_integration_tests_android.kinesis_stack import KinesisStack
 from cdk_integration_tests_android.pinpoint_stack import PinpointStack
 from cdk_integration_tests_android.s3_stack import S3Stack
-
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
-from common.stack_utils import add_stack_dependency_on_common_stack
 from common.platforms import Platform
-
+from common.stack_utils import add_stack_dependency_on_common_stack
 
 app = core.App()
 

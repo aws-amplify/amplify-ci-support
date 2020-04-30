@@ -1,8 +1,7 @@
-from aws_cdk import(
-    aws_ssm,
-    core
-)
+from aws_cdk import aws_ssm, core
+
 from common.platforms import Platform
+
 
 def save_string_parameter(scope: core.Stack,
                           key: str,

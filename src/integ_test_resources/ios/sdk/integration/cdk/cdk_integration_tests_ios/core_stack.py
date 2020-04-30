@@ -1,13 +1,13 @@
 import json
-from aws_cdk import(
-    core,
-    aws_iam
-)
+
+from aws_cdk import aws_iam, core
+
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
-from common.region_aware_stack import RegionAwareStack
 from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 from common.secrets_manager import get_integ_tests_secrets
+
 
 class CoreStack(RegionAwareStack):
 
@@ -97,6 +97,3 @@ class CoreStack(RegionAwareStack):
         ))
 
         self.parameters_to_save["WICProviderTestRoleArn"] = wic_provider_test_role.role_arn
-
-
-

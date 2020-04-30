@@ -1,7 +1,7 @@
-from aws_cdk import(
-    core
-)
+from aws_cdk import core
+
 from common.region_aware_stack import RegionAwareStack
+
 
 class MainStack(RegionAwareStack):
 

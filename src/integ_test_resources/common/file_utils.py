@@ -1,4 +1,6 @@
-import re, os
+import os
+import re
+
 
 def replace_in_file(file_path: str,
                     pattern: str,

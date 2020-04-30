@@ -1,11 +1,8 @@
-from aws_cdk import(
-    core,
-    aws_lambda,
-    aws_apigateway
-)
+from aws_cdk import aws_apigateway, aws_lambda, core
+
 from common.common_stack import CommonStack
-from common.region_aware_stack import RegionAwareStack
 from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
 class ApigatewayStack(RegionAwareStack):

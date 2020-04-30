@@ -2,8 +2,9 @@ from aws_cdk import aws_iam as iam
 from aws_cdk import aws_logs as logs
 from aws_cdk import core
 
-from common.region_aware_stack import RegionAwareStack
 from common.common_stack import CommonStack
+from common.region_aware_stack import RegionAwareStack
+
 
 class CloudwatchStack(RegionAwareStack):
 

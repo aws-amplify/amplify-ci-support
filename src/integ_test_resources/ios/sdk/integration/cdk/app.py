@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-import sys
-import os
 
 from aws_cdk import core
-from common.common_stack import CommonStack
-from common.stack_utils import add_stack_dependency_on_common_stack
-from common.platforms import Platform
 
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
 from cdk_integration_tests_ios.core_stack import CoreStack
@@ -13,6 +8,9 @@ from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.main_stack import MainStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
+from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.stack_utils import add_stack_dependency_on_common_stack
 
 app = core.App()
 

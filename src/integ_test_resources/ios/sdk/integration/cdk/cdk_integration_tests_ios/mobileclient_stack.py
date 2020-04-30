@@ -1,12 +1,10 @@
-from aws_cdk import(
-    core,
-    aws_cognito,
-    aws_iam
-)
+from aws_cdk import aws_cognito, aws_iam, core
+
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
-from common.region_aware_stack import RegionAwareStack
 from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
+
 
 class MobileClientStack(RegionAwareStack):
 

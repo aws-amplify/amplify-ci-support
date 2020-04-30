@@ -1,10 +1,8 @@
-from aws_cdk import(
-    core,
-    aws_pinpoint,
-    aws_iam
-)
+from aws_cdk import aws_iam, aws_pinpoint, core
+
 from common.common_stack import CommonStack
 from common.region_aware_stack import RegionAwareStack
+
 
 class PinpointStack(RegionAwareStack):
 

@@ -1,7 +1,10 @@
-import boto3
 import base64
+
+import boto3
 from botocore.exceptions import ClientError
+
 from common.platforms import Platform
+
 
 def get_integ_tests_secrets(platform: Platform) -> str:
     secret_name = "{}_integ_tests_secrets".format(platform.value)

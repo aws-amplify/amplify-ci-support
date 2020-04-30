@@ -1,13 +1,12 @@
 from datetime import datetime
 
-from aws_cdk import(
-    core,
-    aws_lambda
-)
-from common.file_utils import replace_in_file
+from aws_cdk import aws_lambda, core
+
 from common.common_stack import CommonStack
-from common.region_aware_stack import RegionAwareStack
+from common.file_utils import replace_in_file
 from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
+
 
 class LambdaStack(RegionAwareStack):
 

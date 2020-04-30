@@ -3,9 +3,9 @@ from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
-from common.region_aware_stack import RegionAwareStack
-from common.platforms import Platform
 from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
 class S3Stack(RegionAwareStack):

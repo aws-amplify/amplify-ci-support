@@ -1,10 +1,11 @@
-from aws_cdk import(
-    core
-)
+import os
+
+from aws_cdk import core
 from boto3.session import Session
+
 from common.parameter_store import save_string_parameter
 from common.platforms import Platform
-import os
+
 
 class RegionAwareStack(core.Stack):
 

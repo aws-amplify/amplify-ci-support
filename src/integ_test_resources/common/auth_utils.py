@@ -1,8 +1,5 @@
-from aws_cdk import(
-    aws_cognito,
-    aws_iam,
-    core
-)
+from aws_cdk import aws_cognito, aws_iam, core
+
 
 def construct_identity_pool(scope: core.Construct,
                             resource_id_prefix: str,

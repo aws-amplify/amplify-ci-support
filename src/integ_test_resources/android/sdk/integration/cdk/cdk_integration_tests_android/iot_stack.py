@@ -2,9 +2,9 @@ from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
 from aws_cdk import core
 
-from common.region_aware_stack import RegionAwareStack
-from common.platforms import Platform
 from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
 class IotStack(RegionAwareStack):
