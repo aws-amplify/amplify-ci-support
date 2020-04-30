@@ -140,12 +140,12 @@ class DeviceConfigBuilder:
         parameters = self.get_parameters_with_prefix(parameter_prefix, ssm)
         package_data = self.build_package_data(parameter_prefix, parameters)
         print(json.dumps({
-            'credentials': {
+            'Credentials': {
                 'accessKey': aws_config.accessKey,
                 'secretKey': aws_config.secretKey,
                 'sessionToken': aws_config.sessionToken
             },
-            'packages': package_data
+            'Packages': package_data
         }, indent=2))
 
 if __name__ == "__main__":
