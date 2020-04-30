@@ -1,16 +1,14 @@
 from aws_cdk import(
     core,
     aws_lambda,
-    aws_apigateway,
-    aws_cloudformation,
-    aws_iam
+    aws_apigateway
 )
-from parameter_store import save_string_parameter
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
+from common.common_stack import CommonStack
+from common.region_aware_stack import RegionAwareStack
+from common.platforms import Platform
 
 
-class ApigatewayStack(CDKStackExtension):
+class ApigatewayStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
@@ -23,13 +21,15 @@ class ApigatewayStack(CDKStackExtension):
                          id,
                          **kwargs)
 
-        self._supported_in_region = self.is_service_supported_in_region("apigateway")
+        self._supported_in_region = self.is_service_supported_in_region()
 
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
-        save_string_parameter(self,
-                              "endpointURL",
-                              endpoint.url)
+
+        self._parameters_to_save = {
+            "endpointURL": endpoint.url
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
         common_stack.add_to_common_role_policies(self)

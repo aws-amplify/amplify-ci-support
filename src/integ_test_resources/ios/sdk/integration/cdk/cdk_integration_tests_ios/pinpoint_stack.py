@@ -3,12 +3,10 @@ from aws_cdk import(
     aws_pinpoint,
     aws_iam
 )
+from common.common_stack import CommonStack
+from common.region_aware_stack import RegionAwareStack
 
-from parameter_store import save_string_parameter
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
-
-class PinpointStack(CDKStackExtension):
+class PinpointStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
@@ -25,9 +23,8 @@ class PinpointStack(CDKStackExtension):
                                   "integ_test_app",
                                   name="integ_test_app")
 
-        save_string_parameter(self,
-                              "pinpointAppId",
-                              app.ref)
+        self._parameters_to_save = {"pinpointAppId": app.ref}
+        self.save_parameters_in_parameter_store()
 
         stack_policy = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                actions=[
@@ -38,4 +35,3 @@ class PinpointStack(CDKStackExtension):
                                                resources=["*"])
 
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
-        self._app = app

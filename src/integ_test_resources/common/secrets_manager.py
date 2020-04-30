@@ -1,12 +1,12 @@
 import boto3
 import base64
 from botocore.exceptions import ClientError
+from common.platforms import Platform
 
-
-def get_integ_tests_secrets(platform: str) -> str:
-    secret_name = "{}_integ_tests_secrets".format(platform)
-
-    region_name = "us-east-1" ## using constant region as these secrets are static & created outside of this app
+def get_integ_tests_secrets(platform: Platform) -> str:
+    secret_name = "{}_integ_tests_secrets".format(platform.value)
+    ## using constant region as these secrets are static & created outside of this app
+    region_name = "us-east-1"
 
     # Create a Secrets Manager client
     session = boto3.session.Session()

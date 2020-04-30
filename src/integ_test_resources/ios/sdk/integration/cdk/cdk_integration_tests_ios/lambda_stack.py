@@ -2,15 +2,14 @@ from datetime import datetime
 
 from aws_cdk import(
     core,
-    aws_lambda,
-    aws_iam
+    aws_lambda
 )
-from parameter_store import save_string_parameter
-from file_utils import replace_in_file
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
+from common.file_utils import replace_in_file
+from common.common_stack import CommonStack
+from common.region_aware_stack import RegionAwareStack
+from common.platforms import Platform
 
-class LambdaStack(CDKStackExtension):
+class LambdaStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
@@ -40,13 +39,11 @@ class LambdaStack(CDKStackExtension):
                                     code=aws_lambda.Code.asset("lambda"),
                                     handler="echo.handler")
 
-        save_string_parameter(self,
-                              "echo_function_name",
-                              echo.function_name)
-
-        save_string_parameter(self,
-                              "echo2_function_name",
-                              echo2.function_name)
+        self._parameters_to_save = {
+            "echo_function_name": echo.function_name,
+            "echo2_function_name": echo2.function_name
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
         self._lambda_echo_function = echo
 
