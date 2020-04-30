@@ -6,9 +6,8 @@ import pathlib
 import sys
 import unittest
 
-from device_config_builder import DeviceConfigBuilder
-
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + '/..')
+from device_config_builder import DeviceConfigBuilder
 
 class TestDeviceConfigBuilder(unittest.TestCase):
     def __init__(self, *args, **kwargs):
