@@ -68,6 +68,26 @@ class TestDeviceConfigBuilder(unittest.TestCase):
         )
 
 
+    def test_get_credential_data(self):
+        environment_variables = {
+            'AWS_ACCESS_KEY_ID': 'accessKey',
+            'AWS_SECRET_ACCESS_KEY': 'secretKey',
+            'AWS_SESSION_TOKEN': 'sessionToken'
+        }
+        for key, value in environment_variables.items():
+            os.environ[key] = value
+
+        credentials_data = self.underTest.get_credentials_data()
+
+        self.assertEqual(
+            {
+                'accessKey': 'accessKey',
+                'secretKey': 'secretKey',
+                'sessionToken': 'sessionToken'
+            },
+            credentials_data
+        )
+
     def test_aws_config_from_environment(self):
         environment_variables = {
             'AWS_ACCESS_KEY_ID': 'accessKey',
