@@ -26,7 +26,6 @@ def save_string_parameter(scope: core.Stack,
     tail = (scope.stack_name, key)
     resource_id = "param_" + key
     parameter_name = '/' + '/'.join(NAMESPACE + tail)
-    print(parameter_name)
 
     aws_ssm.StringParameter(scope,
                             resource_id,

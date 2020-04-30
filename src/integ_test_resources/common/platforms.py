@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class Platform(Enum):
-    IOS = "ios",
+    IOS = "ios"
     ANDROID = "android"

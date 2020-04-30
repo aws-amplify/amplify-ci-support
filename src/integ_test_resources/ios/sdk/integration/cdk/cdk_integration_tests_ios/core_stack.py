@@ -1,6 +1,7 @@
 import json
 
 from aws_cdk import aws_iam, core
+from aws_cdk import aws_cognito
 
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
@@ -25,9 +26,16 @@ class CoreStack(RegionAwareStack):
 
         (self._facebook_app_id, self._facebook_app_secret) = self.get_facebook_app_config()
 
+        supported_login_providers = {
+            "graph.facebook.com": self._facebook_app_id
+        }
         (identity_pool_with_facebook,
          identity_pool_auth_role,
-         identity_pool_unauth_role) = self.construct_identity_pool_with_facebook_as_idp()
+         identity_pool_unauth_role) = construct_identity_pool(self,
+                                                           resource_id_prefix="core",
+                                                           supported_login_providers=supported_login_providers,
+                                                           developer_provider_name="iostests.com"
+                                                           )
 
         (unauth_identity_pool, _, _) = construct_identity_pool(self,
                                                                resource_id_prefix="core2",
@@ -48,32 +56,35 @@ class CoreStack(RegionAwareStack):
 
         stack_policy = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
                                                 actions=[
-                                                    "cognito-identity:*",
+                                                    "cognito-identity:*"
                                                 ],
                                                 resources=["*"])
 
         common_stack.add_to_common_role_policies(self,
                                                  policy_to_add=stack_policy)
 
-        self.save_parameters_in_parameter_store()
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def get_facebook_app_config(self) -> tuple:
 
         ios_integ_tests_secrets = json.loads(get_integ_tests_secrets(platform=Platform.IOS))
-        facebook_app_id = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_ID"],
+        facebook_app_id = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_ID"]
         facebook_app_secret = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_SECRET"]
         return (facebook_app_id, facebook_app_secret)
 
-    def construct_identity_pool_with_facebook_as_idp(self) -> tuple:
+    def construct_identity_pool_with_facebook_as_idp(self) -> (aws_cognito.CfnIdentityPool,
+                                          aws_iam.Role,
+                                          aws_iam.Role):
 
         supported_login_providers = {
             "graph.facebook.com": self._facebook_app_id
         }
-        construct_identity_pool(self,
-                                resource_id_prefix="core",
-                                supported_login_providers=supported_login_providers,
-                                developer_provider_name="iostests.com"
-                                )
+        (identity_pool, auth_role, unauth_role) = construct_identity_pool(self,
+                                       resource_id_prefix="core",
+                                       supported_login_providers=supported_login_providers,
+                                       developer_provider_name="iostests.com"
+                                       )
+        return (identity_pool, auth_role, unauth_role)
 
     def create_wic_provider_test_role(self) -> None:
         wic_provider_test_role_condition = {
@@ -91,7 +102,7 @@ class CoreStack(RegionAwareStack):
         wic_provider_test_role.add_to_policy(aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=[
-                "translate:TranslateText",
+                "translate:TranslateText"
             ],
             resources=["*"]
         ))
