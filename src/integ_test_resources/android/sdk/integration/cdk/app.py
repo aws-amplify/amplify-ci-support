@@ -16,6 +16,7 @@ from common.common_stack import CommonStack
 
 app = core.App()
 
+# Creates an execution role that can be used to run tests against the created resources
 common_stack = CommonStack(app, "common")
 
 apigateway_stack = ApiGatewayStack(app, 'apigateway', common_stack.circleci_execution_role)
@@ -33,6 +34,8 @@ pinpoint_stack.add_dependency(common_stack)
 s3_stack = S3Stack(app, 's3', common_stack.circleci_execution_role)
 s3_stack.add_dependency(common_stack)
 
+# The Main Stack is used to deploy all the resources that the tests will need.
+# Users can also choose to only deploy the resources for the test suite they are interested in.
 main_stack = MainStack(app, 'main')
 main_stack.add_dependency(apigateway_stack)
 main_stack.add_dependency(cloudwatch_stack)

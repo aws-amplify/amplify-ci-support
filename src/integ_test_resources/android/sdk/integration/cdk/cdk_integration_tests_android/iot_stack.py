@@ -23,13 +23,18 @@ class IotStack(core.Stack):
             self,
             'CognitoDefaultUnauthenticatedRole',
             assumed_by=iam.FederatedPrincipal(
-                'cognito-identity.amazonaws.com', {
-                    'StringEquals': {'cognito-identity.amazonaws.com:aud':
-                                     identity_pool.ref},
+                'cognito-identity.amazonaws.com',
+                {
+                    'StringEquals': {
+                        'cognito-identity.amazonaws.com:aud': identity_pool.ref
+                    },
                     'ForAnyValue:StringLike': {
-                        'cognito-identity.amazonaws.com:amr':
-                        'unauthenticated'},
-                }, 'sts:AssumeRoleWithWebIdentity'))
+                        'cognito-identity.amazonaws.com:amr': 'unauthenticated'
+                    },
+                },
+                'sts:AssumeRoleWithWebIdentity'
+            )
+        )
         unauthenticated_role.add_to_policy(iam.PolicyStatement(
             effect=iam.Effect.ALLOW,
             actions=[
