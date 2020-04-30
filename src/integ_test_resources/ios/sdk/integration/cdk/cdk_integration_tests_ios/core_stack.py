@@ -6,15 +6,14 @@ from aws_cdk import(
 
 from auth_utils import construct_identity_pool
 from parameter_store import save_string_parameter
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
 
-class CoreStack(CDKStackExtension):
+
+class CoreStack(core.Stack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 common_stack: CommonStack,
+                 circleci_execution_role: aws_iam.Role,
                  facebook_app_id: str,
                  facebook_app_secret: str,
                  **kwargs) -> None:
@@ -22,9 +21,6 @@ class CoreStack(CDKStackExtension):
         super().__init__(scope,
                          id,
                          **kwargs)
-
-        self._supported_in_region = self.are_services_supported_in_region(["cognito-identity",
-                                                                           "translate"])
 
         supported_login_providers = {
             "graph.facebook.com": facebook_app_id
@@ -72,10 +68,9 @@ class CoreStack(CDKStackExtension):
         save_string_parameter(self, "facebookAppId", facebook_app_id)
         save_string_parameter(self, "facebookAppSecret", facebook_app_secret)
 
-        stack_policy = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
-                                                actions=[
-                                                    "cognito-identity:*",
-                                                ],
-                                                resources=["*"])
+        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                                                      actions=[
+                                                                          "cognito-identity:*"],
+                                                                      resources=["*"]
+                                                                      ))
 
-        common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)

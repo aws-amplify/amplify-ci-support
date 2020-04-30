@@ -5,8 +5,7 @@ from botocore.exceptions import ClientError
 
 def get_ios_integ_tests_secrets():
     secret_name = "ios_integ_tests_secrets"
-
-    region_name = "us-east-1" ## using constant region as these secrets are static & created outside of this app
+    region_name = "us-east-1"
 
     # Create a Secrets Manager client
     session = boto3.session.Session()

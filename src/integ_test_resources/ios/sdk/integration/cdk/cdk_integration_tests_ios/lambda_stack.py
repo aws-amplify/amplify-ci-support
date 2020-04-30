@@ -7,22 +7,18 @@ from aws_cdk import(
 )
 from parameter_store import save_string_parameter
 from file_utils import replace_in_file
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
 
-class LambdaStack(CDKStackExtension):
+class LambdaStack(core.Stack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 common_stack: CommonStack,
+                 circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
-
-        self._supported_in_region = self.is_service_supported_in_region()
 
         echo = aws_lambda.Function(self,
                                    "echo",
@@ -50,7 +46,10 @@ class LambdaStack(CDKStackExtension):
 
         self._lambda_echo_function = echo
 
-        common_stack.add_to_common_role_policies(self)
+        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                                                      actions=[
+                                                                          "lambda:*"],
+                                                                      resources=["*"]))
 
     @property
     def lambda_echo_function(self) -> aws_lambda.IFunction:

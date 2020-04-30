@@ -10,9 +10,8 @@ def construct_identity_pool(scope: core.Construct,
                             supported_login_providers: dict = {},
                             developer_provider_name: str = None,
                             **kwargs) -> (aws_cognito.CfnIdentityPool,
-                                          aws_iam.Role,
-                                          aws_iam.Role):
-
+                                                                 aws_iam.Role,
+                                                                 aws_iam.Role):
     identity_pool = aws_cognito.CfnIdentityPool(scope,
                                                 resource_id_prefix + "_identity_pool",
                                                 allow_unauthenticated_identities=True,
@@ -82,3 +81,4 @@ def get_default_role_for_identity_pool(scope: core.Construct,
                         )
     role.add_to_policy(role_policy)
     return role
+

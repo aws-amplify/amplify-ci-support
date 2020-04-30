@@ -6,30 +6,29 @@ from aws_cdk import(
     aws_iam
 )
 from parameter_store import save_string_parameter
-from common_stack import CommonStack
-from cdk_stack_extension import CDKStackExtension
 
 
-class ApigatewayStack(CDKStackExtension):
+class ApigatewayStack(core.Stack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
                  lambda_echo: aws_lambda.Function,
-                 common_stack: CommonStack,
+                 circleci_execution_role: aws_iam.Role,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
 
-        self._supported_in_region = self.is_service_supported_in_region("apigateway")
-
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
         save_string_parameter(self,
-                              "endpointURL",
-                              endpoint.url)
+                         "apiEndpoint",
+                         endpoint.url)
 
-        common_stack.add_to_common_role_policies(self)
+        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                                                      actions=[
+                                                                          "apigateway:*"],
+                                                                      resources=["*"]))
