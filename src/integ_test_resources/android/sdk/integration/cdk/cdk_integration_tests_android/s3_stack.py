@@ -3,12 +3,16 @@ from aws_cdk import aws_kms as kms
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
-from parameters import string_parameter
+from common.parameters import string_parameter
 
 
 class S3Stack(core.Stack):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self,
+                 scope: core.Construct,
+                 id: str,
+                 circleci_execution_role: iam.Role,
+                 **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Create policy for KMS key
@@ -38,3 +42,8 @@ class S3Stack(core.Stack):
         string_parameter(self, 'bucket_with_sse_kms_enabled',
                          bucket.bucket_name)
         string_parameter(self, 'bucket_with_sse_kms_region', core.Aws.REGION)
+
+        circleci_execution_role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["s3:*"], resources=["*"]))

@@ -23,7 +23,9 @@ setuptools.setup(
         "aws-cdk.aws-pinpoint",
         "aws-cdk.aws_cognito",
         "aws-cdk.aws_iam",
-        "aws-cdk.aws_s3"
+        "aws-cdk.aws_s3",
+        "aws_cdk.aws_kinesisfirehose",
+        "aws_cdk.aws_logs"
     ],
 
     python_requires=">=3.6",
