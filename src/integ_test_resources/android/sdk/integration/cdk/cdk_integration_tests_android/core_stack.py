@@ -2,16 +2,12 @@ from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
 from aws_cdk import core
 
-from common.parameters import string_parameter
+from parameters import string_parameter
 
 
 class CoreStack(core.Stack):
 
-    def __init__(self,
-                 scope: core.Construct,
-                 id: str,
-                 circleci_execution_role: iam.Role,
-                 **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         identity_pools = [self.identity_pool(i) for i in range(2)]
@@ -19,11 +15,6 @@ class CoreStack(core.Stack):
         # Create an SSM parameter for the identity pool IDs
         string_parameter(self, 'identity_pool_id', identity_pools[0].ref)
         string_parameter(self, 'other_identity_pool_id', identity_pools[1].ref)
-
-        circleci_execution_role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["cognito-identity:*"], resources=["*"]))
 
     def identity_pool(self, id) -> None:
         # Create the Cognito identity pool
