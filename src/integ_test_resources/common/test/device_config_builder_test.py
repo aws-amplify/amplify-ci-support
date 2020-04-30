@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import os
 import json
+import os
+import pathlib
+import sys
 import unittest
 
-import sys
-import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + '/..')
 from device_config_builder import DeviceConfigBuilder
 
@@ -100,4 +100,3 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -1,34 +1,32 @@
-from aws_cdk import(
-    core,
-    aws_lambda,
-    aws_apigateway,
-    aws_cloudformation,
-    aws_iam
-)
-from parameter_store import save_string_parameter
+from aws_cdk import aws_apigateway, aws_lambda, core
+
+from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
-class ApigatewayStack(core.Stack):
+class ApigatewayStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
                  lambda_echo: aws_lambda.Function,
-                 circleci_execution_role: aws_iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
 
+        self._supported_in_region = self.is_service_supported_in_region()
+
         endpoint = aws_apigateway.LambdaRestApi(self,
                                                 "endpoint",
                                                 handler=lambda_echo)
-        save_string_parameter(self,
-                         "apiEndpoint",
-                         endpoint.url)
 
-        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
-                                                                      actions=[
-                                                                          "apigateway:*"],
-                                                                      resources=["*"]))
+        self._parameters_to_save = {
+            "endpointURL": endpoint.url
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
+
+        common_stack.add_to_common_role_policies(self)

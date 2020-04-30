@@ -5,17 +5,22 @@ from aws_cdk import aws_kinesisfirehose as firehose
 from aws_cdk import aws_s3 as s3
 from aws_cdk import core
 
-from common.parameters import string_parameter
+from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
-class KinesisStack(core.Stack):
+class KinesisStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 circleci_execution_role: iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        self._supported_in_region = self.are_services_supported_in_region(["cognito-identity",
+                                                                           "kinesis"])
 
         identity_pool = cognito.CfnIdentityPool(
             self,
@@ -88,10 +93,10 @@ class KinesisStack(core.Stack):
             'kinesis_firehose_recorder_test',
             s3_destination_configuration=s3_dest_config)
 
-        string_parameter(self, 'firehose_name', firehose_test.ref)
-        string_parameter(self, 'identity_pool_id', identity_pool.ref)
+        self._parameters_to_save = {
+            "firehose_name": firehose_test.ref,
+            "identity_pool_id": identity_pool.ref
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.ANDROID)
 
-        circleci_execution_role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["kinesis:*"], resources=["*"]))
+        common_stack.add_to_common_role_policies(self)

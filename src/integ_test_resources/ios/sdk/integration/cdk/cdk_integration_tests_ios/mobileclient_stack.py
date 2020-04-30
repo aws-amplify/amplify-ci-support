@@ -1,23 +1,25 @@
-from aws_cdk import(
-    core,
-    aws_cloudformation,
-    aws_cognito,
-    aws_iam
-)
-from parameter_store import save_string_parameter
-from auth_utils import construct_identity_pool
+from aws_cdk import aws_cognito, aws_iam, core
 
-class MobileClientStack(core.Stack):
+from common.auth_utils import construct_identity_pool
+from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
+
+
+class MobileClientStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 circleci_execution_role: aws_iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
+
+        self._supported_in_region = self.are_services_supported_in_region(["cognito-identity",
+                                                                           "cognito-idp"])
 
         user_pool = aws_cognito.UserPool(self,
                                          "userpool",
@@ -40,12 +42,16 @@ class MobileClientStack(core.Stack):
                                                         cognito_identity_providers = cognito_identity_providers,
                                                         )
 
-        save_string_parameter(self, "userpool_id", user_pool.user_pool_id)
-        save_string_parameter(self, "pool_id_dev_auth", identity_pool.ref)
+        self._parameters_to_save = {
+            "userpool_id": user_pool.user_pool_id,
+            "pool_id_dev_auth": identity_pool.ref
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
-        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
-                                                                      actions=[
-                                                                          "cognito-identity:*"],
-                                                                      resources=["*"]
-                                                                      ))
+        stack_policy = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                               actions=[
+                                                   "cognito-identity:*",
+                                               ],
+                                               resources=["*"])
 
+        common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)

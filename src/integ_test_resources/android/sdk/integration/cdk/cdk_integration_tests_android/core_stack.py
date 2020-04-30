@@ -2,28 +2,39 @@ from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
 from aws_cdk import core
 
-from common.parameters import string_parameter
+from common.common_stack import CommonStack
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
 
 
-class CoreStack(core.Stack):
+class CoreStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 circleci_execution_role: iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         identity_pools = [self.identity_pool(i) for i in range(2)]
 
-        # Create an SSM parameter for the identity pool IDs
-        string_parameter(self, 'identity_pool_id', identity_pools[0].ref)
-        string_parameter(self, 'other_identity_pool_id', identity_pools[1].ref)
+        self._supported_in_region = self.is_service_supported_in_region("cognito-identity")
 
-        circleci_execution_role.add_to_policy(
-            iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                actions=["cognito-identity:*"], resources=["*"]))
+        # Create an SSM parameter for the identity pool IDs
+        self._parameters_to_save = {
+            "identity_pool_id": identity_pools[0].ref,
+            "other_identity_pool_id": identity_pools[1].ref
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.ANDROID)
+
+        stack_policy = iam.PolicyStatement(effect=iam.Effect.ALLOW,
+                                               actions=[
+                                                   "cognito-identity:*",
+                                               ],
+                                               resources=["*"])
+
+        common_stack.add_to_common_role_policies(self,
+                                                 policy_to_add=stack_policy)
 
     def identity_pool(self, id) -> None:
         # Create the Cognito identity pool

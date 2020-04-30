@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-import boto3
 import json
 import os
 import sys
 from collections import namedtuple
+
+import boto3
+
 
 class DeviceConfigBuilder:
     """
@@ -153,4 +155,3 @@ if __name__ == "__main__":
         raise Exception('Usage: ' + sys.argv[0] + ' <ios|android>')
     config_builder = DeviceConfigBuilder(sys.argv[1])
     config_builder.print_device_config()
-

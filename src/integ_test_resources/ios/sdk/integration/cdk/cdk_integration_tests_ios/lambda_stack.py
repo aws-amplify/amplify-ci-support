@@ -1,24 +1,26 @@
 from datetime import datetime
 
-from aws_cdk import(
-    core,
-    aws_lambda,
-    aws_iam
-)
-from parameter_store import save_string_parameter
-from file_utils import replace_in_file
+from aws_cdk import aws_lambda, core
 
-class LambdaStack(core.Stack):
+from common.common_stack import CommonStack
+from common.file_utils import replace_in_file
+from common.platforms import Platform
+from common.region_aware_stack import RegionAwareStack
+
+
+class LambdaStack(RegionAwareStack):
 
     def __init__(self,
                  scope: core.Construct,
                  id: str,
-                 circleci_execution_role: aws_iam.Role,
+                 common_stack: CommonStack,
                  **kwargs) -> None:
 
         super().__init__(scope,
                          id,
                          **kwargs)
+
+        self._supported_in_region = self.is_service_supported_in_region()
 
         echo = aws_lambda.Function(self,
                                    "echo",
@@ -36,20 +38,15 @@ class LambdaStack(core.Stack):
                                     code=aws_lambda.Code.asset("lambda"),
                                     handler="echo.handler")
 
-        save_string_parameter(self,
-                              "echo_function_name",
-                              echo.function_name)
-
-        save_string_parameter(self,
-                              "echo2_function_name",
-                              echo2.function_name)
+        self._parameters_to_save = {
+            "echo_function_name": echo.function_name,
+            "echo2_function_name": echo2.function_name
+        }
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
         self._lambda_echo_function = echo
 
-        circleci_execution_role.add_to_policy(aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
-                                                                      actions=[
-                                                                          "lambda:*"],
-                                                                      resources=["*"]))
+        common_stack.add_to_common_role_policies(self)
 
     @property
     def lambda_echo_function(self) -> aws_lambda.IFunction:

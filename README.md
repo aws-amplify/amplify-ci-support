@@ -13,4 +13,3 @@ device, [see here](./src/integ_test_resources/common/README.md).
 ----------------
 
 [amplify.aws](https://amplify.aws/)
-

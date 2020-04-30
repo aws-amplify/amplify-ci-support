@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 sys.path.append(
     os.path.join(
         # include the amplify-ci-support resources from the ./common dir.
