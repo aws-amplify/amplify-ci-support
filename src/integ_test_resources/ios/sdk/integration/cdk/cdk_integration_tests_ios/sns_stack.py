@@ -1,4 +1,4 @@
-from aws_cdk import aws_iam, aws_sns, core
+from aws_cdk import aws_iam, core
 
 from common.common_stack import CommonStack
 from common.region_aware_stack import RegionAwareStack
