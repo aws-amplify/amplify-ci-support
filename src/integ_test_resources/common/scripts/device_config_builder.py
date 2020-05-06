@@ -87,7 +87,7 @@ class DeviceConfigBuilder:
             for parameter in page['Parameters']:
                 parameters.append(parameter)
         return parameters
-    
+
     def ssm_client(self, aws_config: AWSConfig):
         """
         Builds an SSM client using the provided Config.
@@ -99,21 +99,21 @@ class DeviceConfigBuilder:
             region_name=aws_config.defaultRegion
         )
         return session.client('ssm')
-    
+
     def aws_config_from_environment(self) -> AWSConfig:
         """
         Inpsects the environment for four well-known AWS environment
         variables, and populates their value into an Config bundle.
-    
+
         These credentials are used for two purposes:
           1. To call get-parameters-by-path against SSM, to understand
              the resource outputs of the various CDK scripts;
           2. For the execution of the test suites themselves, on the device.
-       
+
         As a consequence, these credentials must have permissions
         sufficient to read data out of SSM Parameter Store, as well as
         to execute all of the various test suites, both.
-    
+
         The default region is used only while talking to SSM. The
         provided region should be the same as what was used while
         running the CDK scripts.
@@ -124,7 +124,24 @@ class DeviceConfigBuilder:
             os.environ['AWS_SESSION_TOKEN'],
             os.environ['AWS_DEFAULT_REGION']
        )
-    
+
+    def get_package_data(self) -> dict:
+        aws_config = self.aws_config_from_environment()
+        parameter_prefix = self.STACK_PREFIX_BASE + '/' + self.platform
+        ssm = self.ssm_client(aws_config)
+        parameters = self.get_parameters_with_prefix(parameter_prefix, ssm)
+        package_data = self.build_package_data(parameter_prefix, parameters)
+        return package_data
+
+    def get_credentials_data(self) -> dict:
+        aws_config = self.aws_config_from_environment()
+        credentials_data = {
+            'accessKey': aws_config.accessKey,
+            'secretKey': aws_config.secretKey,
+            'sessionToken': aws_config.sessionToken
+        }
+        return credentials_data
+
     def print_device_config(self) -> None:
         """
         Obtains credentials from the environment (only). Builds a Simple
@@ -136,17 +153,10 @@ class DeviceConfigBuilder:
         device running the SDK integration tests. The output of this
         function may be piped to a file.
         """
-        aws_config = self.aws_config_from_environment()
-        parameter_prefix = self.STACK_PREFIX_BASE + '/' + self.platform
-        ssm = self.ssm_client(aws_config)
-        parameters = self.get_parameters_with_prefix(parameter_prefix, ssm)
-        package_data = self.build_package_data(parameter_prefix, parameters)
+        package_data = self.get_package_data()
+        credentials_data = self.get_credentials_data()
         print(json.dumps({
-            'credentials': {
-                'accessKey': aws_config.accessKey,
-                'secretKey': aws_config.secretKey,
-                'sessionToken': aws_config.sessionToken
-            },
+            'credentials': credentials_data,
             'packages': package_data
         }, indent=2))
 

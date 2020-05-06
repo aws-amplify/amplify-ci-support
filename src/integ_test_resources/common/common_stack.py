@@ -22,6 +22,13 @@ class CommonStack(RegionAwareStack):
                                                assumed_by=aws_iam.AccountPrincipal(self.account),
                                                max_session_duration=core.Duration.hours(4))
 
+        policy_to_add = aws_iam.PolicyStatement(effect=aws_iam.Effect.ALLOW,
+                                                actions=[
+                                                    "ssm:GetParameter", "ssm:GetParametersByPath"
+                                                ],
+                                                resources=["*"])
+        circleci_execution_role.add_to_policy(policy_to_add)
+
         self._circleci_execution_role = circleci_execution_role
         self._supported_in_region = True
         self._cognito_support_in_region = self.is_cognito_supported_in_region()
