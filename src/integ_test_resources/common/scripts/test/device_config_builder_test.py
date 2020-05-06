@@ -5,10 +5,10 @@ import os
 import pathlib
 import sys
 import unittest
-
-from device_config_builder import DeviceConfigBuilder
+from unittest.mock import patch
 
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
+from device_config_builder import DeviceConfigBuilder
 
 
 class TestDeviceConfigBuilder(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
     def test_build_package_data(self):
         prefix = "/mobile-sdk/android"
-        parameters = self.load_parameters()
+        parameters = TestDeviceConfigBuilder.load_parameters()
 
         package_data = self.underTest.build_package_data(prefix, parameters)
 
@@ -56,41 +56,35 @@ class TestDeviceConfigBuilder(unittest.TestCase):
         )
 
     def test_get_credential_data(self):
-        environment_variables = {
-            "AWS_ACCESS_KEY_ID": "accessKey",
-            "AWS_SECRET_ACCESS_KEY": "secretKey",
-            "AWS_SESSION_TOKEN": "sessionToken",
-        }
-        for key, value in environment_variables.items():
-            os.environ[key] = value
-
-        credentials_data = self.underTest.get_credentials_data()
-
-        self.assertEqual(
-            {"accessKey": "accessKey", "secretKey": "secretKey", "sessionToken": "sessionToken"},
-            credentials_data,
-        )
-
-    def test_aws_config_from_environment(self):
-        environment_variables = {
+        with patch.dict(os.environ, {
             "AWS_ACCESS_KEY_ID": "accessKey",
             "AWS_SECRET_ACCESS_KEY": "secretKey",
             "AWS_SESSION_TOKEN": "sessionToken",
             "AWS_DEFAULT_REGION": "defaultRegion",
-        }
-        for key, value in environment_variables.items():
-            os.environ[key] = value
+        }):
+            credentials_data = self.underTest.get_credentials_data()
+            self.assertEqual(
+                {"accessKey": "accessKey", "secretKey": "secretKey", "sessionToken": "sessionToken"},
+                credentials_data,
+            )
 
-        aws_config = self.underTest.aws_config_from_environment()
+    def test_aws_config_from_environment(self):
+        with patch.dict(os.environ, {
+            "AWS_ACCESS_KEY_ID": "accessKey",
+            "AWS_SECRET_ACCESS_KEY": "secretKey",
+            "AWS_SESSION_TOKEN": "sessionToken",
+            "AWS_DEFAULT_REGION": "defaultRegion",
+        }):
+            aws_config = self.underTest.aws_config_from_environment()
+            self.assertEqual(
+                DeviceConfigBuilder.AWSConfig(
+                    "accessKey", "secretKey", "sessionToken", "defaultRegion"
+                ),
+                aws_config,
+            )
 
-        self.assertEqual(
-            DeviceConfigBuilder.AWSConfig(
-                "accessKey", "secretKey", "sessionToken", "defaultRegion"
-            ),
-            aws_config,
-        )
-
-    def load_parameters(self):
+    @staticmethod
+    def load_parameters():
         """
         This method "stubs" out the result of calling SSM's
         get-parameters-by-prefix
