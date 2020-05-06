@@ -14,11 +14,9 @@ def handler(event, context):
     if isProxyRequest(event):
         response = {
             "statusCode": 200,
-            "headers": {
-                "Content-Type": "text/plain"
-            },
+            "headers": {"Content-Type": "text/plain"},
             "body": json.dumps(event),
-            "isBase64Encoded": False
+            "isBase64Encoded": False,
         }
     else:
         response = event
