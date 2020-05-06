@@ -1,2 +1,2 @@
 def handler(event, context):
-    return event['firstName']
+    return event["firstName"]
