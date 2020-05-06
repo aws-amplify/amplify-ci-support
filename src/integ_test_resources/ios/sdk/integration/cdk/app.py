@@ -7,6 +7,7 @@ from cdk_integration_tests_ios.core_stack import CoreStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
+from cdk_integration_tests_ios.sns_stack import SnsStack
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
 from common.platforms import Platform
@@ -30,7 +31,16 @@ mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
 
 pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
 
-stacks_in_app = [core_stack, lambda_stack, apigateway_stack, mobileclient_stack, pinpoint_stack]
+sns_stack = SnsStack(app, "sns", common_stack)
+
+stacks_in_app = [
+    core_stack,
+    apigateway_stack,
+    lambda_stack,
+    mobileclient_stack,
+    pinpoint_stack,
+    sns_stack
+]
 
 add_stack_dependency_on_common_stack(stacks_in_app=stacks_in_app, common_stack=common_stack)
 main_stack.add_dependencies_with_region_filter(stacks_to_add=stacks_in_app)
