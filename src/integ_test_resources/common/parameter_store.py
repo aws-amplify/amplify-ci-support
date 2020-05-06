@@ -3,10 +3,7 @@ from aws_cdk import aws_ssm, core
 from common.platforms import Platform
 
 
-def save_string_parameter(scope: core.Stack,
-                          key: str,
-                          value: str,
-                          platform: Platform) -> None:
+def save_string_parameter(scope: core.Stack, key: str, value: str, platform: Platform) -> None:
     """
     Saves a string parameter to the Amazon Systems Manager Parameter Store.
     This method saves the given value under a key. Scopes passed to this method
@@ -21,14 +18,12 @@ def save_string_parameter(scope: core.Stack,
 
     # Parameter names cannot be prefixed with the token 'aws', thus it is
     # conspicuously absent from the namespace. See: https://amzn.to/2VDaqtC
-    NAMESPACE = ('mobile-sdk', platform.value)
+    NAMESPACE = ("mobile-sdk", platform.value)
 
     tail = (scope.stack_name, key)
     resource_id = "param_" + key
-    parameter_name = '/' + '/'.join(NAMESPACE + tail)
+    parameter_name = "/" + "/".join(NAMESPACE + tail)
 
-    aws_ssm.StringParameter(scope,
-                            resource_id,
-                            string_value=value,
-                            parameter_name=parameter_name,
-                            simple_name=False)
+    aws_ssm.StringParameter(
+        scope, resource_id, string_value=value, parameter_name=parameter_name, simple_name=False
+    )
