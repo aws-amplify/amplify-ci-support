@@ -4,6 +4,7 @@ from aws_cdk import core
 
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
 from cdk_integration_tests_ios.autoscaling_stack import AutoScalingStack
+from cdk_integration_tests_ios.cloudwatch_stack import CloudWatchStack
 from cdk_integration_tests_ios.core_stack import CoreStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
@@ -30,19 +31,17 @@ apigateway_stack = ApigatewayStack(
 )
 
 autoscaling_stack = AutoScalingStack(app, "autoscaling", common_stack)
-
+cloudwatch_stack = CloudWatchStack(app, "cloudwatch", common_stack)
 mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
-
 pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
-
 sns_stack = SnsStack(app, "sns", common_stack)
-
 sts_stack = StsStack(app, "sts", common_stack)
 
 stacks_in_app = [
     core_stack,
     apigateway_stack,
     autoscaling_stack,
+    cloudwatch_stack,
     lambda_stack,
     mobileclient_stack,
     pinpoint_stack,
