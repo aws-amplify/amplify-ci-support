@@ -10,15 +10,16 @@ class SnsStack(RegionAwareStack):
 
         self._supported_in_region = self.is_service_supported_in_region()
 
-        all_resources_arn = self.format_arn(
-            resource="*",
-            service=id
-        )
-
         stack_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=["sns:ListTopics"],
-            resources=[all_resources_arn],
+            actions=[
+                "comprehend:BatchDetectEntities",
+                "comprehend:DetectDominantLanguage",
+                "comprehend:DetectEntities",
+                "comprehend:DetectKeyPhrases",
+                "comprehend:DetectSentiment"
+            ],
+            resources=["*"],
         )
 
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
