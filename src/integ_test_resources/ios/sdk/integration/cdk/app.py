@@ -9,6 +9,7 @@ from cdk_integration_tests_ios.cognito_idp_stack import CognitoIdpStack
 from cdk_integration_tests_ios.comprehend_stack import ComprehendStack
 from cdk_integration_tests_ios.core_stack import CoreStack
 from cdk_integration_tests_ios.dynamodb_stack import DynamoDbStack
+from cdk_integration_tests_ios.ec2_stack import Ec2Stack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
@@ -38,6 +39,7 @@ cloudwatch_stack = CloudWatchStack(app, "cloudwatch", common_stack)
 cognito_idp_stack = CognitoIdpStack(app, "cognito-idp", common_stack)
 comprehend_stack = ComprehendStack(app, "comprehend", common_stack)
 dynamodb_stack = DynamoDbStack(app, "dynamodb", common_stack)
+ec2_stack = Ec2Stack(app, "ec2", common_stack)
 mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
 pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
 sns_stack = SnsStack(app, "sns", common_stack)
@@ -51,6 +53,7 @@ stacks_in_app = [
     cognito_idp_stack,
     comprehend_stack,
     dynamodb_stack,
+    ec2_stack,
     lambda_stack,
     mobileclient_stack,
     pinpoint_stack,
