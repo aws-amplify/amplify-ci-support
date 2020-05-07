@@ -12,25 +12,17 @@ class CloudWatchStack(RegionAwareStack):
 
         all_resources_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=[
-                "cloudwatch:GetMetricStatistics",
-                "cloudwatch:ListMetrics"
-            ],
-            resources=["*"]
+            actions=["cloudwatch:GetMetricStatistics", "cloudwatch:ListMetrics"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
-        specified_resources_arn = (
-            "arn:aws:cloudwatch:{}:{}:alarm:*".format(
-                self.region,
-                self.account
-            )
+        specified_resources_arn = "arn:aws:cloudwatch:{}:{}:alarm:*".format(
+            self.region, self.account
         )
         specified_resources_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=[
-                "cloudwatch:DescribeAlarmHistory"
-            ],
-            resources=[specified_resources_arn]
+            actions=["cloudwatch:DescribeAlarmHistory"],
+            resources=[specified_resources_arn],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=specified_resources_policy)

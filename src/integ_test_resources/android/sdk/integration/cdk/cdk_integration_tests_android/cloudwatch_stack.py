@@ -11,8 +11,6 @@ class CloudwatchStack(RegionAwareStack):
 
         self._supported_in_region = self.is_service_supported_in_region()
 
-        logs.LogGroup(
-            self, "android-integ-test-log-group", log_group_name="com/amazonaws/tests"
-        )
+        logs.LogGroup(self, "android-integ-test-log-group", log_group_name="com/amazonaws/tests")
 
         common_stack.add_to_common_role_policies(self)

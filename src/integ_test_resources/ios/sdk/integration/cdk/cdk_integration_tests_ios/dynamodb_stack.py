@@ -11,11 +11,7 @@ class DynamoDbStack(RegionAwareStack):
         self._supported_in_region = self.is_service_supported_in_region()
 
         all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
-            actions=[
-                "dynamodb:ListTables"
-            ],
-            resources=["*"]
+            effect=aws_iam.Effect.ALLOW, actions=["dynamodb:ListTables"], resources=["*"]
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
@@ -33,8 +29,8 @@ class DynamoDbStack(RegionAwareStack):
                 "dynamodb:Query",
                 "dynamodb:Scan",
                 "dynamodb:UpdateItem",
-                "dynamodb:UpdateTable"
+                "dynamodb:UpdateTable",
             ],
-            resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"]
+            resources=[f"arn:aws:dynamodb:{self.region}:{self.account}:table/*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=table_resources_policy)

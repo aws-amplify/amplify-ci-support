@@ -12,24 +12,17 @@ class AutoScalingStack(RegionAwareStack):
 
         describe_account_limits_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=[
-                "autoscaling:DescribeAccountLimits"
-            ],
-            resources=["*"]
+            actions=["autoscaling:DescribeAccountLimits"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=describe_account_limits_policy)
 
-        attach_instances_arn = (
-            "arn:aws:autoscaling:{}:{}:autoScalingGroup:*:autoScalingGroupName/*".format(
-                self.region,
-                self.account
-            )
+        attach_instances_arn = "arn:aws:autoscaling:{}:{}:autoScalingGroup:*:autoScalingGroupName/*".format(  # noqa: E501
+            self.region, self.account
         )
         attach_instances_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=[
-                "autoscaling:AttachInstances"
-            ],
-            resources=[attach_instances_arn]
+            actions=["autoscaling:AttachInstances"],
+            resources=[attach_instances_arn],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=attach_instances_policy)

@@ -16,10 +16,7 @@ class PinpointStack(RegionAwareStack):
         self._parameters_to_save = {"pinpointAppId": app.ref}
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
-        all_resources_arn = self.format_arn(
-            resource="*",
-            service=id
-        )
+        all_resources_arn = self.format_arn(resource="*", service=id)
 
         stack_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,

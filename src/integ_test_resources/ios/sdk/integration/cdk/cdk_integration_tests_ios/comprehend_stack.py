@@ -17,8 +17,8 @@ class ComprehendStack(RegionAwareStack):
                 "comprehend:DetectDominantLanguage",
                 "comprehend:DetectEntities",
                 "comprehend:DetectKeyPhrases",
-                "comprehend:DetectSentiment"
+                "comprehend:DetectSentiment",
             ],
-            resources=["*"]
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
