@@ -11,6 +11,7 @@ from cdk_integration_tests_ios.core_stack import CoreStack
 from cdk_integration_tests_ios.dynamodb_stack import DynamoDbStack
 from cdk_integration_tests_ios.ec2_stack import Ec2Stack
 from cdk_integration_tests_ios.elb_stack import ElbStack
+from cdk_integration_tests_ios.firehose_stack import FirehoseStack
 from cdk_integration_tests_ios.iot_stack import IotStack
 from cdk_integration_tests_ios.kms_stack import KmsStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
@@ -44,6 +45,7 @@ comprehend_stack = ComprehendStack(app, "comprehend", common_stack)
 dynamodb_stack = DynamoDbStack(app, "dynamodb", common_stack)
 ec2_stack = Ec2Stack(app, "ec2", common_stack)
 elb_stack = ElbStack(app, "elb", common_stack)
+firehose_stack = FirehoseStack(app, "firehose", common_stack)
 iot_stack = IotStack(app, "iot", common_stack)
 kms_stack = KmsStack(app, "kms", common_stack)
 mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
