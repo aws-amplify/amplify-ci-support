@@ -2,10 +2,16 @@
 
 import json
 import os
+import pathlib
 import sys
 from collections import namedtuple
 
 import boto3
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
+from platforms import Platform
+
+SUPPORTED_PLATFORMS = list(map(lambda p: p.value, Platform))
 
 
 class DeviceConfigBuilder:
@@ -26,8 +32,8 @@ class DeviceConfigBuilder:
     """
 
     def __init__(self, platform: str):
-        if platform not in ["android", "ios"]:
-            raise Exception("Platform must be one of: android, ios.")
+        if platform not in SUPPORTED_PLATFORMS:
+            raise Exception(f"Platform must be one of: {', '.join(SUPPORTED_PLATFORMS)}")
         self.platform = platform
 
     AWSConfig = namedtuple("AWSConfig", "accessKey secretKey sessionToken defaultRegion")
@@ -162,6 +168,6 @@ class DeviceConfigBuilder:
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        raise Exception("Usage: " + sys.argv[0] + " <ios|android>")
+        raise Exception("Usage: " + sys.argv[0] + f" <{'|'.join(SUPPORTED_PLATFORMS)}>")
     config_builder = DeviceConfigBuilder(sys.argv[1])
     config_builder.print_device_config()
