@@ -1,14 +1,11 @@
-== IoT Custom Authorizer
+## IoT Custom Authorizer
 
 This is a custom resource to test IoT custom authorizers in the SDK.
 
-It includes pregenerated resources:
+IoT Custom Authorizers use a Lambda to provide an authorization decision and a policy statement for an incoming IoT request.
 
-- RSA Keypair used to sign and verify token values. The public key is passed to the custom resource provider's 'create' method.
-- SHA256 signature generated with the following invocation: 
-  `echo -n "allow" | openssl dgst -sha256 -sign custom_resources/iot_custom_authorizer_provider/iot_custom_authorizer_key.pem | openssl base64 -A`
+IoT clients provide an authorization token in the specified HTTP header field, and a signature of that token.
 
-  This value is exported to the SSM parameter store as `custom_authorizer_signature`, to remove the need for the integ test of calculating the signature
+The IoT gateway validates the signature with the public key used to create the custom authorizer, and invokes the authorizer if the signature is valid.
 
-Since these resources are publicly available, they must not be used to secure resources (such as other custom IoT authorizers) in production environments.
-
+In this stack, the authorizer is created using an asymmetric key created in KMS. The custom authorizer provider uses the public key provided by the `iot_custom_authorizer_key_provider` (see that README for details).

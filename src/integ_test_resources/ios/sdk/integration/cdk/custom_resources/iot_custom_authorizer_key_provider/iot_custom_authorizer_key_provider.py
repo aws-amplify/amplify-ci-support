@@ -1,6 +1,6 @@
 import base64
-import boto3
 
+import boto3
 
 """
 Create an asymmetric key pair for 'SIGN_VERIFY' usage, and signs `token_value` with it.
@@ -13,7 +13,7 @@ Required permissions:
 """
 
 # This is the algorithm recognized by the IoT gateway when verifying token signatures
-SIGNING_ALGORITHM="RSASSA_PKCS1_V1_5_SHA_256"
+SIGNING_ALGORITHM = "RSASSA_PKCS1_V1_5_SHA_256"
 
 
 def on_event(event, __):
@@ -110,10 +110,7 @@ def sign(key_id, token_value):
     client = boto3.client("kms")
     token_bytes = bytes(token_value, "utf8")
     sign_response = client.sign(
-        KeyId=key_id,
-        Message=token_bytes,
-        MessageType="RAW",
-        SigningAlgorithm=SIGNING_ALGORITHM,
+        KeyId=key_id, Message=token_bytes, MessageType="RAW", SigningAlgorithm=SIGNING_ALGORITHM,
     )
     print(f"### sign_response: {sign_response}")
     data = sign_response["Signature"]
