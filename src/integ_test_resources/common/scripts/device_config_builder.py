@@ -11,7 +11,7 @@ import boto3
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
 from platforms import Platform
 
-SUPPORTED_PLATFORMS = list(map(lambda p: p.value, Platform))
+SUPPORTED_PLATFORMS = [platform.value for platform in Platform]
 
 
 class DeviceConfigBuilder:
