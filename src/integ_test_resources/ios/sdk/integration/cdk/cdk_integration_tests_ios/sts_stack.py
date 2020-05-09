@@ -13,7 +13,7 @@ class StsStack(RegionAwareStack):
 
         # Create a role with no permissions to test the SDKs assumeRole API
         test_role = aws_iam.Role(
-            self, "sts-test-role", assumed_by=common_stack.circleci_execution_role
+            self, "sts_test_role", assumed_by=common_stack.circleci_execution_role
         )
         self._parameters_to_save = {"testRoleArn": test_role.role_arn}
         self.save_parameters_in_parameter_store(platform=Platform.IOS)

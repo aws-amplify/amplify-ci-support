@@ -37,8 +37,8 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
     def test_build_package_data_with_nesting(self):
         params = [
-            {"Name": "/mobile-sdk/android/suite/foo/bar/baz", "Value": "foo-bar-baz-val"},
-            {"Name": "/mobile-sdk/android/suite/potato/bar/baz", "Value": "potato-bar-baz-val"},
+            {"Name": "/mobile-sdk/android/suite/foo/bar/baz", "Value": "foo_bar_baz_val"},
+            {"Name": "/mobile-sdk/android/suite/potato/bar/baz", "Value": "potato_bar_baz_val"},
         ]
         prefix = "/mobile-sdk/android"
 
@@ -47,8 +47,8 @@ class TestDeviceConfigBuilder(unittest.TestCase):
         self.assertEqual(
             {
                 "suite": {
-                    "foo": {"bar": {"baz": "foo-bar-baz-val"}},
-                    "potato": {"bar": {"baz": "potato-bar-baz-val"}},
+                    "foo": {"bar": {"baz": "foo_bar_baz_val"}},
+                    "potato": {"bar": {"baz": "potato_bar_baz_val"}},
                 }
             },
             package_data,
@@ -100,7 +100,7 @@ class TestDeviceConfigBuilder(unittest.TestCase):
         """
         current_dir_abs_path = str(pathlib.Path(__file__).parent.absolute())
         parameter_json_abs_path = current_dir_abs_path + "/all-parameters.json"
-        data = ""
+        data: str
         with open(parameter_json_abs_path, "r") as parameters_file:
             data = " ".join(parameters_file.readlines())
 

@@ -1,7 +1,7 @@
 import boto3
 
 # Note: Make this dynamic if there is more than one custom authorizer in the stack
-physical_id = "iot_custom_authorizer_provider-20200508074521"
+physical_id = "iot_custom_authorizer_provider_20200508074521"
 
 
 def on_event(event, context):
