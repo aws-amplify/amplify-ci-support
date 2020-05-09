@@ -2,10 +2,16 @@
 
 import json
 import os
+import pathlib
 import sys
 from collections import namedtuple
 
 import boto3
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
+from platforms import Platform
+
+SUPPORTED_PLATFORMS = list(map(lambda p: p.value, Platform))
 
 
 class DeviceConfigBuilder:
@@ -16,7 +22,7 @@ class DeviceConfigBuilder:
     interacting with AWS services.
     """
 
-    STACK_PREFIX_BASE = '/mobile-sdk'
+    STACK_PREFIX_BASE = "/mobile-sdk"
     """
     The test resource creation scripts will store resource
     identifiers into the SSM Parameter Store.  Any such parameters
@@ -26,17 +32,18 @@ class DeviceConfigBuilder:
     """
 
     def __init__(self, platform: str):
-        if not platform in ['android', 'ios']:
-            raise Exception('Platform must be one of: android, ios.')
+        if platform not in SUPPORTED_PLATFORMS:
+            raise Exception(f"Platform must be one of: {', '.join(SUPPORTED_PLATFORMS)}")
         self.platform = platform
 
-    AWSConfig = namedtuple('AWSConfig', 'accessKey secretKey sessionToken defaultRegion')
+    AWSConfig = namedtuple("AWSConfig", "accessKey secretKey sessionToken defaultRegion")
 
     def build_package_data(self, prefix: str, parameters: dict) -> dict:
         all_packages_data = dict()
         for parameter in parameters:
-            name = parameter['Name'][len(prefix):]
-            value = parameter['Value']
+            prefix_len = len(prefix)
+            name = parameter["Name"][prefix_len:]
+            value = parameter["Value"]
             self.add_package_data(all_packages_data, name, value)
         return all_packages_data
 
@@ -60,8 +67,8 @@ class DeviceConfigBuilder:
           }
         }
         """
-        key = key.strip('/')
-        first_slash_pos = key.find('/')
+        key = key.strip("/")
+        first_slash_pos = key.find("/")
         if first_slash_pos == -1:
             # If the key didn't have a '/', its just a simple leaf, and
             # we can store the value, here.
@@ -71,8 +78,9 @@ class DeviceConfigBuilder:
             # path, wrap a dict, and repeat the process on the remainder
             # of the key.
             first_part = key[:first_slash_pos]
-            the_rest = key[(first_slash_pos + 1):]
-            if not first_part in all_package_data:
+            continue_index = first_slash_pos + 1
+            the_rest = key[continue_index:]
+            if first_part not in all_package_data:
                 all_package_data[first_part] = dict()
             self.add_package_data(all_package_data[first_part], the_rest, value)
 
@@ -81,10 +89,10 @@ class DeviceConfigBuilder:
         Call SSM and get all parameters that begin with a given path.
         """
         parameters = list()
-        paginator = ssm.get_paginator('get_parameters_by_path')
+        paginator = ssm.get_paginator("get_parameters_by_path")
         page_iterator = paginator.paginate(Path=parameter_prefix, Recursive=True)
         for page in page_iterator:
-            for parameter in page['Parameters']:
+            for parameter in page["Parameters"]:
                 parameters.append(parameter)
         return parameters
 
@@ -96,11 +104,11 @@ class DeviceConfigBuilder:
             aws_access_key_id=aws_config.accessKey,
             aws_secret_access_key=aws_config.secretKey,
             aws_session_token=aws_config.sessionToken,
-            region_name=aws_config.defaultRegion
+            region_name=aws_config.defaultRegion,
         )
-        return session.client('ssm')
+        return session.client("ssm")
 
-    def aws_config_from_environment(self) -> AWSConfig:
+    def aws_config_from_environment(self) -> AWSConfig:  # noqa: F821
         """
         Inpsects the environment for four well-known AWS environment
         variables, and populates their value into an Config bundle.
@@ -119,15 +127,15 @@ class DeviceConfigBuilder:
         running the CDK scripts.
         """
         return DeviceConfigBuilder.AWSConfig(
-            os.environ['AWS_ACCESS_KEY_ID'],
-            os.environ['AWS_SECRET_ACCESS_KEY'],
-            os.environ['AWS_SESSION_TOKEN'],
-            os.environ['AWS_DEFAULT_REGION']
-       )
+            os.environ["AWS_ACCESS_KEY_ID"],
+            os.environ["AWS_SECRET_ACCESS_KEY"],
+            os.environ["AWS_SESSION_TOKEN"],
+            os.environ["AWS_DEFAULT_REGION"],
+        )
 
     def get_package_data(self) -> dict:
         aws_config = self.aws_config_from_environment()
-        parameter_prefix = self.STACK_PREFIX_BASE + '/' + self.platform
+        parameter_prefix = self.STACK_PREFIX_BASE + "/" + self.platform
         ssm = self.ssm_client(aws_config)
         parameters = self.get_parameters_with_prefix(parameter_prefix, ssm)
         package_data = self.build_package_data(parameter_prefix, parameters)
@@ -136,9 +144,9 @@ class DeviceConfigBuilder:
     def get_credentials_data(self) -> dict:
         aws_config = self.aws_config_from_environment()
         credentials_data = {
-            'accessKey': aws_config.accessKey,
-            'secretKey': aws_config.secretKey,
-            'sessionToken': aws_config.sessionToken
+            "accessKey": aws_config.accessKey,
+            "secretKey": aws_config.secretKey,
+            "sessionToken": aws_config.sessionToken,
         }
         return credentials_data
 
@@ -155,13 +163,11 @@ class DeviceConfigBuilder:
         """
         package_data = self.get_package_data()
         credentials_data = self.get_credentials_data()
-        print(json.dumps({
-            'credentials': credentials_data,
-            'packages': package_data
-        }, indent=2))
+        print(json.dumps({"credentials": credentials_data, "packages": package_data}, indent=2))
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        raise Exception('Usage: ' + sys.argv[0] + ' <ios|android>')
+        raise Exception("Usage: " + sys.argv[0] + f" <{'|'.join(SUPPORTED_PLATFORMS)}>")
     config_builder = DeviceConfigBuilder(sys.argv[1])
     config_builder.print_device_config()

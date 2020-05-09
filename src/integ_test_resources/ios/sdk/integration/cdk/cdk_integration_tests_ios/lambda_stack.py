@@ -9,38 +9,37 @@ from common.region_aware_stack import RegionAwareStack
 
 
 class LambdaStack(RegionAwareStack):
+    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
 
-    def __init__(self,
-                 scope: core.Construct,
-                 id: str,
-                 common_stack: CommonStack,
-                 **kwargs) -> None:
-
-        super().__init__(scope,
-                         id,
-                         **kwargs)
+        super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region()
 
-        echo = aws_lambda.Function(self,
-                                   "echo",
-                                   runtime=aws_lambda.Runtime.PYTHON_3_7,
-                                   code=aws_lambda.Code.asset("lambda"),
-                                   handler="echo.handler",
-                                   description=datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)"),
-                                   current_version_options=aws_lambda.VersionOptions(removal_policy=core.RemovalPolicy.RETAIN))
+        echo = aws_lambda.Function(
+            self,
+            "echo",
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            code=aws_lambda.Code.asset("lambda"),
+            handler="echo.handler",
+            description=datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)"),
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.RETAIN
+            ),
+        )
 
         self.attach_alias_to_version(echo.current_version, "Version2Alias")
 
-        echo2 = aws_lambda.Function(self,
-                                    "echo2",
-                                    runtime=aws_lambda.Runtime.PYTHON_3_7,
-                                    code=aws_lambda.Code.asset("lambda"),
-                                    handler="echo.handler")
+        echo2 = aws_lambda.Function(
+            self,
+            "echo2",
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            code=aws_lambda.Code.asset("lambda"),
+            handler="echo.handler",
+        )
 
         self._parameters_to_save = {
             "echo_function_name": echo.function_name,
-            "echo2_function_name": echo2.function_name
+            "echo2_function_name": echo2.function_name,
         }
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
@@ -60,21 +59,21 @@ class LambdaStack(RegionAwareStack):
         """
         Attach the given Alias to the given version of lambda
         """
-        aws_lambda.Alias(self,
-                         alias,
-                         version=version_obj,
-                         alias_name=alias)
+        aws_lambda.Alias(self, alias, version=version_obj, alias_name=alias)
 
     def create_version(self, lambda_function: aws_lambda.IFunction, version: str):
-        ## MARK: this feature is deprecated and each stack deploy operation
-        ## can create only a single version. We might have to deploy lambda stack twice
-        ## to add version 2 that is required by the tests. See
-        ## https://github.com/aws/aws-cdk/issues/5334
-        ## https://github.com/aws/aws-cdk/commit/c94ce62bc71387d031cf291dbce40243feb50e83
-        replace_in_file("lambda/echo.py",
-                        r"ECHO_EVENT_VERSION = [0-9]*",
-                        "ECHO_EVENT_VERSION = {}".format(version))
+        # MARK: this feature is deprecated and each stack deploy operation
+        # can create only a single version. We might have to deploy lambda stack twice
+        # to add version 2 that is required by the tests. See
+        # https://github.com/aws/aws-cdk/issues/5334
+        # https://github.com/aws/aws-cdk/commit/c94ce62bc71387d031cf291dbce40243feb50e83
+        replace_in_file(
+            "lambda/echo.py",
+            r"ECHO_EVENT_VERSION = [0-9]*",
+            "ECHO_EVENT_VERSION = {}".format(version),
+        )
 
-        current_version =  lambda_function.add_version(name=version)
-        self.attach_alias_to_version(version_obj=current_version,
-                                     alias="Version{}Alias".format(version))
+        current_version = lambda_function.add_version(name=version)
+        self.attach_alias_to_version(
+            version_obj=current_version, alias="Version{}Alias".format(version)
+        )
