@@ -14,6 +14,7 @@ from cdk_integration_tests_ios.elb_stack import ElbStack
 from cdk_integration_tests_ios.firehose_stack import FirehoseStack
 from cdk_integration_tests_ios.iot_stack import IotStack
 from cdk_integration_tests_ios.kms_stack import KmsStack
+from cdk_integration_tests_ios.kinesis_stack import KinesisStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
@@ -47,6 +48,7 @@ ec2_stack = Ec2Stack(app, "ec2", common_stack)
 elb_stack = ElbStack(app, "elb", common_stack)
 firehose_stack = FirehoseStack(app, "firehose", common_stack)
 iot_stack = IotStack(app, "iot", common_stack)
+kinesis_stack = KinesisStack(app, "kinesis", common_stack)
 kms_stack = KmsStack(app, "kms", common_stack)
 mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
 pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
@@ -63,6 +65,7 @@ stacks_in_app = [
     dynamodb_stack,
     ec2_stack,
     iot_stack,
+    kinesis_stack,
     kms_stack,
     lambda_stack,
     mobileclient_stack,
