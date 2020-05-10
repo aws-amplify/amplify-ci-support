@@ -27,6 +27,7 @@ class KinesisVideoStack(RegionAwareStack):
                 "kinesisvideo:CreateStream",
                 "kinesisvideo:DeleteStream",
                 "kinesisvideo:GetDataEndpoint",
+                "kinesisvideo:GetHLSStreamingSessionURL",
             ],
             resources=[f"arn:aws:kinesisvideo:{self.region}:{self.account}:stream/*"],
         )
