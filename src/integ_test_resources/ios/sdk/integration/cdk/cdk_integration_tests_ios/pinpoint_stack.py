@@ -18,8 +18,8 @@ class PinpointStack(RegionAwareStack):
 
         legacy_mobileanalytics_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=["mobileanalytics:putEvents"],
-            resources=[self.format_arn(resource="*", service="mobileanalytics")],
+            actions=["mobileanalytics:PutEvents"],
+            resources=[*],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=legacy_mobileanalytics_policy)
 
