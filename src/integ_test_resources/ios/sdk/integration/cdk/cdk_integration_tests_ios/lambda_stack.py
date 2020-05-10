@@ -27,7 +27,9 @@ class LambdaStack(RegionAwareStack):
             ),
         )
 
-        version_alias_associated_version, version_alias_name = self.attach_alias_to_version(echo.current_version)
+        version_alias_associated_version, version_alias_name = self.attach_alias_to_version(
+            echo.current_version
+        )
 
         echo2 = aws_lambda.Function(
             self,
@@ -69,7 +71,7 @@ class LambdaStack(RegionAwareStack):
             self,
             "integ_test_lambda_current_version_alias",
             version=version_obj,
-            alias_name=version_alias_name
+            alias_name=version_alias_name,
         )
         return version_alias_associated_version, version_alias_name
 
