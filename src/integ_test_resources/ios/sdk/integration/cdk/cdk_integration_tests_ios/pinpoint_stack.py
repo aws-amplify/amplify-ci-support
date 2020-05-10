@@ -17,9 +17,7 @@ class PinpointStack(RegionAwareStack):
         self._parameters_to_save["app_id"] = pinpoint_app.ref
 
         legacy_mobileanalytics_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
-            actions=["mobileanalytics:PutEvents"],
-            resources=[*],
+            effect=aws_iam.Effect.ALLOW, actions=["mobileanalytics:PutEvents"], resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=legacy_mobileanalytics_policy)
 
