@@ -27,7 +27,7 @@ class LambdaStack(RegionAwareStack):
             ),
         )
 
-        self.attach_alias_to_version(echo.current_version, "Version2Alias")
+        version_alias_associated_version, version_alias_name = self.attach_alias_to_version(echo.current_version)
 
         echo2 = aws_lambda.Function(
             self,
@@ -40,6 +40,8 @@ class LambdaStack(RegionAwareStack):
         self._parameters_to_save = {
             "echo_function_name": echo.function_name,
             "echo2_function_name": echo2.function_name,
+            "version_alias_name": version_alias_name,
+            "version_alias_associated_version": version_alias_associated_version,
         }
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
@@ -55,11 +57,21 @@ class LambdaStack(RegionAwareStack):
     def lambda_echo_function(self, value):
         self._lambda_echo_function = value
 
-    def attach_alias_to_version(self, version_obj: aws_lambda.Version, alias: str):
+    def attach_alias_to_version(self, version_obj: aws_lambda.Version) -> (str, str):
         """
-        Attach the given Alias to the given version of lambda
+        Creates a version alias for the given version of the lambda
+
+        :return: The version alias string
         """
-        aws_lambda.Alias(self, alias, version=version_obj, alias_name=alias)
+        version_alias_associated_version = version_obj.version
+        version_alias_name = "integ_test_current_version_alias"
+        aws_lambda.Alias(
+            self,
+            "integ_test_lambda_current_version_alias",
+            version=version_obj,
+            alias_name=version_alias_name
+        )
+        return version_alias_associated_version, version_alias_name
 
     def create_version(self, lambda_function: aws_lambda.IFunction, version: str):
         # MARK: this feature is deprecated and each stack deploy operation
