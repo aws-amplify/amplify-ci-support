@@ -16,7 +16,7 @@ class CoreStack(RegionAwareStack):
 
         self._supported_in_region = self.are_services_supported_in_region(["cognito-identity"])
 
-        (self._facebook_app_id, self._facebook_app_secret) = self.get_facebook_app_config()
+        (self._facebook_app_id, self._facebook_app_secret) = CoreStack.get_facebook_app_config()
 
         supported_login_providers = {"graph.facebook.com": self._facebook_app_id}
         (
@@ -56,12 +56,12 @@ class CoreStack(RegionAwareStack):
 
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
-    def get_facebook_app_config(self) -> tuple:
-
+    @staticmethod
+    def get_facebook_app_config() -> (str, str):
         ios_integ_tests_secrets = json.loads(get_integ_tests_secrets(platform=Platform.IOS))
         facebook_app_id = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_ID"]
         facebook_app_secret = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_SECRET"]
-        return (facebook_app_id, facebook_app_secret)
+        return facebook_app_id, facebook_app_secret
 
     def construct_identity_pool_with_facebook_as_idp(
         self,

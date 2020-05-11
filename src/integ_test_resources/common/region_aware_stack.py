@@ -31,7 +31,7 @@ class RegionAwareStack(core.Stack):
 
     def are_services_supported_in_region(
         self, service_names: list, region_name: str = None
-    ) -> None:
+    ) -> bool:
 
         services_supported_in_region = True
         for service_name in service_names:
