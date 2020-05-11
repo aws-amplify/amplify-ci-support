@@ -20,6 +20,7 @@ from cdk_integration_tests_ios.lambda_stack import LambdaStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
 from cdk_integration_tests_ios.polly_stack import PollyStack
+from cdk_integration_tests_ios.rekognition_stack import RekognitionStack
 from cdk_integration_tests_ios.sns_stack import SnsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
 from common.common_stack import CommonStack
@@ -56,6 +57,7 @@ kms_stack = KmsStack(app, "kms", common_stack)
 mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
 pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
 polly_stack = PollyStack(app, "polly", common_stack)
+rekognition_stack = RekognitionStack(app, "rekognition", common_stack)
 sns_stack = SnsStack(app, "sns", common_stack)
 sts_stack = StsStack(app, "sts", common_stack)
 
