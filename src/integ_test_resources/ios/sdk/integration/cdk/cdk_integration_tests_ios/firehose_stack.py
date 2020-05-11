@@ -6,7 +6,6 @@ from common.region_aware_stack import RegionAwareStack
 
 
 class FirehoseStack(RegionAwareStack):
-    # Hardcoded because LogGroup and LogStream don't support the .ref property
     LOG_GROUP_NAME = "integ_test_firehose_log_group"
     LOG_STREAM_NAME = "integ_test_firehose_log_stream"
 
@@ -16,8 +15,8 @@ class FirehoseStack(RegionAwareStack):
         self._supported_in_region = self.is_service_supported_in_region()
 
         delivery_bucket = self.create_s3_delivery_bucket()
-        log_group = self.create_log_group_and_stream()
-        firehose_role_arn = self.create_firehose_role(delivery_bucket, log_group)
+        self.create_log_group_and_stream()
+        firehose_role_arn = self.create_firehose_role(delivery_bucket)
 
         firehose = self.create_firehose(delivery_bucket, firehose_role_arn)
         firehose_stream_name = firehose.ref
@@ -46,13 +45,12 @@ class FirehoseStack(RegionAwareStack):
         )
         return log_group
 
-    def create_firehose_role(self, delivery_bucket, log_group) -> str:
+    def create_firehose_role(self, delivery_bucket) -> str:
         """
         Creates an IAM role to allow Kinesis to deliver records to S3, per
         https://docs.aws.amazon.com/firehose/latest/dev/controlling-access.html
 
         :param delivery_bucket: The destination bucket
-        :param log_group: The CloudWatch log group that owns log_stream
         :return: IAM Role ARN
         """
         firehose_role = aws_iam.Role(

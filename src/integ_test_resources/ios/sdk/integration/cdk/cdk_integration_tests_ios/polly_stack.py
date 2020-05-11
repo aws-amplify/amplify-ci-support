@@ -11,11 +11,7 @@ class PollyStack(RegionAwareStack):
 
         self._supported_in_region = self.is_service_supported_in_region()
 
-        aws_s3.Bucket(
-            self,
-            "integ_test_polly_output_bucket",
-            bucket_name=self.polly_bucket_name
-        )
+        aws_s3.Bucket(self, "integ_test_polly_output_bucket", bucket_name=self.polly_bucket_name)
         self._parameters_to_save["s3_output_bucket_name"] = self.polly_bucket_name
 
         s3_output_bucket_policy = aws_iam.PolicyStatement(
