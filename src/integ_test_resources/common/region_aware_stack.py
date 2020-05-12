@@ -12,7 +12,7 @@ class RegionAwareStack(core.Stack):
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region: bool
-        self._parameters_to_save: dict
+        self._parameters_to_save = {}
 
     def is_service_supported_in_region(
         self, service_name: str = None, region_name: str = None
@@ -31,7 +31,7 @@ class RegionAwareStack(core.Stack):
 
     def are_services_supported_in_region(
         self, service_names: list, region_name: str = None
-    ) -> None:
+    ) -> bool:
 
         services_supported_in_region = True
         for service_name in service_names:
