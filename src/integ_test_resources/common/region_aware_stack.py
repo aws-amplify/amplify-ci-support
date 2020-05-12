@@ -14,6 +14,7 @@ class RegionAwareStack(core.Stack):
 
         self._supported_in_region: bool
         self._parameters_to_save = {}
+        self._id = id
 
     def is_service_supported_in_region(
         self, service_name: str = None, region_name: str = None
@@ -61,6 +62,10 @@ class RegionAwareStack(core.Stack):
     @property
     def parameters_to_save(self) -> dict:
         return self._parameters_to_save
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     def get_bucket_name(self, tag) -> str:
         """
