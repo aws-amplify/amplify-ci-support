@@ -22,8 +22,7 @@ class FirehoseStack(RegionAwareStack):
         firehose_stream_name = firehose.ref
         self._parameters_to_save["firehose_stream_name"] = firehose_stream_name
 
-        firehose_arn = firehose.get_att("Arn").to_string()
-        self.create_test_policies(firehose_arn, common_stack)
+        self.create_test_policies(common_stack)
 
         self.save_parameters_in_parameter_store(Platform.IOS)
 
@@ -136,7 +135,7 @@ class FirehoseStack(RegionAwareStack):
         )
         return firehose
 
-    def create_test_policies(self, firehose_arn, common_stack):
+    def create_test_policies(self, common_stack):
         all_resources_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW, actions=["firehose:ListDeliveryStreams"], resources=["*"],
         )
@@ -145,6 +144,6 @@ class FirehoseStack(RegionAwareStack):
         deliverystream_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["firehose:PutRecord", "firehose:PutRecordBatch"],
-            resources=[firehose_arn],
+            resources=[f"arn:aws:firehose:{self.region}:{self.account}:deliverystream/*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=deliverystream_policy)
