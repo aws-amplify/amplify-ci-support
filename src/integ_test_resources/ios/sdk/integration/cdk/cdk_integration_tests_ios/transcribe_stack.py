@@ -37,7 +37,7 @@ class TranscribeStack(RegionAwareStack):
         self._parameters_to_save["bucket_name"] = bucket.bucket_name
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=["s3:GetObject"],
+            actions=["s3:DeleteObject", "s3:GetObject", "s3:PutObject"],
             resources=[f"arn:aws:s3:::{bucket_name}/*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=policy)
