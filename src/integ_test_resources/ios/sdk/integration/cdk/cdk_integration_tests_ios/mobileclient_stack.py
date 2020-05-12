@@ -12,6 +12,7 @@ class MobileClientStack(RegionAwareStack):
         super().__init__(scope, id, **kwargs)
 
         self._parameters_to_save["email_address"] = "aws-mobile-sdk-dev+mc-integ-tests@amazon.com"
+        self._parameters_to_save["test_password"] = "Abc123@@!!"
 
         self._supported_in_region = self.are_services_supported_in_region(
             ["cognito-identity", "cognito-idp"]
