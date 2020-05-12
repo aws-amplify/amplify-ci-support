@@ -1,6 +1,7 @@
-from aws_cdk import aws_iam, core
+from aws_cdk import aws_iam, aws_s3, core
 
 from common.common_stack import CommonStack
+from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
 
 
@@ -25,3 +26,12 @@ class TranscribeStack(RegionAwareStack):
             resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
+
+        self.create_bucket()
+        
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
+
+    def create_bucket(self, common_stack):
+        bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket")
+        bucket.grant_read_write(common_stack.circleci_execution_role)
+        self._parameters_to_save["bucket_name"] = bucket.bucket_name
