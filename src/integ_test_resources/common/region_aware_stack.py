@@ -1,3 +1,4 @@
+import hashlib
 import os
 
 from aws_cdk import core
@@ -60,3 +61,27 @@ class RegionAwareStack(core.Stack):
     @property
     def parameters_to_save(self) -> dict:
         return self._parameters_to_save
+
+    def get_bucket_name(self, tag) -> str:
+        """
+        Returns a string to be used as the name for an S3 bucket. As of this writing (2020-05-12),
+        directly referring to bucket ARNs and names in stacks causes circular dependencies between
+        common and the bucket-owning stack.
+
+        Usage example:
+            bucket_name = self.get_bucket_name("media_upload")
+            bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket", name=bucket_name)
+
+            policy = aws_iam.PolicyStatement(
+                effect=aws_iam.Effect.ALLOW,
+                actions=["s3:PutObject"],
+                resources=[f"arn:aws:s3:::{self.bucket_name}/*"],
+            )
+            common_stack.add_to_common_role_policies(self, policy_to_add=policy)
+
+        :return: a string to be used for a bucket name
+        """
+        bucket_tag = f"{self.region}-{self.account}-{tag}"
+        bucket_hash = hashlib.md5(bucket_tag.encode()).hexdigest()
+        bucket_name = f"integ-test-{self.id}-{tag}-{bucket_hash}"
+        return bucket_name

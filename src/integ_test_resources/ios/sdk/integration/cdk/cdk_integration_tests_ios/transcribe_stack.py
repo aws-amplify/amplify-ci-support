@@ -32,6 +32,12 @@ class TranscribeStack(RegionAwareStack):
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def create_bucket(self, common_stack):
-        bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket")
-        bucket.grant_read_write(common_stack.circleci_execution_role)
+        bucket_name = self.get_bucket_name("media")
+        bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket", bucket_name=bucket_name)
         self._parameters_to_save["bucket_name"] = bucket.bucket_name
+        policy = aws_iam.PolicyStatement(
+            effect=aws_iam.Effect.ALLOW,
+            actions=["s3:GetObject"],
+            resources=[f"arn:aws:s3:::{bucket_name}/*"],
+        )
+        common_stack.add_to_common_role_policies(self, policy_to_add=policy)
