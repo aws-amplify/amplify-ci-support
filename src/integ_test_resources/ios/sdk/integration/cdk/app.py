@@ -67,7 +67,7 @@ stacks_in_app = [
     RekognitionStack(app, "rekognition", common_stack),
     S3Stack(app, "s3", common_stack),
     SesStack(app, "ses", common_stack),
-    SimpleDbStack(app, "simpledb", common_stack),
+    SimpleDbStack(app, "sdb", common_stack),
     SnsStack(app, "sns", common_stack),
     SqsStack(app, "sqs", common_stack),
     StsStack(app, "sts", common_stack),
