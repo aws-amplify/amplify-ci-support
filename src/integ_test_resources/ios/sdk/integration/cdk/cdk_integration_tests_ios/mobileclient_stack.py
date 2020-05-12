@@ -15,20 +15,15 @@ class MobileClientStack(RegionAwareStack):
             ["cognito-identity", "cognito-idp"]
         )
 
-        user_pool = aws_cognito.UserPool(
-            self,
-            "userpool",
-            required_attributes=aws_cognito.RequiredAttributes(email=True),
-            self_sign_up_enabled=True,
-            auto_verify=aws_cognito.AutoVerifiedAttrs(email=True),
-        )
+        self.update_common_stack_with_test_policy(common_stack)
 
-        user_pool_client = aws_cognito.CfnUserPoolClient(
-            self, "userpool_client", generate_secret=True, user_pool_id=user_pool.user_pool_id
+        default_user_pool = self.create_user_pool("default")
+        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default")
+        default_user_pool_client_secret = self.create_userpool_client_secret(
+            default_user_pool, default_user_pool_client, "default"
         )
-
-        user_pool_client_secret = self.create_userpool_client_secret_custom_resource(
-            user_pool, user_pool_client
+        self.update_parameters_for_userpool(
+            default_user_pool, default_user_pool_client, default_user_pool_client_secret, "Default"
         )
 
         (identity_pool, _, _) = construct_identity_pool(
@@ -36,30 +31,51 @@ class MobileClientStack(RegionAwareStack):
             resource_id_prefix="mobileclient",
             cognito_identity_providers=[
                 {
-                    "clientId": user_pool_client.ref,
-                    "providerName": user_pool.user_pool_provider_name,
+                    "clientId": default_user_pool_client.ref,
+                    "providerName": default_user_pool.user_pool_provider_name,
                 }
             ],
         )
+        self.update_parameters_for_identity_pool(identity_pool)
 
-        stack_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
+        custom_auth_user_pool = self.create_user_pool("custom_auth")
+        custom_auth_user_pool_client = self.create_user_pool_client(
+            custom_auth_user_pool, "custom_auth"
+        )
+        custom_auth_user_pool_client_secret = self.create_userpool_client_secret(
+            custom_auth_user_pool, custom_auth_user_pool_client, "custom_auth"
+        )
+        self.update_parameters_for_userpool(
+            custom_auth_user_pool,
+            custom_auth_user_pool_client,
+            custom_auth_user_pool_client_secret,
+            "DefaultCustomAuth",
         )
 
-        common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
-
-        self._parameters_to_save = {
-            "userpool_id": user_pool.user_pool_id,
-            "pool_id_dev_auth": identity_pool.ref,
-            "email_address": "aws-mobile-sdk-dev+mc-integ-tests@amazon.com",
-        }
-
-        self.update_parameters_for_userpool(user_pool, user_pool_client, user_pool_client_secret)
-
+        self._parameters_to_save["email_address"] = "aws-mobile-sdk-dev+mc-integ-tests@amazon.com"
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
-    def create_userpool_client_secret_custom_resource(
-        self, user_pool, user_pool_client
+    def create_user_pool(self, tag) -> aws_cognito.UserPool:
+        user_pool = aws_cognito.UserPool(
+            self,
+            f"userpool_{tag}",
+            required_attributes=aws_cognito.RequiredAttributes(email=True),
+            self_sign_up_enabled=True,
+            auto_verify=aws_cognito.AutoVerifiedAttrs(email=True),
+        )
+        return user_pool
+
+    def create_user_pool_client(self, user_pool, tag) -> aws_cognito.CfnUserPoolClient:
+        user_pool_client = aws_cognito.CfnUserPoolClient(
+            self,
+            f"userpool_client_{tag}",
+            generate_secret=True,
+            user_pool_id=user_pool.user_pool_id,
+        )
+        return user_pool_client
+
+    def create_userpool_client_secret(
+        self, user_pool, user_pool_client, tag
     ) -> custom_resources.AwsCustomResource:
         """
         :return: an AwsCustomResource that provides access to the user pool client secret in the
@@ -67,7 +83,7 @@ class MobileClientStack(RegionAwareStack):
         """
         resource = custom_resources.AwsCustomResource(
             self,
-            "userpool_client_secret_custom_resource",
+            f"userpool_client_secret_{tag}",
             resource_type="Custom::UserPoolClientSecret",
             policy=custom_resources.AwsCustomResourcePolicy.from_statements(
                 [
@@ -75,7 +91,8 @@ class MobileClientStack(RegionAwareStack):
                         effect=aws_iam.Effect.ALLOW,
                         actions=["cognito-idp:DescribeUserPoolClient"],
                         resources=[
-                            f"arn:aws:cognito-idp:{self.region}:{self.account}:userpool/{user_pool.user_pool_id}"  # noqa: E501
+                            f"arn:aws:cognito-idp:{self.region}:{self.account}:userpool/{user_pool.user_pool_id}"
+                            # noqa: E501
                         ],
                     )
                 ]
@@ -97,13 +114,30 @@ class MobileClientStack(RegionAwareStack):
         )
         return resource
 
-    def update_parameters_for_userpool(self, user_pool, user_pool_client, user_pool_client_secret):
+    def update_common_stack_with_test_policy(self, common_stack):
+        stack_policy = aws_iam.PolicyStatement(
+            effect=aws_iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
+        )
+        common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
+
+    def update_parameters_for_identity_pool(self, identity_pool):
         self._parameters_to_save.update(
             {
-                "CognitoUserPool/Default/PoolId": user_pool.user_pool_id,
-                "CognitoUserPool/Default/AppClientId": user_pool_client.ref,
-                "CognitoUserPool/Default/AppClientSecret": user_pool_client_secret.get_response_field(  # noqa: E501
+                "awsconfiguration/CredentialsProvider/CognitoIdentity/Default/PoolId": identity_pool.ref,  # noqa: E501
+                "awsconfiguration/CredentialsProvider/CognitoIdentity/Default/Region": self.region,
+            }
+        )
+
+    def update_parameters_for_userpool(
+        self, user_pool, user_pool_client, user_pool_client_secret, tag
+    ):
+        self._parameters_to_save.update(
+            {
+                f"awsconfiguration/CognitoUserPool/{tag}/PoolId": user_pool.user_pool_id,
+                f"awsconfiguration/CognitoUserPool/{tag}/AppClientId": user_pool_client.ref,
+                f"awsconfiguration/CognitoUserPool/{tag}/AppClientSecret": user_pool_client_secret.get_response_field(  # noqa: E501
                     "UserPoolClient.ClientSecret"
                 ),
+                f"awsconfiguration/CognitoUserPool/{tag}/Region": self.region,
             }
         )
