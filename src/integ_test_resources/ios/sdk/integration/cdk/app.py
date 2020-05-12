@@ -28,6 +28,7 @@ from cdk_integration_tests_ios.sqs_stack import SqsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
 from cdk_integration_tests_ios.textract_stack import TextractStack
 from cdk_integration_tests_ios.transcribe_stack import TranscribeStack
+from cdk_integration_tests_ios.translate_stack import TranslateStack
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
 from common.platforms import Platform
@@ -70,6 +71,7 @@ sqs_stack = SqsStack(app, "sqs", common_stack)
 sts_stack = StsStack(app, "sts", common_stack)
 textract_stack = TextractStack(app, "textract", common_stack)
 transcribe_stack = TranscribeStack(app, "transcribe", common_stack)
+translate_stack = TranslateStack(app, "translate", common_stack)
 
 stacks_in_app = [
     core_stack,
@@ -80,6 +82,8 @@ stacks_in_app = [
     comprehend_stack,
     dynamodb_stack,
     ec2_stack,
+    elb_stack,
+    firehose_stack,
     iot_stack,
     kinesis_stack,
     kinesisvideo_stack,
@@ -95,6 +99,8 @@ stacks_in_app = [
     sqs_stack,
     sts_stack,
     textract_stack,
+    transcribe_stack,
+    translate_stack,
 ]
 
 add_stack_dependency_on_common_stack(stacks_in_app=stacks_in_app, common_stack=common_stack)
