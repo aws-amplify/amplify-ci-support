@@ -25,6 +25,7 @@ from cdk_integration_tests_ios.s3_stack import S3Stack
 from cdk_integration_tests_ios.ses_stack import SesStack
 from cdk_integration_tests_ios.sns_stack import SnsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
+from cdk_integration_tests_ios.textract_stack import TextractStack
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
 from common.platforms import Platform
@@ -64,6 +65,7 @@ s3_stack = S3Stack(app, "s3", common_stack)
 ses_stack = SesStack(app, "ses", common_stack)
 sns_stack = SnsStack(app, "sns", common_stack)
 sts_stack = StsStack(app, "sts", common_stack)
+textract_stack = TextractStack(app, "textract", common_stack)
 
 stacks_in_app = [
     core_stack,
@@ -87,6 +89,7 @@ stacks_in_app = [
     ses_stack,
     sns_stack,
     sts_stack,
+    textract_stack,
 ]
 
 add_stack_dependency_on_common_stack(stacks_in_app=stacks_in_app, common_stack=common_stack)
