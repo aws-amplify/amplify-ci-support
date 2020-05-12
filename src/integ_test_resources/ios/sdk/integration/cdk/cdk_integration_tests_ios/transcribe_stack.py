@@ -27,8 +27,8 @@ class TranscribeStack(RegionAwareStack):
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
-        self.create_bucket()
-        
+        self.create_bucket(common_stack)
+
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def create_bucket(self, common_stack):
