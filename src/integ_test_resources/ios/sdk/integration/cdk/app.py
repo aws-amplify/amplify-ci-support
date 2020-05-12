@@ -24,6 +24,7 @@ from cdk_integration_tests_ios.rekognition_stack import RekognitionStack
 from cdk_integration_tests_ios.s3_stack import S3Stack
 from cdk_integration_tests_ios.ses_stack import SesStack
 from cdk_integration_tests_ios.sns_stack import SnsStack
+from cdk_integration_tests_ios.sqs_stack import SqsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
 from cdk_integration_tests_ios.textract_stack import TextractStack
 from common.common_stack import CommonStack
@@ -64,6 +65,7 @@ rekognition_stack = RekognitionStack(app, "rekognition", common_stack)
 s3_stack = S3Stack(app, "s3", common_stack)
 ses_stack = SesStack(app, "ses", common_stack)
 sns_stack = SnsStack(app, "sns", common_stack)
+sqs_stack = SqsStack(app, "sqs", common_stack)
 sts_stack = StsStack(app, "sts", common_stack)
 textract_stack = TextractStack(app, "textract", common_stack)
 
@@ -88,6 +90,7 @@ stacks_in_app = [
     s3_stack,
     ses_stack,
     sns_stack,
+    sqs_stack,
     sts_stack,
     textract_stack,
 ]
