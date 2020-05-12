@@ -35,7 +35,7 @@ class MobileClientStack(RegionAwareStack):
             cognito_identity_providers=[
                 {
                     "clientId": default_user_pool_client.ref,
-                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",
+                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",  # noqa: E501
                 }
             ],
         )
@@ -90,15 +90,11 @@ class MobileClientStack(RegionAwareStack):
             f"userpool_{tag}",
             auto_verified_attributes=["email"],
             device_configuration=aws_cognito.CfnUserPool.DeviceConfigurationProperty(
-                challenge_required_on_new_device=False,
-                device_only_remembered_on_user_prompt=True
+                challenge_required_on_new_device=False, device_only_remembered_on_user_prompt=True
             ),
             schema=[
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
-                    attribute_data_type="String",
-                    mutable=False,
-                    name="email",
-                    required=True,
+                    attribute_data_type="String", mutable=False, name="email", required=True,
                 ),
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
@@ -111,17 +107,14 @@ class MobileClientStack(RegionAwareStack):
                     mutable=True,
                     name="mutableStringAttr2",
                     required=False,
-                )
+                ),
             ],
         )
         return user_pool
 
     def create_user_pool_client(self, user_pool, tag) -> aws_cognito.CfnUserPoolClient:
         user_pool_client = aws_cognito.CfnUserPoolClient(
-            self,
-            f"userpool_client_{tag}",
-            generate_secret=True,
-            user_pool_id=user_pool.ref,
+            self, f"userpool_client_{tag}", generate_secret=True, user_pool_id=user_pool.ref,
         )
         return user_pool_client
 

@@ -27,6 +27,7 @@ from cdk_integration_tests_ios.sns_stack import SnsStack
 from cdk_integration_tests_ios.sqs_stack import SqsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
 from cdk_integration_tests_ios.textract_stack import TextractStack
+from cdk_integration_tests_ios.transcribe_stack import TranscribeStack
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
 from common.platforms import Platform
@@ -68,6 +69,7 @@ sns_stack = SnsStack(app, "sns", common_stack)
 sqs_stack = SqsStack(app, "sqs", common_stack)
 sts_stack = StsStack(app, "sts", common_stack)
 textract_stack = TextractStack(app, "textract", common_stack)
+transcribe_stack = TranscribeStack(app, "transcribe", common_stack)
 
 stacks_in_app = [
     core_stack,

@@ -1,4 +1,4 @@
-from aws_cdk import aws_iam, aws_s3, core
+from aws_cdk import aws_iam, core
 
 from common.common_stack import CommonStack
 from common.platforms import Platform
