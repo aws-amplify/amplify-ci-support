@@ -8,8 +8,9 @@ from collections import namedtuple
 
 import boto3
 
-sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
 from platforms import Platform
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
 
 SUPPORTED_PLATFORMS = [platform.value for platform in Platform]
 

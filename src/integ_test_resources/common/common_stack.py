@@ -1,4 +1,3 @@
-import hashlib
 import os
 
 from aws_cdk import aws_cognito, aws_iam, core

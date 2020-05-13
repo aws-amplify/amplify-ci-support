@@ -4,7 +4,7 @@ import os
 from aws_cdk import core
 from boto3.session import Session
 
-from common.parameter_store import save_string_parameter
+from common.parameter_store import save_parameter
 from common.platforms import Platform
 
 
@@ -46,9 +46,8 @@ class RegionAwareStack(core.Stack):
         return services_supported_in_region
 
     def save_parameters_in_parameter_store(self, platform: Platform) -> None:
-
         for parameter_name, parameter_value in self.parameters_to_save.items():
-            save_string_parameter(self, parameter_name, parameter_value, platform=platform)
+            save_parameter(self, parameter_name, parameter_value, platform=platform)
 
     def add_dependencies_with_region_filter(self, stacks_to_add: list) -> None:
         for stack in stacks_to_add:

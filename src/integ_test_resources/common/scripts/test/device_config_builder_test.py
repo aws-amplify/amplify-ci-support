@@ -7,8 +7,9 @@ import sys
 import unittest
 from unittest.mock import patch
 
-sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
 from device_config_builder import DeviceConfigBuilder
+
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
 
 
 class TestDeviceConfigBuilder(unittest.TestCase):
