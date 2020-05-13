@@ -41,6 +41,16 @@ class MobileClientStack(RegionAwareStack):
             default_user_pool_domain,
             "Default",
         )
+        self.update_parameters_for_auth_section(
+            default_user_pool_client,
+            default_user_pool_client_secret,
+            default_user_pool_domain,
+            "Default",
+        )
+        # This is a special case parameter for custom auth tests
+        self._parameters_to_save[
+            "awsconfiguration/Auth/DefaultCustomAuth/authenticationFlowType"
+        ] = "CUSTOM_AUTH"
 
         (identity_pool, auth_role, unauth_role) = construct_identity_pool(
             self,
@@ -297,6 +307,41 @@ class MobileClientStack(RegionAwareStack):
             {
                 "awsconfiguration/S3TransferUtility/Default/Bucket": bucket.bucket_name,
                 "awsconfiguration/S3TransferUtility/Default/Region": self.region,
+            }
+        )
+
+    def update_parameters_for_auth_section(
+        self,
+        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool_client_secret: custom_resources.AwsCustomResource,
+        user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
+        tag: str,
+    ):
+        """
+        This contains nearly identical info as the "HostedUI" section above, but
+        is organized differently for the AWSMobileClient.
+        """
+        if not user_pool_domain:
+            return
+
+        app_client_id = user_pool_client.ref
+        app_client_secret = user_pool_client_secret.get_response_field(
+            "UserPoolClient.ClientSecret"
+        )
+
+        web_domain = f"{user_pool_domain.domain}.auth.{self.region}.amazoncognito.com"
+        scopes_string = self._secrets["hostedui.scopes"]
+        scopes = scopes_string.split()
+        sign_in_uri = self._secrets["hostedui.sign_in_redirect"]
+        sign_out_uri = self._secrets["hostedui.sign_out_redirect"]
+        self._parameters_to_save.update(
+            {
+                f"awsconfiguration/Auth/{tag}/OAuth/WebDomain": web_domain,
+                f"awsconfiguration/Auth/{tag}/OAuth/AppClientId": app_client_id,
+                f"awsconfiguration/Auth/{tag}/OAuth/AppClientSecret": app_client_secret,
+                f"awsconfiguration/Auth/{tag}/OAuth/SignInRedirectURI": sign_in_uri,
+                f"awsconfiguration/Auth/{tag}/OAuth/SignOutRedirectURI": sign_out_uri,
+                f"awsconfiguration/Auth/{tag}/OAuth/Scopes": scopes,
             }
         )
 
