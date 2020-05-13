@@ -1,4 +1,3 @@
-import hashlib
 from typing import Optional
 
 from aws_cdk import aws_cognito, aws_iam, aws_s3, core, custom_resources
@@ -7,11 +6,7 @@ from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
-
-REDIRECT_URI = "myapp://"
-"""
-Used for HostedUI redirection
-"""
+from common.secrets_manager import get_integ_tests_secrets
 
 
 class MobileClientStack(RegionAwareStack):
@@ -19,12 +14,16 @@ class MobileClientStack(RegionAwareStack):
 
         super().__init__(scope, id, **kwargs)
 
-        self._parameters_to_save["email_address"] = "aws-mobile-sdk-dev+mc-integ-tests@amazon.com"
-        self._parameters_to_save["test_password"] = "Abc123@@!!"
-
         self._supported_in_region = self.are_services_supported_in_region(
             ["cognito-identity", "cognito-idp"]
         )
+
+        if not self._supported_in_region:
+            return
+
+        self._secrets = get_integ_tests_secrets(platform=Platform.IOS)
+        self._parameters_to_save["email_address"] = self._secrets["common.shared_email"]
+        self._parameters_to_save["test_password"] = self._secrets["common.password"]
 
         self.update_common_stack_with_test_policy(common_stack)
 
@@ -55,9 +54,12 @@ class MobileClientStack(RegionAwareStack):
         )
         self.update_parameters_for_identity_pool(identity_pool)
 
+        s3_bucket = self.create_s3_bucket_and_policies(auth_role, unauth_role)
+        self.update_parameters_for_s3_bucket(s3_bucket)
+
         custom_auth_user_pool = self.create_user_pool("custom_auth")
         custom_auth_user_pool_client = self.create_user_pool_client(
-            custom_auth_user_pool, "custom_auth", True
+            custom_auth_user_pool, "custom_auth", False
         )
         custom_auth_user_pool_client_secret = self.create_userpool_client_secret(
             custom_auth_user_pool, custom_auth_user_pool_client, "custom_auth"
@@ -69,9 +71,6 @@ class MobileClientStack(RegionAwareStack):
             None,
             "DefaultCustomAuth",
         )
-
-        s3_bucket = self.create_s3_bucket_and_policies(auth_role, unauth_role)
-        self.update_parameters_for_s3_bucket(s3_bucket)
 
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
@@ -135,23 +134,25 @@ class MobileClientStack(RegionAwareStack):
             provider_type="Facebook",
             user_pool_id=user_pool.ref,
             provider_details={
-                "client_id": "FB_CLIENT_1234567989",
-                "client_secret": "FB_CLIENT_SECRET_123456789",
-                "authorize_scopes": ["openid", "email"],
-                "api_version": "v7.0",
-            }
+                "client_id": self._secrets["facebook.app_id"],
+                "client_secret": self._secrets["facebook.app_secret"],
+                "authorize_scopes": self._secrets["facebook.scopes"],
+                "api_version": self._secrets["facebook.api_version"],
+            },
+            attribute_mapping={"email": "email", "username": "id"},
         )
         aws_cognito.CfnUserPoolIdentityProvider(
             self,
-            f"user_pool_idp_facebook_{tag}",
+            f"user_pool_idp_google_{tag}",
             provider_name="Google",
             provider_type="Google",
             user_pool_id=user_pool.ref,
             provider_details={
-                "client_id": "GOOGLE_CLIENT_1234567989",
-                "client_secret": "GOOGLE_CLIENT_SECRET_123456789",
-                "authorize_scopes": ["openid", "email"],
-            }
+                "client_id": self._secrets["google.app_id"],
+                "client_secret": self._secrets["google.app_secret"],
+                "authorize_scopes": self._secrets["google.scopes"],
+            },
+            attribute_mapping={"email": "email", "name": "name", "username": "sub"},
         )
 
     def create_user_pool_client(
@@ -168,6 +169,8 @@ class MobileClientStack(RegionAwareStack):
             f"userpool_client_{tag}",
             generate_secret=True,
             user_pool_id=user_pool.ref,
+            allowed_o_auth_flows=["code"],
+            allowed_o_auth_flows_user_pool_client=True,
             allowed_o_auth_scopes=[
                 "phone",
                 "email",
@@ -175,8 +178,8 @@ class MobileClientStack(RegionAwareStack):
                 "profile",
                 "aws.cognito.signin.user.admin",
             ],
-            callback_ur_ls=[REDIRECT_URI],
-            logout_ur_ls=[REDIRECT_URI],
+            callback_ur_ls=[self._secrets["hostedui.sign_in_redirect"]],
+            logout_ur_ls=[self._secrets["hostedui.sign_out_redirect"]],
             explicit_auth_flows=[
                 "ALLOW_CUSTOM_AUTH",
                 "ALLOW_USER_SRP_AUTH",
@@ -230,11 +233,9 @@ class MobileClientStack(RegionAwareStack):
         return resource
 
     def create_user_pool_domain(self, user_pool: aws_cognito.CfnUserPool, tag: str):
-        stub = f"mobileclient-{self.region}-{self.account}-{tag}"
-        stub_hash = hashlib.md5(stub.encode()).hexdigest()
-        host = f"mobileclient-{stub_hash}"
+        domain_prefix = self._secrets["hostedui.domain_prefix"]
         domain = aws_cognito.CfnUserPoolDomain(
-            self, f"user_pool_domain_{tag}", domain=host, user_pool_id=user_pool.ref,
+            self, f"user_pool_domain_{tag}", domain=domain_prefix, user_pool_id=user_pool.ref,
         )
         return domain
 
@@ -276,14 +277,17 @@ class MobileClientStack(RegionAwareStack):
 
         if user_pool_domain:
             url = f"https://{user_pool_domain.domain}.auth.{self.region}.amazoncognito.com"
-            scopes = ["openid", "email"]
+            scopes_string = self._secrets["hostedui.scopes"]
+            scopes = scopes_string.split()
+            sign_in_uri = self._secrets["hostedui.sign_in_redirect"]
+            sign_out_uri = self._secrets["hostedui.sign_out_redirect"]
             self._parameters_to_save.update(
                 {
                     f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/WebDomain": url,
                     f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/AppClientId": app_client_id,
                     f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/AppClientSecret": app_client_secret,  # noqa: E501
-                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignInRedirectURI": REDIRECT_URI,  # noqa: E501
-                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignOutRedirectURI": REDIRECT_URI,  # noqa: E501
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignInRedirectURI": sign_in_uri,  # noqa: E501
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignOutRedirectURI": sign_out_uri,  # noqa: E501
                     f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/Scopes": scopes,
                 }
             )
