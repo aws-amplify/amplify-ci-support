@@ -63,7 +63,11 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
     def test_build_package_data_with_string_list(self):
         params = [
-            {"Name": "/mobile-sdk/android/string_with_commas", "Type": "String", "Value": "foo,bar"},
+            {
+                "Name": "/mobile-sdk/android/string_with_commas",
+                "Type": "String",
+                "Value": "foo,bar",
+            },
             {"Name": "/mobile-sdk/android/string_list", "Type": "StringList", "Value": "foo,bar"},
         ]
         prefix = "/mobile-sdk/android"
@@ -71,11 +75,7 @@ class TestDeviceConfigBuilder(unittest.TestCase):
         package_data = self.underTest.build_package_data(prefix, params)
 
         self.assertEqual(
-            {
-                "string_with_commas": "foo,bar",
-                "string_list": ["foo", "bar"],
-            },
-            package_data,
+            {"string_with_commas": "foo,bar", "string_list": ["foo", "bar"]}, package_data,
         )
 
     def test_get_credential_data(self):
