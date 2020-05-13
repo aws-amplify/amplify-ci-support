@@ -70,7 +70,7 @@ def save_string_list_parameter(
         resource_id,
         string_list_value=value,
         parameter_name=parameter_name,
-        simple_name=False
+        simple_name=False,
     )
 
 

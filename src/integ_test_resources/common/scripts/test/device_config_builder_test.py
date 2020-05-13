@@ -7,9 +7,8 @@ import sys
 import unittest
 from unittest.mock import patch
 
-from device_config_builder import DeviceConfigBuilder
-
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()) + "/..")
+from device_config_builder import DeviceConfigBuilder
 
 
 class TestDeviceConfigBuilder(unittest.TestCase):
@@ -37,8 +36,16 @@ class TestDeviceConfigBuilder(unittest.TestCase):
 
     def test_build_package_data_with_nesting(self):
         params = [
-            {"Name": "/mobile-sdk/android/suite/foo/bar/baz", "Value": "foo_bar_baz_val"},
-            {"Name": "/mobile-sdk/android/suite/potato/bar/baz", "Value": "potato_bar_baz_val"},
+            {
+                "Name": "/mobile-sdk/android/suite/foo/bar/baz",
+                "Type": "String",
+                "Value": "foo_bar_baz_val",
+            },
+            {
+                "Name": "/mobile-sdk/android/suite/potato/bar/baz",
+                "Type": "String",
+                "Value": "potato_bar_baz_val",
+            },
         ]
         prefix = "/mobile-sdk/android"
 
@@ -50,6 +57,23 @@ class TestDeviceConfigBuilder(unittest.TestCase):
                     "foo": {"bar": {"baz": "foo_bar_baz_val"}},
                     "potato": {"bar": {"baz": "potato_bar_baz_val"}},
                 }
+            },
+            package_data,
+        )
+
+    def test_build_package_data_with_string_list(self):
+        params = [
+            {"Name": "/mobile-sdk/android/string_with_commas", "Type": "String", "Value": "foo,bar"},
+            {"Name": "/mobile-sdk/android/string_list", "Type": "StringList", "Value": "foo,bar"},
+        ]
+        prefix = "/mobile-sdk/android"
+
+        package_data = self.underTest.build_package_data(prefix, params)
+
+        self.assertEqual(
+            {
+                "string_with_commas": "foo,bar",
+                "string_list": ["foo", "bar"],
             },
             package_data,
         )
