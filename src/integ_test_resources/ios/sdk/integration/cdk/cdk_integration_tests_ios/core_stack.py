@@ -1,5 +1,3 @@
-import json
-
 from aws_cdk import aws_cognito, aws_iam, core
 
 from common.auth_utils import construct_identity_pool
@@ -58,9 +56,9 @@ class CoreStack(RegionAwareStack):
 
     @staticmethod
     def get_facebook_app_config() -> (str, str):
-        ios_integ_tests_secrets = json.loads(get_integ_tests_secrets(platform=Platform.IOS))
-        facebook_app_id = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_ID"]
-        facebook_app_secret = ios_integ_tests_secrets["IOS_FB_AWSCORETESTS_APP_SECRET"]
+        ios_integ_tests_secrets = get_integ_tests_secrets(platform=Platform.IOS)
+        facebook_app_id = ios_integ_tests_secrets["facebook.app_id"]
+        facebook_app_secret = ios_integ_tests_secrets["facebook.app_secret"]
         return facebook_app_id, facebook_app_secret
 
     def construct_identity_pool_with_facebook_as_idp(
