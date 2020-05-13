@@ -29,6 +29,7 @@ class MobileClientStack(RegionAwareStack):
         self.update_common_stack_with_test_policy(common_stack)
 
         default_user_pool = self.create_user_pool("default")
+        self.add_federation_to_user_pool(default_user_pool, "default")
         default_user_pool_client = self.create_user_pool_client(default_user_pool, "default", True)
         default_user_pool_client_secret = self.create_userpool_client_secret(
             default_user_pool, default_user_pool_client, "default"
@@ -125,6 +126,33 @@ class MobileClientStack(RegionAwareStack):
             ],
         )
         return user_pool
+
+    def add_federation_to_user_pool(self, user_pool: aws_cognito.CfnUserPool, tag: str):
+        aws_cognito.CfnUserPoolIdentityProvider(
+            self,
+            f"user_pool_idp_facebook_{tag}",
+            provider_name="Facebook",
+            provider_type="Facebook",
+            user_pool_id=user_pool.ref,
+            provider_details={
+                "client_id": "FB_CLIENT_1234567989",
+                "client_secret": "FB_CLIENT_SECRET_123456789",
+                "authorize_scopes": ["openid", "email"],
+                "api_version": "v7.0",
+            }
+        )
+        aws_cognito.CfnUserPoolIdentityProvider(
+            self,
+            f"user_pool_idp_facebook_{tag}",
+            provider_name="Google",
+            provider_type="Google",
+            user_pool_id=user_pool.ref,
+            provider_details={
+                "client_id": "GOOGLE_CLIENT_1234567989",
+                "client_secret": "GOOGLE_CLIENT_SECRET_123456789",
+                "authorize_scopes": ["openid", "email"],
+            }
+        )
 
     def create_user_pool_client(
         self, user_pool: aws_cognito.CfnUserPool, tag: str, include_federation: bool
