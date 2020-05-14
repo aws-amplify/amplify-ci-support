@@ -46,24 +46,29 @@ class S3Stack(RegionAwareStack):
 
     def create_basic_bucket(self) -> str:
         bucket_name = self.get_bucket_name("basic")
-        aws_s3.Bucket(self, "integ_test_s3_bucket_basic", bucket_name=bucket_name)
+        aws_s3.Bucket(
+            self, "integ_test_s3_bucket_basic", bucket_name=bucket_name, removal_policy="DESTROY"
+        )
         self._parameters_to_save["bucket_name_basic"] = bucket_name
         return bucket_name
 
     def create_period_bucket(self) -> str:
         bucket_name = self.get_bucket_name("period.test")
-        aws_s3.Bucket(self, "integ_test_s3_bucket_periods", bucket_name=bucket_name)
+        aws_s3.Bucket(
+            self, "integ_test_s3_bucket_periods", bucket_name=bucket_name, removal_policy="DESTROY"
+        )
         self._parameters_to_save["bucket_name_with_periods"] = bucket_name
         return bucket_name
 
     def create_transfer_accelerated_bucket(self) -> str:
         bucket_name = self.get_bucket_name("accel")
         # As of this writing (2020-05-11), The Bucket object does not expose transfer acceleration
-        aws_s3.CfnBucket(
+        bucket = aws_s3.CfnBucket(
             self,
             "integ_test_s3_bucket_transfer_acceleration",
             bucket_name=bucket_name,
             accelerate_configuration={"accelerationStatus": "Enabled"},
         )
         self._parameters_to_save["bucket_name_transfer_acceleration"] = bucket_name
+        bucket.apply_removal_policy("DESTROY")
         return bucket_name

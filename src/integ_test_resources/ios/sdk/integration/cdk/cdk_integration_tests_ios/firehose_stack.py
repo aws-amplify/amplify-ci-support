@@ -27,7 +27,9 @@ class FirehoseStack(RegionAwareStack):
         self.save_parameters_in_parameter_store(Platform.IOS)
 
     def create_s3_delivery_bucket(self) -> aws_s3.Bucket:
-        delivery_bucket = aws_s3.Bucket(self, "integ_test_firehose_delivery_bucket")
+        delivery_bucket = aws_s3.Bucket(
+            self, "integ_test_firehose_delivery_bucket", removal_policy="DESTROY"
+        )
         return delivery_bucket
 
     def create_log_group_and_stream(self) -> aws_logs.LogGroup:

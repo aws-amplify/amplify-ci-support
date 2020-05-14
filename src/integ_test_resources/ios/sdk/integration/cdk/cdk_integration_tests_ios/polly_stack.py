@@ -31,7 +31,12 @@ class PollyStack(RegionAwareStack):
 
     def create_bucket(self, common_stack):
         bucket_name = self.get_bucket_name("output")
-        bucket = aws_s3.Bucket(self, "integ_test_polly_output_bucket", bucket_name=bucket_name)
+        bucket = aws_s3.Bucket(
+            self,
+            "integ_test_polly_output_bucket",
+            bucket_name=bucket_name,
+            removal_policy="DESTROY"
+        )
         self._parameters_to_save["s3_output_bucket_name"] = bucket.bucket_name
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
