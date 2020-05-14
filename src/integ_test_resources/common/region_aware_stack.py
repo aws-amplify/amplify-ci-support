@@ -1,5 +1,4 @@
 import hashlib
-import os
 
 from aws_cdk import core
 from boto3.session import Session
