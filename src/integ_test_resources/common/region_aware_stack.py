@@ -22,7 +22,7 @@ class RegionAwareStack(core.Stack):
 
         boto3_session = Session()
         if region_name is None:
-            region_name = os.environ["AWS_DEFAULT_REGION"]
+            region_name = self.node.try_get_context("region")
 
         if service_name is None:
             service_name = self.stack_name

@@ -70,7 +70,7 @@ class CommonStack(RegionAwareStack):
         self.parameters_to_save["identityPoolId"] = cognito_identity_pool.ref
         self.parameters_to_save["authRoleArn"] = cognito_identity_pool_auth_role.role_arn
         self.parameters_to_save["unauthRoleArn"] = cognito_identity_pool_unauth_role.role_arn
-        self.parameters_to_save["region"] = os.environ["AWS_DEFAULT_REGION"]
+        self.parameters_to_save["region"] = self.node.try_get_context("region")
 
     @property
     def circleci_execution_role(self) -> aws_iam.Role:
