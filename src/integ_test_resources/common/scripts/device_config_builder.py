@@ -5,6 +5,7 @@ import os
 import pathlib
 import sys
 from collections import namedtuple
+from typing import List, Union
 
 import boto3
 
@@ -43,7 +44,7 @@ class DeviceConfigBuilder:
         for parameter in parameters:
             prefix_len = len(prefix)
             name = parameter["Name"][prefix_len:]
-            value = parameter["Value"]
+            value = DeviceConfigBuilder.get_value_for_parameter(parameter)
             self.add_package_data(all_packages_data, name, value)
         return all_packages_data
 
@@ -83,6 +84,15 @@ class DeviceConfigBuilder:
             if first_part not in all_package_data:
                 all_package_data[first_part] = dict()
             self.add_package_data(all_package_data[first_part], the_rest, value)
+
+    @staticmethod
+    def get_value_for_parameter(parameter: dict) -> Union[str, List[str]]:
+        raw_value = parameter["Value"]
+        if parameter.get("Type", "String") == "StringList":
+            array_value = raw_value.split(",")
+            return array_value
+        else:
+            return raw_value
 
     def get_parameters_with_prefix(self, parameter_prefix: str, ssm) -> dict:
         """

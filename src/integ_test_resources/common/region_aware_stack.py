@@ -1,9 +1,9 @@
-import os
+import hashlib
 
 from aws_cdk import core
 from boto3.session import Session
 
-from common.parameter_store import save_string_parameter
+from common.parameter_store import save_parameter
 from common.platforms import Platform
 
 
@@ -13,6 +13,7 @@ class RegionAwareStack(core.Stack):
 
         self._supported_in_region: bool
         self._parameters_to_save = {}
+        self._id = id
 
     def is_service_supported_in_region(
         self, service_name: str = None, region_name: str = None
@@ -20,7 +21,7 @@ class RegionAwareStack(core.Stack):
 
         boto3_session = Session()
         if region_name is None:
-            region_name = os.environ["AWS_DEFAULT_REGION"]
+            region_name = self.node.try_get_context("region")
 
         if service_name is None:
             service_name = self.stack_name
@@ -44,9 +45,8 @@ class RegionAwareStack(core.Stack):
         return services_supported_in_region
 
     def save_parameters_in_parameter_store(self, platform: Platform) -> None:
-
         for parameter_name, parameter_value in self.parameters_to_save.items():
-            save_string_parameter(self, parameter_name, parameter_value, platform=platform)
+            save_parameter(self, parameter_name, parameter_value, platform=platform)
 
     def add_dependencies_with_region_filter(self, stacks_to_add: list) -> None:
         for stack in stacks_to_add:
@@ -60,3 +60,38 @@ class RegionAwareStack(core.Stack):
     @property
     def parameters_to_save(self) -> dict:
         return self._parameters_to_save
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    def get_bucket_name(self, tag) -> str:
+        """
+        Returns a string to be used as the name for an S3 bucket. As of this writing (2020-05-12),
+        directly referring to bucket ARNs and names in stacks causes circular dependencies between
+        common and the bucket-owning stack.
+
+        Since we calculate the bucket name during the synthesis phase, values such as self.region
+        and self.account are not yet resolved, and therefore cannot be used to reliably hash unique
+        values. Instead, we use the region and account passed on the command line to construct a
+        hash value to uniq-ify the bucket name across accounts and regions.
+
+        Usage example:
+            bucket_name = self.get_bucket_name("media_upload")
+            bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket", name=bucket_name)
+
+            policy = aws_iam.PolicyStatement(
+                effect=aws_iam.Effect.ALLOW,
+                actions=["s3:PutObject"],
+                resources=[f"arn:aws:s3:::{self.bucket_name}/*"],
+            )
+            common_stack.add_to_common_role_policies(self, policy_to_add=policy)
+
+        :return: a string to be used for a bucket name
+        """
+        region = self.node.try_get_context("region")
+        account = self.node.try_get_context("account")
+        bucket_tag = f"{region}-{account}-{tag}"
+        bucket_hash = hashlib.md5(bucket_tag.encode()).hexdigest()
+        bucket_name = f"integ-test-{self.id}-{tag}-{bucket_hash}"
+        return bucket_name

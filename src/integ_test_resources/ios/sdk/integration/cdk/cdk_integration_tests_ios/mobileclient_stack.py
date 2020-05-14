@@ -1,9 +1,12 @@
+from typing import Optional
+
 from aws_cdk import aws_cognito, aws_iam, aws_s3, core, custom_resources
 
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
+from common.secrets_manager import get_integ_tests_secrets
 
 
 class MobileClientStack(RegionAwareStack):
@@ -11,22 +14,43 @@ class MobileClientStack(RegionAwareStack):
 
         super().__init__(scope, id, **kwargs)
 
-        self._parameters_to_save["email_address"] = "aws-mobile-sdk-dev+mc-integ-tests@amazon.com"
-
         self._supported_in_region = self.are_services_supported_in_region(
             ["cognito-identity", "cognito-idp"]
         )
 
+        if not self._supported_in_region:
+            return
+
+        self._secrets = get_integ_tests_secrets(platform=Platform.IOS)
+        self._parameters_to_save["email_address"] = self._secrets["common.shared_email"]
+        self._parameters_to_save["test_password"] = self._secrets["common.password"]
+
         self.update_common_stack_with_test_policy(common_stack)
 
         default_user_pool = self.create_user_pool("default")
-        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default")
+        self.add_federation_to_user_pool(default_user_pool, "default")
+        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default", True)
         default_user_pool_client_secret = self.create_userpool_client_secret(
             default_user_pool, default_user_pool_client, "default"
         )
+        default_user_pool_domain = self.create_user_pool_domain(default_user_pool, "default")
         self.update_parameters_for_userpool(
-            default_user_pool, default_user_pool_client, default_user_pool_client_secret, "Default"
+            default_user_pool,
+            default_user_pool_client,
+            default_user_pool_client_secret,
+            default_user_pool_domain,
+            "Default",
         )
+        self.update_parameters_for_auth_section(
+            default_user_pool_client,
+            default_user_pool_client_secret,
+            default_user_pool_domain,
+            "Default",
+        )
+        # This is a special case parameter for custom auth tests
+        self._parameters_to_save[
+            "awsconfiguration/Auth/DefaultCustomAuth/authenticationFlowType"
+        ] = "CUSTOM_AUTH"
 
         (identity_pool, auth_role, unauth_role) = construct_identity_pool(
             self,
@@ -34,15 +58,18 @@ class MobileClientStack(RegionAwareStack):
             cognito_identity_providers=[
                 {
                     "clientId": default_user_pool_client.ref,
-                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",
+                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",  # noqa: E501
                 }
             ],
         )
         self.update_parameters_for_identity_pool(identity_pool)
 
+        s3_bucket = self.create_s3_bucket_and_policies(auth_role, unauth_role)
+        self.update_parameters_for_s3_bucket(s3_bucket)
+
         custom_auth_user_pool = self.create_user_pool("custom_auth")
         custom_auth_user_pool_client = self.create_user_pool_client(
-            custom_auth_user_pool, "custom_auth"
+            custom_auth_user_pool, "custom_auth", False
         )
         custom_auth_user_pool_client_secret = self.create_userpool_client_secret(
             custom_auth_user_pool, custom_auth_user_pool_client, "custom_auth"
@@ -51,11 +78,9 @@ class MobileClientStack(RegionAwareStack):
             custom_auth_user_pool,
             custom_auth_user_pool_client,
             custom_auth_user_pool_client_secret,
+            None,
             "DefaultCustomAuth",
         )
-
-        s3_bucket = self.create_s3_bucket_and_policies(auth_role, unauth_role)
-        self.update_parameters_for_s3_bucket(s3_bucket)
 
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
@@ -69,7 +94,9 @@ class MobileClientStack(RegionAwareStack):
         :param unauth_role: The IAM role adopted by unauthenticated users the Identity Pool
         :return: the S3 Bucket
         """
-        bucket = aws_s3.Bucket(self, "integ_test_mobileclient_bucket")
+        bucket = aws_s3.Bucket(
+            self, "integ_test_mobileclient_bucket", removal_policy=core.RemovalPolicy.DESTROY
+        )
         MobileClientStack.add_public_policy(bucket, unauth_role, False)
         MobileClientStack.add_read_policy(bucket, unauth_role)
         MobileClientStack.add_list_policy(bucket, unauth_role, False)
@@ -83,21 +110,17 @@ class MobileClientStack(RegionAwareStack):
 
         return bucket
 
-    def create_user_pool(self, tag) -> aws_cognito.UserPool:
+    def create_user_pool(self, tag: str) -> aws_cognito.CfnUserPool:
         user_pool = aws_cognito.CfnUserPool(
             self,
             f"userpool_{tag}",
             auto_verified_attributes=["email"],
             device_configuration=aws_cognito.CfnUserPool.DeviceConfigurationProperty(
-                challenge_required_on_new_device=False,
-                device_only_remembered_on_user_prompt=True
+                challenge_required_on_new_device=False, device_only_remembered_on_user_prompt=True
             ),
             schema=[
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
-                    attribute_data_type="String",
-                    mutable=False,
-                    name="email",
-                    required=True,
+                    attribute_data_type="String", mutable=False, name="email", required=True,
                 ),
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
@@ -110,22 +133,80 @@ class MobileClientStack(RegionAwareStack):
                     mutable=True,
                     name="mutableStringAttr2",
                     required=False,
-                )
+                ),
             ],
         )
         return user_pool
 
-    def create_user_pool_client(self, user_pool, tag) -> aws_cognito.CfnUserPoolClient:
+    def add_federation_to_user_pool(self, user_pool: aws_cognito.CfnUserPool, tag: str):
+        aws_cognito.CfnUserPoolIdentityProvider(
+            self,
+            f"user_pool_idp_facebook_{tag}",
+            provider_name="Facebook",
+            provider_type="Facebook",
+            user_pool_id=user_pool.ref,
+            provider_details={
+                "client_id": self._secrets["facebook.app_id"],
+                "client_secret": self._secrets["facebook.app_secret"],
+                "authorize_scopes": self._secrets["facebook.scopes"],
+                "api_version": self._secrets["facebook.api_version"],
+            },
+            attribute_mapping={"email": "email", "username": "id"},
+        )
+        aws_cognito.CfnUserPoolIdentityProvider(
+            self,
+            f"user_pool_idp_google_{tag}",
+            provider_name="Google",
+            provider_type="Google",
+            user_pool_id=user_pool.ref,
+            provider_details={
+                "client_id": self._secrets["google.app_id"],
+                "client_secret": self._secrets["google.app_secret"],
+                "authorize_scopes": self._secrets["google.scopes"],
+            },
+            attribute_mapping={"email": "email", "name": "name", "username": "sub"},
+        )
+
+    def create_user_pool_client(
+        self, user_pool: aws_cognito.CfnUserPool, tag: str, include_federation: bool
+    ) -> aws_cognito.CfnUserPoolClient:
+        if not include_federation:
+            user_pool_client = aws_cognito.CfnUserPoolClient(
+                self, f"userpool_client_{tag}", generate_secret=True, user_pool_id=user_pool.ref,
+            )
+            return user_pool_client
+
         user_pool_client = aws_cognito.CfnUserPoolClient(
             self,
             f"userpool_client_{tag}",
             generate_secret=True,
             user_pool_id=user_pool.ref,
+            allowed_o_auth_flows=["code"],
+            allowed_o_auth_flows_user_pool_client=True,
+            allowed_o_auth_scopes=[
+                "phone",
+                "email",
+                "openid",
+                "profile",
+                "aws.cognito.signin.user.admin",
+            ],
+            callback_ur_ls=[self._secrets["hostedui.sign_in_redirect"]],
+            logout_ur_ls=[self._secrets["hostedui.sign_out_redirect"]],
+            explicit_auth_flows=[
+                "ALLOW_CUSTOM_AUTH",
+                "ALLOW_USER_SRP_AUTH",
+                "ALLOW_REFRESH_TOKEN_AUTH",
+            ],
+            prevent_user_existence_errors="LEGACY",
+            supported_identity_providers=["COGNITO", "Facebook", "Google"],
         )
         return user_pool_client
 
     def create_userpool_client_secret(
-        self, user_pool, user_pool_client, tag
+        self,
+        user_pool: aws_cognito.CfnUserPool,
+        user_pool_client: aws_cognito.CfnUserPoolClient,
+        tag: str,
     ) -> custom_resources.AwsCustomResource:
         """
         :return: an AwsCustomResource that provides access to the user pool client secret in the
@@ -163,13 +244,20 @@ class MobileClientStack(RegionAwareStack):
         )
         return resource
 
-    def update_common_stack_with_test_policy(self, common_stack):
+    def create_user_pool_domain(self, user_pool: aws_cognito.CfnUserPool, tag: str):
+        domain_prefix = self._secrets["hostedui.domain_prefix"]
+        domain = aws_cognito.CfnUserPoolDomain(
+            self, f"user_pool_domain_{tag}", domain=domain_prefix, user_pool_id=user_pool.ref,
+        )
+        return domain
+
+    def update_common_stack_with_test_policy(self, common_stack: CommonStack):
         stack_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
 
-    def update_parameters_for_identity_pool(self, identity_pool):
+    def update_parameters_for_identity_pool(self, identity_pool: aws_cognito.CfnIdentityPool):
         self._parameters_to_save.update(
             {
                 "awsconfiguration/CredentialsProvider/CognitoIdentity/Default/PoolId": identity_pool.ref,  # noqa: E501
@@ -178,20 +266,45 @@ class MobileClientStack(RegionAwareStack):
         )
 
     def update_parameters_for_userpool(
-        self, user_pool, user_pool_client, user_pool_client_secret, tag
+        self,
+        user_pool: aws_cognito.CfnUserPool,
+        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool_client_secret: custom_resources.AwsCustomResource,
+        user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
+        tag: str,
     ):
+        pool_id = user_pool.ref
+        app_client_id = user_pool_client.ref
+        app_client_secret = user_pool_client_secret.get_response_field(
+            "UserPoolClient.ClientSecret"
+        )
         self._parameters_to_save.update(
             {
-                f"awsconfiguration/CognitoUserPool/{tag}/PoolId": user_pool.ref,
-                f"awsconfiguration/CognitoUserPool/{tag}/AppClientId": user_pool_client.ref,
-                f"awsconfiguration/CognitoUserPool/{tag}/AppClientSecret": user_pool_client_secret.get_response_field(  # noqa: E501
-                    "UserPoolClient.ClientSecret"
-                ),
+                f"awsconfiguration/CognitoUserPool/{tag}/PoolId": pool_id,
+                f"awsconfiguration/CognitoUserPool/{tag}/AppClientId": app_client_id,
+                f"awsconfiguration/CognitoUserPool/{tag}/AppClientSecret": app_client_secret,
                 f"awsconfiguration/CognitoUserPool/{tag}/Region": self.region,
             }
         )
 
-    def update_parameters_for_s3_bucket(self, bucket):
+        if user_pool_domain:
+            url = f"https://{user_pool_domain.domain}.auth.{self.region}.amazoncognito.com"
+            scopes_string = self._secrets["hostedui.scopes"]
+            scopes = scopes_string.split()
+            sign_in_uri = self._secrets["hostedui.sign_in_redirect"]
+            sign_out_uri = self._secrets["hostedui.sign_out_redirect"]
+            self._parameters_to_save.update(
+                {
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/WebDomain": url,
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/AppClientId": app_client_id,
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/AppClientSecret": app_client_secret,  # noqa: E501
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignInRedirectURI": sign_in_uri,  # noqa: E501
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/SignOutRedirectURI": sign_out_uri,  # noqa: E501
+                    f"awsconfiguration/CognitoUserPool/{tag}/HostedUI/Scopes": scopes,
+                }
+            )
+
+    def update_parameters_for_s3_bucket(self, bucket: aws_s3.Bucket):
         self._parameters_to_save.update(
             {
                 "awsconfiguration/S3TransferUtility/Default/Bucket": bucket.bucket_name,
@@ -199,8 +312,43 @@ class MobileClientStack(RegionAwareStack):
             }
         )
 
+    def update_parameters_for_auth_section(
+        self,
+        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool_client_secret: custom_resources.AwsCustomResource,
+        user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
+        tag: str,
+    ):
+        """
+        This contains nearly identical info as the "HostedUI" section above, but
+        is organized differently for the AWSMobileClient.
+        """
+        if not user_pool_domain:
+            return
+
+        app_client_id = user_pool_client.ref
+        app_client_secret = user_pool_client_secret.get_response_field(
+            "UserPoolClient.ClientSecret"
+        )
+
+        web_domain = f"{user_pool_domain.domain}.auth.{self.region}.amazoncognito.com"
+        scopes_string = self._secrets["hostedui.scopes"]
+        scopes = scopes_string.split()
+        sign_in_uri = self._secrets["hostedui.sign_in_redirect"]
+        sign_out_uri = self._secrets["hostedui.sign_out_redirect"]
+        self._parameters_to_save.update(
+            {
+                f"awsconfiguration/Auth/{tag}/OAuth/WebDomain": web_domain,
+                f"awsconfiguration/Auth/{tag}/OAuth/AppClientId": app_client_id,
+                f"awsconfiguration/Auth/{tag}/OAuth/AppClientSecret": app_client_secret,
+                f"awsconfiguration/Auth/{tag}/OAuth/SignInRedirectURI": sign_in_uri,
+                f"awsconfiguration/Auth/{tag}/OAuth/SignOutRedirectURI": sign_out_uri,
+                f"awsconfiguration/Auth/{tag}/OAuth/Scopes": scopes,
+            }
+        )
+
     @staticmethod
-    def add_public_policy(bucket, role: aws_iam.Role, is_auth_role):
+    def add_public_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, is_auth_role: bool):
         actions = ["s3:GetObject"]
         if is_auth_role:
             actions.extend(["s3:PutObject", "s3:DeleteObject"])
@@ -212,7 +360,7 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_read_policy(bucket, role: aws_iam.Role):
+    def add_read_policy(bucket: aws_s3.Bucket, role: aws_iam.Role):
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["s3:GetObject"],
@@ -221,7 +369,7 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_list_policy(bucket, role: aws_iam.Role, is_auth_role):
+    def add_list_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, is_auth_role: bool):
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["s3:ListBucket"],
@@ -240,7 +388,7 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_user_specific_policy(bucket, role: aws_iam.Role, prefix):
+    def add_user_specific_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, prefix: str):
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
@@ -251,7 +399,7 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_uploads_policy(bucket, role: aws_iam.Role):
+    def add_uploads_policy(bucket: aws_s3.Bucket, role: aws_iam.Role):
         policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["s3:PutObject"],

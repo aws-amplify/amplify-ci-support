@@ -22,13 +22,14 @@ class FirehoseStack(RegionAwareStack):
         firehose_stream_name = firehose.ref
         self._parameters_to_save["firehose_stream_name"] = firehose_stream_name
 
-        firehose_arn = firehose.get_att("Arn").to_string()
-        self.create_test_policies(firehose_arn, common_stack)
+        self.create_test_policies(common_stack)
 
         self.save_parameters_in_parameter_store(Platform.IOS)
 
     def create_s3_delivery_bucket(self) -> aws_s3.Bucket:
-        delivery_bucket = aws_s3.Bucket(self, "integ_test_firehose_delivery_bucket")
+        delivery_bucket = aws_s3.Bucket(
+            self, "integ_test_firehose_delivery_bucket", removal_policy=core.RemovalPolicy.DESTROY
+        )
         return delivery_bucket
 
     def create_log_group_and_stream(self) -> aws_logs.LogGroup:
@@ -36,12 +37,15 @@ class FirehoseStack(RegionAwareStack):
             self,
             "integ_test_firehose_delivery_log_group",
             log_group_name=FirehoseStack.LOG_GROUP_NAME,
+            removal_policy=core.RemovalPolicy.DESTROY,
+            retention=aws_logs.RetentionDays.FIVE_DAYS,
         )
         aws_logs.LogStream(
             self,
             "integ_test_firehose_delivery_log_stream",
             log_group=log_group,
             log_stream_name=FirehoseStack.LOG_STREAM_NAME,
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         return log_group
 
@@ -136,7 +140,7 @@ class FirehoseStack(RegionAwareStack):
         )
         return firehose
 
-    def create_test_policies(self, firehose_arn, common_stack):
+    def create_test_policies(self, common_stack):
         all_resources_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW, actions=["firehose:ListDeliveryStreams"], resources=["*"],
         )
@@ -145,6 +149,6 @@ class FirehoseStack(RegionAwareStack):
         deliverystream_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["firehose:PutRecord", "firehose:PutRecordBatch"],
-            resources=[firehose_arn],
+            resources=[f"arn:aws:firehose:{self.region}:{self.account}:deliverystream/*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=deliverystream_policy)

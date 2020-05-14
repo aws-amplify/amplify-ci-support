@@ -22,14 +22,27 @@ from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
 from cdk_integration_tests_ios.polly_stack import PollyStack
 from cdk_integration_tests_ios.rekognition_stack import RekognitionStack
 from cdk_integration_tests_ios.s3_stack import S3Stack
+from cdk_integration_tests_ios.ses_stack import SesStack
+from cdk_integration_tests_ios.simpledb_stack import SimpleDbStack
 from cdk_integration_tests_ios.sns_stack import SnsStack
+from cdk_integration_tests_ios.sqs_stack import SqsStack
 from cdk_integration_tests_ios.sts_stack import StsStack
+from cdk_integration_tests_ios.textract_stack import TextractStack
+from cdk_integration_tests_ios.transcribe_stack import TranscribeStack
+from cdk_integration_tests_ios.translate_stack import TranslateStack
 from common.common_stack import CommonStack
 from common.main_stack import MainStack
 from common.platforms import Platform
 from common.stack_utils import add_stack_dependency_on_common_stack
 
 app = core.App()
+
+region = app.node.try_get_context("region")
+account = app.node.try_get_context("account")
+if region is None or account is None:
+    raise ValueError(
+        "Provide region and account in 'context' parameter, as in: cdk deploy app -c region=us-west-2 -c account=123456"  # noqa: E501
+    )
 
 common_stack = CommonStack(app, "common", platform=Platform.IOS)
 main_stack = MainStack(app, "main")
@@ -39,51 +52,35 @@ core_stack = CoreStack(app, "core", common_stack)
 
 lambda_stack = LambdaStack(app, "lambda", common_stack)
 
-apigateway_stack = ApigatewayStack(
-    app, "apigateway", lambda_stack.lambda_echo_function, common_stack
-)
-
-autoscaling_stack = AutoScalingStack(app, "autoscaling", common_stack)
-cloudwatch_stack = CloudWatchStack(app, "cloudwatch", common_stack)
-cognito_idp_stack = CognitoIdpStack(app, "cognito-idp", common_stack)
-comprehend_stack = ComprehendStack(app, "comprehend", common_stack)
-dynamodb_stack = DynamoDbStack(app, "dynamodb", common_stack)
-ec2_stack = Ec2Stack(app, "ec2", common_stack)
-elb_stack = ElbStack(app, "elb", common_stack)
-firehose_stack = FirehoseStack(app, "firehose", common_stack)
-iot_stack = IotStack(app, "iot", common_stack)
-kinesis_stack = KinesisStack(app, "kinesis", common_stack)
-kinesisvideo_stack = KinesisVideoStack(app, "kinesisvideo", common_stack)
-kms_stack = KmsStack(app, "kms", common_stack)
-mobileclient_stack = MobileClientStack(app, "mobileclient", common_stack)
-pinpoint_stack = PinpointStack(app, "pinpoint", common_stack)
-polly_stack = PollyStack(app, "polly", common_stack)
-rekognition_stack = RekognitionStack(app, "rekognition", common_stack)
-s3_stack = S3Stack(app, "s3", common_stack)
-sns_stack = SnsStack(app, "sns", common_stack)
-sts_stack = StsStack(app, "sts", common_stack)
-
 stacks_in_app = [
     core_stack,
-    apigateway_stack,
-    autoscaling_stack,
-    cloudwatch_stack,
-    cognito_idp_stack,
-    comprehend_stack,
-    dynamodb_stack,
-    ec2_stack,
-    iot_stack,
-    kinesis_stack,
-    kinesisvideo_stack,
-    kms_stack,
     lambda_stack,
-    mobileclient_stack,
-    pinpoint_stack,
-    polly_stack,
-    rekognition_stack,
-    s3_stack,
-    sns_stack,
-    sts_stack,
+    ApigatewayStack(app, "apigateway", lambda_stack.lambda_echo_function, common_stack),
+    AutoScalingStack(app, "autoscaling", common_stack),
+    CloudWatchStack(app, "cloudwatch", common_stack),
+    CognitoIdpStack(app, "cognito-idp", common_stack),
+    ComprehendStack(app, "comprehend", common_stack),
+    DynamoDbStack(app, "dynamodb", common_stack),
+    Ec2Stack(app, "ec2", common_stack),
+    ElbStack(app, "elb", common_stack),
+    FirehoseStack(app, "firehose", common_stack),
+    IotStack(app, "iot", common_stack),
+    KinesisStack(app, "kinesis", common_stack),
+    KinesisVideoStack(app, "kinesisvideo", common_stack),
+    KmsStack(app, "kms", common_stack),
+    MobileClientStack(app, "mobileclient", common_stack),
+    PinpointStack(app, "pinpoint", common_stack),
+    PollyStack(app, "polly", common_stack),
+    RekognitionStack(app, "rekognition", common_stack),
+    S3Stack(app, "s3", common_stack),
+    SesStack(app, "ses", common_stack),
+    SimpleDbStack(app, "sdb", common_stack),
+    SnsStack(app, "sns", common_stack),
+    SqsStack(app, "sqs", common_stack),
+    StsStack(app, "sts", common_stack),
+    TextractStack(app, "textract", common_stack),
+    TranscribeStack(app, "transcribe", common_stack),
+    TranslateStack(app, "translate", common_stack),
 ]
 
 add_stack_dependency_on_common_stack(stacks_in_app=stacks_in_app, common_stack=common_stack)
