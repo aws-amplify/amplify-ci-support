@@ -23,7 +23,7 @@ class LambdaStack(RegionAwareStack):
             handler="echo.handler",
             description=datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)"),
             current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN
+                removal_policy=core.RemovalPolicy.DESTROY
             ),
         )
 

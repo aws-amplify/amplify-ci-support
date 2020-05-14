@@ -40,7 +40,9 @@ app = core.App()
 region = app.node.try_get_context("region")
 account = app.node.try_get_context("account")
 if region is None or account is None:
-    raise ValueError("Provide region and account in 'context' parameter, as in: cdk deploy app -c region=us-west-2 -c account=123456")  # noqa: E501
+    raise ValueError(
+        "Provide region and account in 'context' parameter, as in: cdk deploy app -c region=us-west-2 -c account=123456"  # noqa: E501
+    )
 
 common_stack = CommonStack(app, "common", platform=Platform.IOS)
 main_stack = MainStack(app, "main")

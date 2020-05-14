@@ -94,7 +94,9 @@ class MobileClientStack(RegionAwareStack):
         :param unauth_role: The IAM role adopted by unauthenticated users the Identity Pool
         :return: the S3 Bucket
         """
-        bucket = aws_s3.Bucket(self, "integ_test_mobileclient_bucket", removal_policy="DESTROY")
+        bucket = aws_s3.Bucket(
+            self, "integ_test_mobileclient_bucket", removal_policy=core.RemovalPolicy.DESTROY
+        )
         MobileClientStack.add_public_policy(bucket, unauth_role, False)
         MobileClientStack.add_read_policy(bucket, unauth_role)
         MobileClientStack.add_list_policy(bucket, unauth_role, False)

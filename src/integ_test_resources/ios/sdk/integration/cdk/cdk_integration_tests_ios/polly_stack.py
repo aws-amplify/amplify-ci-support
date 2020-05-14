@@ -35,7 +35,7 @@ class PollyStack(RegionAwareStack):
             self,
             "integ_test_polly_output_bucket",
             bucket_name=bucket_name,
-            removal_policy="DESTROY"
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["s3_output_bucket_name"] = bucket.bucket_name
         policy = aws_iam.PolicyStatement(

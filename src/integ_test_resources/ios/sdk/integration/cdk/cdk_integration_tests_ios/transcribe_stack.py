@@ -34,7 +34,10 @@ class TranscribeStack(RegionAwareStack):
     def create_bucket(self, common_stack):
         bucket_name = self.get_bucket_name("media")
         bucket = aws_s3.Bucket(
-            self, "integ_test_transcribe_bucket", bucket_name=bucket_name, removal_policy="DESTROY"
+            self,
+            "integ_test_transcribe_bucket",
+            bucket_name=bucket_name,
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["bucket_name"] = bucket.bucket_name
         policy = aws_iam.PolicyStatement(

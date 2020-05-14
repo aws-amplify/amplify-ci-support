@@ -38,7 +38,7 @@ class IotStack(RegionAwareStack):
             handler="iot_endpoint_provider.on_event",
             description="Returns iot:Data-ATS endpoint for this account",
             current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN
+                removal_policy=core.RemovalPolicy.DESTROY
             ),
             initial_policy=[describe_endpoint_policy],
         )
@@ -179,7 +179,7 @@ class IotStack(RegionAwareStack):
             handler="iot_custom_authorizer_provider.on_event",
             description="Sets up an IoT custom authorizer",
             current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN
+                removal_policy=core.RemovalPolicy.DESTROY
             ),
             initial_policy=[create_authorizer_policy],
         )
@@ -220,7 +220,7 @@ class IotStack(RegionAwareStack):
             handler="iot_custom_authorizer.handler",
             description="Sample custom authorizer that allows or denies based on 'token' value",
             current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN
+                removal_policy=core.RemovalPolicy.DESTROY
             ),
             environment={"RESOURCE_ARN": f"arn:aws:iot:{self.region}:{self.account}:*"},
         )
@@ -252,7 +252,7 @@ class IotStack(RegionAwareStack):
             handler="iot_custom_authorizer_key_provider.on_event",
             description="Manages an asymmetric CMK and token signature for iot custom authorizer.",
             current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.RETAIN
+                removal_policy=core.RemovalPolicy.DESTROY
             ),
             initial_policy=[create_authorizer_policy],
         )

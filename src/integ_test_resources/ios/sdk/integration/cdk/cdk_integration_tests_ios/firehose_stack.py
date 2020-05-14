@@ -28,7 +28,7 @@ class FirehoseStack(RegionAwareStack):
 
     def create_s3_delivery_bucket(self) -> aws_s3.Bucket:
         delivery_bucket = aws_s3.Bucket(
-            self, "integ_test_firehose_delivery_bucket", removal_policy="DESTROY"
+            self, "integ_test_firehose_delivery_bucket", removal_policy=core.RemovalPolicy.DESTROY
         )
         return delivery_bucket
 
@@ -37,12 +37,15 @@ class FirehoseStack(RegionAwareStack):
             self,
             "integ_test_firehose_delivery_log_group",
             log_group_name=FirehoseStack.LOG_GROUP_NAME,
+            removal_policy=core.RemovalPolicy.DESTROY,
+            retention=aws_logs.RetentionDays.FIVE_DAYS,
         )
         aws_logs.LogStream(
             self,
             "integ_test_firehose_delivery_log_stream",
             log_group=log_group,
             log_stream_name=FirehoseStack.LOG_STREAM_NAME,
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         return log_group
 

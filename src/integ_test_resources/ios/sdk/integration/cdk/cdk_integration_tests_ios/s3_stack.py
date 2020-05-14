@@ -47,7 +47,10 @@ class S3Stack(RegionAwareStack):
     def create_basic_bucket(self) -> str:
         bucket_name = self.get_bucket_name("basic")
         aws_s3.Bucket(
-            self, "integ_test_s3_bucket_basic", bucket_name=bucket_name, removal_policy="DESTROY"
+            self,
+            "integ_test_s3_bucket_basic",
+            bucket_name=bucket_name,
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["bucket_name_basic"] = bucket_name
         return bucket_name
@@ -55,7 +58,10 @@ class S3Stack(RegionAwareStack):
     def create_period_bucket(self) -> str:
         bucket_name = self.get_bucket_name("period.test")
         aws_s3.Bucket(
-            self, "integ_test_s3_bucket_periods", bucket_name=bucket_name, removal_policy="DESTROY"
+            self,
+            "integ_test_s3_bucket_periods",
+            bucket_name=bucket_name,
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["bucket_name_with_periods"] = bucket_name
         return bucket_name
@@ -70,5 +76,5 @@ class S3Stack(RegionAwareStack):
             accelerate_configuration={"accelerationStatus": "Enabled"},
         )
         self._parameters_to_save["bucket_name_transfer_acceleration"] = bucket_name
-        bucket.apply_removal_policy("DESTROY")
+        bucket.apply_removal_policy(core.RemovalPolicy.DESTROY)
         return bucket_name
