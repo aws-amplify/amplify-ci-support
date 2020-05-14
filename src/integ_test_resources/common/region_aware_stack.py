@@ -72,6 +72,11 @@ class RegionAwareStack(core.Stack):
         directly referring to bucket ARNs and names in stacks causes circular dependencies between
         common and the bucket-owning stack.
 
+        Since we calculate the bucket name during the synthesis phase, values such as self.region
+        and self.account are not yet resolved, and therefore cannot be used to reliably hash unique
+        values. Instead, we use the region and account passed on the command line to construct a
+        hash value to uniq-ify the bucket name across accounts and regions.
+
         Usage example:
             bucket_name = self.get_bucket_name("media_upload")
             bucket = aws_s3.Bucket(self, "integ_test_transcribe_bucket", name=bucket_name)
@@ -85,7 +90,9 @@ class RegionAwareStack(core.Stack):
 
         :return: a string to be used for a bucket name
         """
-        bucket_tag = f"{self.region}-{self.account}-{tag}"
+        region = self.node.try_get_context("region")
+        account = self.node.try_get_context("account")
+        bucket_tag = f"{region}-{account}-{tag}"
         bucket_hash = hashlib.md5(bucket_tag.encode()).hexdigest()
         bucket_name = f"integ-test-{self.id}-{tag}-{bucket_hash}"
         return bucket_name
