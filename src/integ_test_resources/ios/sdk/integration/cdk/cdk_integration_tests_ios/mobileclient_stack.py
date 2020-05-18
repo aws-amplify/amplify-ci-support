@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from aws_cdk import aws_cognito, aws_iam, aws_s3, core, custom_resources
+from aws_cdk import aws_cognito, aws_iam, aws_lambda, aws_s3, core, custom_resources
 
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
@@ -27,9 +27,13 @@ class MobileClientStack(RegionAwareStack):
 
         self.update_common_stack_with_test_policy(common_stack)
 
-        default_user_pool = self.create_user_pool("default")
+        default_user_pool = self.create_user_pool("default", lambda_config=None)
         federation_providers = self.add_federation_to_user_pool(default_user_pool, "default")
-        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default", federation_providers)
+        default_user_pool_client = self.create_user_pool_client(
+            default_user_pool,
+            "default",
+            federation_providers
+        )
         default_user_pool_client_secret = self.create_userpool_client_secret(
             default_user_pool, default_user_pool_client, "default"
         )
@@ -67,7 +71,10 @@ class MobileClientStack(RegionAwareStack):
         s3_bucket = self.create_s3_bucket_and_policies(auth_role, unauth_role)
         self.update_parameters_for_s3_bucket(s3_bucket)
 
-        custom_auth_user_pool = self.create_user_pool("custom_auth")
+        custom_auth_lambda_configuration = self.create_custom_auth_lambda_configuration()
+        custom_auth_user_pool = self.create_user_pool(
+            "custom_auth", lambda_config=custom_auth_lambda_configuration
+        )
         custom_auth_user_pool_client = self.create_user_pool_client(
             custom_auth_user_pool, "custom_auth", False
         )
@@ -110,7 +117,11 @@ class MobileClientStack(RegionAwareStack):
 
         return bucket
 
-    def create_user_pool(self, tag: str) -> aws_cognito.CfnUserPool:
+    def create_user_pool(
+            self,
+            tag: str,
+            lambda_config: Optional[aws_cognito.CfnUserPool.LambdaConfigProperty]
+    ) -> aws_cognito.CfnUserPool:
         user_pool = aws_cognito.CfnUserPool(
             self,
             f"userpool_{tag}",
@@ -135,6 +146,7 @@ class MobileClientStack(RegionAwareStack):
                     required=False,
                 ),
             ],
+            lambda_config=lambda_config
         )
         return user_pool
 
@@ -263,6 +275,77 @@ class MobileClientStack(RegionAwareStack):
             self, f"user_pool_domain_{tag}", domain=domain_prefix, user_pool_id=user_pool.ref,
         )
         return domain
+
+    def create_custom_auth_lambda_configuration(
+            self
+    ) -> aws_cognito.CfnUserPool.LambdaConfigProperty:
+        cognito_service_principal = aws_iam.ServicePrincipal("cognito-idp.amazonaws.com")
+        create_auth_challenge = aws_lambda.Function(
+            self,
+            "custom_auth_lambda_create_auth_challenge",
+            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            handler="create_auth_challenge.handler",
+            description="custom auth: create_auth_challenge",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+        )
+        create_auth_challenge.add_permission(
+            "create_auth_challenge_invoke_permission", principal=cognito_service_principal
+        )
+
+        define_auth_challenge = aws_lambda.Function(
+            self,
+            "custom_auth_lambda_define_auth_challenge",
+            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            handler="define_auth_challenge.handler",
+            description="custom auth: define_auth_challenge",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+        )
+        define_auth_challenge.add_permission(
+            "define_auth_challenge_invoke_permission", principal=cognito_service_principal
+        )
+
+        pre_sign_up = aws_lambda.Function(
+            self,
+            "custom_auth_lambda_pre_sign_up",
+            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            handler="pre_sign_up.handler",
+            description="custom auth: pre_sign_up",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+        )
+        pre_sign_up.add_permission(
+            "pre_sign_up_invoke_permission", principal=cognito_service_principal
+        )
+
+        verify_auth_challenge_response = aws_lambda.Function(
+            self,
+            "custom_auth_lambda_verify_auth_challenge_response",
+            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            handler="verify_auth_challenge_response.handler",
+            description="custom auth: verify_auth_challenge_response",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+        )
+        verify_auth_challenge_response.add_permission(
+            "verify_auth_challenge_response_invoke_permission", principal=cognito_service_principal
+        )
+
+        return aws_cognito.CfnUserPool.LambdaConfigProperty(
+            create_auth_challenge=create_auth_challenge.function_arn,
+            define_auth_challenge=define_auth_challenge.function_arn,
+            pre_sign_up=pre_sign_up.function_arn,
+            verify_auth_challenge_response=verify_auth_challenge_response.function_arn,
+        )
 
     def update_common_stack_with_test_policy(self, common_stack: CommonStack):
         stack_policy = aws_iam.PolicyStatement(
