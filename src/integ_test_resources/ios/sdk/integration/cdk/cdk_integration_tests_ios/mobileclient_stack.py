@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from aws_cdk import aws_cognito, aws_iam, aws_s3, core, custom_resources
 
@@ -28,8 +28,8 @@ class MobileClientStack(RegionAwareStack):
         self.update_common_stack_with_test_policy(common_stack)
 
         default_user_pool = self.create_user_pool("default")
-        self.add_federation_to_user_pool(default_user_pool, "default")
-        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default", True)
+        federation_providers = self.add_federation_to_user_pool(default_user_pool, "default")
+        default_user_pool_client = self.create_user_pool_client(default_user_pool, "default", federation_providers)
         default_user_pool_client_secret = self.create_userpool_client_secret(
             default_user_pool, default_user_pool_client, "default"
         )
@@ -138,8 +138,10 @@ class MobileClientStack(RegionAwareStack):
         )
         return user_pool
 
-    def add_federation_to_user_pool(self, user_pool: aws_cognito.CfnUserPool, tag: str):
-        aws_cognito.CfnUserPoolIdentityProvider(
+    def add_federation_to_user_pool(
+            self, user_pool: aws_cognito.CfnUserPool, tag: str
+    ) -> List[aws_cognito.CfnUserPoolIdentityProvider]:
+        facebook_identity_provider = aws_cognito.CfnUserPoolIdentityProvider(
             self,
             f"user_pool_idp_facebook_{tag}",
             provider_name="Facebook",
@@ -153,7 +155,8 @@ class MobileClientStack(RegionAwareStack):
             },
             attribute_mapping={"email": "email", "username": "id"},
         )
-        aws_cognito.CfnUserPoolIdentityProvider(
+
+        google_identity_provider = aws_cognito.CfnUserPoolIdentityProvider(
             self,
             f"user_pool_idp_google_{tag}",
             provider_name="Google",
@@ -166,11 +169,15 @@ class MobileClientStack(RegionAwareStack):
             },
             attribute_mapping={"email": "email", "name": "name", "username": "sub"},
         )
+        return [facebook_identity_provider, google_identity_provider]
 
     def create_user_pool_client(
-        self, user_pool: aws_cognito.CfnUserPool, tag: str, include_federation: bool
+            self,
+            user_pool: aws_cognito.CfnUserPool,
+            tag: str,
+            federation_providers: List[aws_cognito.CfnUserPoolIdentityProvider]
     ) -> aws_cognito.CfnUserPoolClient:
-        if not include_federation:
+        if not federation_providers:
             user_pool_client = aws_cognito.CfnUserPoolClient(
                 self, f"userpool_client_{tag}", generate_secret=True, user_pool_id=user_pool.ref,
             )
@@ -200,6 +207,12 @@ class MobileClientStack(RegionAwareStack):
             prevent_user_existence_errors="LEGACY",
             supported_identity_providers=["COGNITO", "Facebook", "Google"],
         )
+
+        # Ensure the federation provider dependency is explicit, so lets the provider setup complete
+        # before attempting to create the user pool client.
+        for provider in federation_providers:
+            user_pool_client.node.add_dependency(provider)
+
         return user_pool_client
 
     def create_userpool_client_secret(
