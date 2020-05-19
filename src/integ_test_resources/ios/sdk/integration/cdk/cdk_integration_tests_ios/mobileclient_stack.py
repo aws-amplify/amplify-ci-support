@@ -10,6 +10,9 @@ from common.secrets_manager import get_integ_tests_secrets
 
 
 class MobileClientStack(RegionAwareStack):
+    DEVELOPER_PROVIDER_NAME = "login.test.awsmobileclient"
+    """Used as the name of the developer-authenticated identity provider"""
+
     def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
@@ -65,6 +68,7 @@ class MobileClientStack(RegionAwareStack):
                     "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",  # noqa: E501
                 }
             ],
+            developer_provider_name=MobileClientStack.DEVELOPER_PROVIDER_NAME,
         )
         self.update_parameters_for_identity_pool(identity_pool)
 
@@ -356,6 +360,7 @@ class MobileClientStack(RegionAwareStack):
     def update_parameters_for_identity_pool(self, identity_pool: aws_cognito.CfnIdentityPool):
         self._parameters_to_save.update(
             {
+                "developer_provider_name": MobileClientStack.DEVELOPER_PROVIDER_NAME,
                 "awsconfiguration/CredentialsProvider/CognitoIdentity/Default/PoolId": identity_pool.ref,  # noqa: E501
                 "awsconfiguration/CredentialsProvider/CognitoIdentity/Default/Region": self.region,
             }
