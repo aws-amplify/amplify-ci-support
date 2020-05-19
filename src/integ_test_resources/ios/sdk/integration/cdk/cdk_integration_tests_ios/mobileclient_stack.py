@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from aws_cdk import aws_cognito, aws_iam, aws_lambda, aws_s3, core, custom_resources
+from aws_cdk import (aws_cognito, aws_iam, aws_lambda, aws_s3, core,
+                     custom_resources)
 
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
@@ -33,9 +34,7 @@ class MobileClientStack(RegionAwareStack):
         default_user_pool = self.create_user_pool("default", lambda_config=None)
         federation_providers = self.add_federation_to_user_pool(default_user_pool, "default")
         default_user_pool_client = self.create_user_pool_client(
-            default_user_pool,
-            "default",
-            federation_providers
+            default_user_pool, "default", federation_providers
         )
         default_user_pool_client_secret = self.create_userpool_client_secret(
             default_user_pool, default_user_pool_client, "default"
@@ -122,9 +121,7 @@ class MobileClientStack(RegionAwareStack):
         return bucket
 
     def create_user_pool(
-            self,
-            tag: str,
-            lambda_config: Optional[aws_cognito.CfnUserPool.LambdaConfigProperty]
+        self, tag: str, lambda_config: Optional[aws_cognito.CfnUserPool.LambdaConfigProperty]
     ) -> aws_cognito.CfnUserPool:
         user_pool = aws_cognito.CfnUserPool(
             self,
@@ -150,12 +147,12 @@ class MobileClientStack(RegionAwareStack):
                     required=False,
                 ),
             ],
-            lambda_config=lambda_config
+            lambda_config=lambda_config,
         )
         return user_pool
 
     def add_federation_to_user_pool(
-            self, user_pool: aws_cognito.CfnUserPool, tag: str
+        self, user_pool: aws_cognito.CfnUserPool, tag: str
     ) -> List[aws_cognito.CfnUserPoolIdentityProvider]:
         facebook_identity_provider = aws_cognito.CfnUserPoolIdentityProvider(
             self,
@@ -188,10 +185,10 @@ class MobileClientStack(RegionAwareStack):
         return [facebook_identity_provider, google_identity_provider]
 
     def create_user_pool_client(
-            self,
-            user_pool: aws_cognito.CfnUserPool,
-            tag: str,
-            federation_providers: List[aws_cognito.CfnUserPoolIdentityProvider]
+        self,
+        user_pool: aws_cognito.CfnUserPool,
+        tag: str,
+        federation_providers: List[aws_cognito.CfnUserPoolIdentityProvider],
     ) -> aws_cognito.CfnUserPoolClient:
         if not federation_providers:
             user_pool_client = aws_cognito.CfnUserPoolClient(
@@ -281,7 +278,7 @@ class MobileClientStack(RegionAwareStack):
         return domain
 
     def create_custom_auth_lambda_configuration(
-            self
+        self,
     ) -> aws_cognito.CfnUserPool.LambdaConfigProperty:
         cognito_service_principal = aws_iam.ServicePrincipal("cognito-idp.amazonaws.com")
         create_auth_challenge = aws_lambda.Function(
@@ -353,7 +350,9 @@ class MobileClientStack(RegionAwareStack):
 
     def update_common_stack_with_test_policy(self, common_stack: CommonStack):
         stack_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
+            effect=aws_iam.Effect.ALLOW,
+            actions=["cognito-identity:*", "cognito-idp:AdminCreateUser"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
 
