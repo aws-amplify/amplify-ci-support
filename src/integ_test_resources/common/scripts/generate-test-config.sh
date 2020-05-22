@@ -253,7 +253,7 @@ function resolve_credentials {
     [[ $LOG_LEVEL -ge $LOG_LEVEL_TRACE ]] && set +x
 
     local circleci_execution_role_arn
-    circleci_execution_role_arn=$(aws ssm get-parameter --name '/mobile-sdk/ios/common/circleci_execution_role' | jq -r .Parameter.Value)
+    circleci_execution_role_arn=$(aws ssm get-parameter --name "/mobile-sdk/${platform}/common/circleci_execution_role" | jq -r .Parameter.Value)
     readonly circleci_execution_role_arn
 
     local assume_role_creds
