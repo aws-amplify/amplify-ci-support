@@ -20,25 +20,39 @@ npm install -g aws-cdk
 Ensure that you have [credentials in your environment sufficient to run
 the CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#getting_started_credentials).
 
-Install CDK dependencies:
+Install CDK dependencies from the root directory of the repo:
 ```console
 # Best to do this in a virtualenv
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
-Generate a Pinpoint stack template at
+**Export credentials and region:**
+
+```console
+isengard assume <account name>
+isengard credentials <account name>
+```
+
+Copy and paste the export statements generated. Then paste these export commands:
+
+```console
+export AWS_REGION=us-east-1
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+**Generate a Pinpoint stack template at**
 `./cdk.out/pinpoint.template.json`:
 
 ```console
 cdk synth 'pinpoint'
 ```
 
-Use that template file to deploy a stack into your AWS account:
+**Use that template file to deploy a stack into your AWS account:**
 ```console
 cdk deploy 'pinpoint'
 ```
 
-Afterwards, to destroy the stack:
+**Afterwards, to destroy the stack:**
 
 ```console
 cdk destroy 'pinpoint'
