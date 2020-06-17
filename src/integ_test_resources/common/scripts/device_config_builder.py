@@ -137,10 +137,10 @@ class DeviceConfigBuilder:
         running the CDK scripts.
         """
         return DeviceConfigBuilder.AWSConfig(
-            os.environ["AWS_ACCESS_KEY_ID"],
-            os.environ["AWS_SECRET_ACCESS_KEY"],
-            os.environ["AWS_SESSION_TOKEN"],
-            os.environ["AWS_DEFAULT_REGION"],
+            os.getenv("AWS_ACCESS_KEY_ID"),
+            os.getenv("AWS_SECRET_ACCESS_KEY"),
+            os.getenv("AWS_SESSION_TOKEN"),
+            os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
         )
 
     def get_package_data(self) -> dict:
