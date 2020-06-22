@@ -28,12 +28,9 @@ pip3 install -r requirements.txt
 
 **Export credentials and region:**
 
-```console
-isengard assume <account name>
-isengard credentials <account name>
-```
+Export appropriate role credentials to your local shell.
 
-Copy and paste the export statements generated. Then paste these export commands:
+Also, set the AWS region to us-east-1:
 
 ```console
 export AWS_REGION=us-east-1
