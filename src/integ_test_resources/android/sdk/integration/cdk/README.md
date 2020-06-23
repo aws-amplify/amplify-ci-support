@@ -33,7 +33,6 @@ Export appropriate role credentials to your local shell.
 Also, set the AWS region to us-east-1:
 
 ```console
-export AWS_REGION=us-east-1
 export AWS_DEFAULT_REGION=us-east-1
 ```
 
