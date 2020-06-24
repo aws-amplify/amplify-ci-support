@@ -54,7 +54,7 @@ the form: `/mobile-sdk/<platform>/<suitelabel>/<keypath>`.
 sequence of nested JSON objects. For example, if the key path is `foo/bar`, and
 the value to be stored is `value`, the JSON representation would look like:
 ```
-"suitelabel: {
+"suitelabel": {
     "foo": {
         "bar": "value"
     }
