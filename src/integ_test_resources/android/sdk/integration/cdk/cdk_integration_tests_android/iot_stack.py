@@ -45,6 +45,9 @@ class IotStack(RegionAwareStack):
                     "iot:CreateKeysAndCertificate",
                     "iot:CreatePolicy",
                     "iot:AttachPolicy",
+                    "iot:DetachPolicy",
+                    "iot:UpdateCertificate",
+                    "iot:DeleteCertificate"
                 ],
                 resources=["*"],
             )
