@@ -17,12 +17,24 @@ module Fastlane
 
         if features.any?
           changelog.header(3) { 'Features' }
-          changelog.unordered_list { features.map(&:subject) }
+          changelog.unordered_list do
+            features.map { |feature| "#{bold(feature.scope)}: #{feature.subject}" }
+          end
         end
 
         if fixes.any?
           changelog.header(3) { 'Fixes' }
-          changelog.unordered_list { fixes.map(&:subject) }
+          changelog.unordered_list do
+            fixes.map { |fix| "#{bold(fix.scope)}: #{fix.subject}" }
+          end
+        end
+
+        if breaking_changes.any?
+          changelog.header(3) { 'BREAKING CHANGES' }
+
+          changelog.unordered_list do
+            breaking_changes.map { |change| "#{bold(change.scope)}: #{change.breaking_change}" }
+          end
         end
 
         changelog
