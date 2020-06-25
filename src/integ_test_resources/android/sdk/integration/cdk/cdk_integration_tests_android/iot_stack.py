@@ -36,18 +36,7 @@ class IotStack(RegionAwareStack):
                 effect=iam.Effect.ALLOW,
                 actions=[
                     "cognito-sync:*",
-                    "iot:Connect",
-                    "iot:Publish",
-                    "iot:Subscribe",
-                    "iot:Receive",
-                    "iot:GetThingShadow",
-                    "iot:DescribeEndpoint",
-                    "iot:CreateKeysAndCertificate",
-                    "iot:CreatePolicy",
-                    "iot:AttachPolicy",
-                    "iot:DetachPolicy",
-                    "iot:UpdateCertificate",
-                    "iot:DeleteCertificate"
+                    "iot:*"
                 ],
                 resources=["*"],
             )
