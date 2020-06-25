@@ -11,6 +11,7 @@ module Fastlane
         commits = params[:commits]
         features = commits.select(&:feat?)
         fixes = commits.select(&:fix?)
+        breaking_changes = commits.select(&:breaking_change?)
         changelog = Changelog::Document.new
 
         changelog.header(2) { link("https://github.com/#{Git.repo_name}/releases/tag/#{version}", version) }
