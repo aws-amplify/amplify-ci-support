@@ -1,4 +1,4 @@
-name: Test Fastlane Plugin
+name: Amplify release_actions fastlane plugin
 
 on:
   push:
