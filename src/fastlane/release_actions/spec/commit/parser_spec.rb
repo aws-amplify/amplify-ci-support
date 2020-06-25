@@ -38,6 +38,13 @@ describe Commit::Parser do
     example { expect(commit.scope).to eq('testutils') }
   end
 
+  context 'a malformed one-line commit message' do
+    let(:msg) { 'fix:foo' }
+
+    example { expect(commit.type).not_to eq(:foo) }
+    example { expect(commit.subject).to eq('fix:foo') }
+  end
+
   context 'a multi-line commit message with breaking changes' do
     let(:msg) do
       <<~TEXT
