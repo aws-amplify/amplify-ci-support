@@ -22,11 +22,11 @@ module Fastlane
 
       def self.bump_version(version, commits)
         if commits.breaking_change?
-          version.bump_major!
+          version.bump_major
         elsif commits.feat?
-          version.bump_minor!
+          version.bump_minor
         else
-          version.bump_patch!
+          version.bump_patch
         end
       end
 

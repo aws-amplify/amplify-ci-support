@@ -9,9 +9,10 @@ module Fastlane
         version = Version.new(Git.last_version)
 
         if version.prerelease?
-          version = version.bump_prerelease!
+          version = version.bump_prerelease
         else
-          version = version.bump_patch!.prerelease!('unstable')
+          version = version.bump_patch
+          version = version.as_prerelease('unstable')
         end
 
         version.to_s

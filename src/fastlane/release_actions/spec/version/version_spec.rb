@@ -13,45 +13,45 @@ describe Version do
     end
   end
 
-  describe '#bump_major!' do
+  describe '#bump_major' do
     context Version.new('1.0.0') do
-      example { expect(subject.bump_major!).to eq(Version.new('2.0.0')) }
+      example { expect(subject.bump_major).to eq(Version.new('2.0.0')) }
     end
   end
 
-  describe '#bump_minor!' do
+  describe '#bump_minor' do
     context Version.new('1.0.0') do
-      example { expect(subject.bump_minor!).to eq(Version.new('1.1.0')) }
+      example { expect(subject.bump_minor).to eq(Version.new('1.1.0')) }
     end
   end
 
-  describe '#bump_patch!' do
+  describe '#bump_patch' do
     context Version.new('1.0.0') do
-      example { expect(subject.bump_patch!).to eq(Version.new('1.0.1')) }
+      example { expect(subject.bump_patch).to eq(Version.new('1.0.1')) }
     end
   end
 
-  describe '#bump_prelease!' do
+  describe '#bump_prelease' do
     context '1.0.0-alpha.0' do
       let(:version) { Version.new('1.0.0-alpha.0') }
-      example { expect(version.bump_prerelease!).to eq(Version.new('1.0.0-alpha.1')) }
+      example { expect(version.bump_prerelease).to eq(Version.new('1.0.0-alpha.1')) }
     end
 
     context '1.0.0' do
       let(:version) { Version.new('1.0.0') }
-      example { expect { version.bump_prerelease! }.to raise_error(ArgumentError) }
+      example { expect { version.bump_prerelease }.to raise_error(ArgumentError) }
     end
 
     context '1.0.0-alpha' do
       let(:version) { Version.new('1.0.0-alpha') }
-      example { expect { version.bump_prerelease! }.to raise_error(ArgumentError) }
+      example { expect { version.bump_prerelease }.to raise_error(ArgumentError) }
     end
   end
 
-  describe '#prerelease!' do
+  describe '#as_prerelease' do
     it 'adds a given token as the first prerelease of the version' do
       version = Version.new('1.0.0')
-      expect { version.prerelease!('alpha').to eq(Version.new('1.0.0-alpha.0')) }
+      expect { version.as_prerelease('alpha').to eq(Version.new('1.0.0-alpha.0')) }
     end
   end
 
