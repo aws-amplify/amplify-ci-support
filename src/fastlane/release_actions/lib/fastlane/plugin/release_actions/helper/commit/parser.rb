@@ -42,11 +42,11 @@ class Commit
 
     attr_reader :msg
 
-    # Read the tokens that compromise the metadata prefixing the subject. [<type>[optional scope]: ]
+    # Read the tokens that comprise the metadata prefixing the subject. [<type>[optional scope]: ]
     def read_type_and_scope
       commit.type = :change
 
-      # Match the tokens that compromise the metadata prefixing the subject. This
+      # Match the tokens that comprise the metadata prefixing the subject. This
       # must include a type such feat or fix, and can optionally include a scope
       # and a bang (!) to indicate a breaking change. Examples:
       #
