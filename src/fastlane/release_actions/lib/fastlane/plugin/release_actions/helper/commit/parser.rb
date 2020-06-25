@@ -55,7 +55,7 @@ class Commit
       # - "feat(core)!: "
       if msg.match?(/\w+(\([^\)]+\))?\!?: /)
         # Read up until a bang (!), colon (:), or open parenthesis (()
-        commit.type = msg.scan(/[^!:\(]+/).to_sym
+        commit.type = msg.scan(/[^!:\(]+/).downcase.to_sym
 
         case msg.getch
         when '('

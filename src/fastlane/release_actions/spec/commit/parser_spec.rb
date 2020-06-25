@@ -16,6 +16,12 @@ describe Commit::Parser do
     example { expect(commit.subject).to eq('Allow users to reset passwords') }
   end
 
+  context 'a mixed-case type in a one-line commit message' do
+    let(:msg) { 'FiX: Address bugs I created' }
+
+    example { expect(commit.type).to eq(:fix) }
+  end
+
   context 'a one-line commit message that is a breaking change' do
     let(:msg) { 'feat!: New API' }
 
