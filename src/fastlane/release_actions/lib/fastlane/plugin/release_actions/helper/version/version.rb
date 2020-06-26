@@ -134,9 +134,15 @@ class Version
   # bump is used by the public methods to increment a specific segment of the normal
   # version. It expects to be called with 0, 1, or 2 relating to the major, minor, and
   # patch segments respectively. Prerelease and build metadata is not retained.
-  def bump(segment)
-    next_segments = segments.dup.tap do |segments|
-      segments[segment] += 1
+  def bump(part)
+    next_segments = segments.map.with_index do |segment, index|
+      if index == part
+        segment + 1
+      elsif index > part
+        0
+      else
+        segment
+      end
     end
 
     return new(next_segments)

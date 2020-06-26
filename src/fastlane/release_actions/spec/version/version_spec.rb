@@ -17,17 +17,29 @@ describe Version do
     context Version.new('1.0.0') do
       example { expect(subject.bump_major).to eq(Version.new('2.0.0')) }
     end
+
+    context Version.new('2.1.15') do
+      example { expect(subject.bump_major).to eq(Version.new('3.0.0')) }
+    end
   end
 
   describe '#bump_minor' do
     context Version.new('1.0.0') do
       example { expect(subject.bump_minor).to eq(Version.new('1.1.0')) }
     end
+
+    context Version.new('2.1.15') do
+      example { expect(subject.bump_minor).to eq(Version.new('2.2.0')) }
+    end
   end
 
   describe '#bump_patch' do
     context Version.new('1.0.0') do
       example { expect(subject.bump_patch).to eq(Version.new('1.0.1')) }
+    end
+
+    context Version.new('2.1.15') do
+      example { expect(subject.bump_patch).to eq(Version.new('2.1.16')) }
     end
   end
 
