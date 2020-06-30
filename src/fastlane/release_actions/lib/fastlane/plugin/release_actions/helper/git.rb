@@ -8,6 +8,11 @@ class Git
     last_tag = run(command, 'Could not find tag from HEAD')
 
     2.times { last_tag, = last_tag.rpartition('-') }
+
+    # Currently iOS prepends their release tags with a 'v'. Strip
+    # this prior to parsing the semantic version.
+    return last_tag[1..-1] if last_tag.start_with?('v')
+
     last_tag
   end
 
