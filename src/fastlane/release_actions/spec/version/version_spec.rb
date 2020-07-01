@@ -6,6 +6,13 @@ describe Version do
     expect(Version.new('1.0.0').segments).to eq([1, 0, 0])
   end
 
+  describe '.from' do
+    example { expect(Version.from('1.0.0')).to eq(Version.new('1.0.0')) }
+    example { expect(Version.from('v1.0.0')).to eq(Version.new('1.0.0')) }
+    example { expect(Version.from('1.0.0-alpha.0')).to eq(Version.new('1.0.0-alpha.0')) }
+    example { expect(Version.from('v1.0.0-alpha.0')).to eq(Version.new('1.0.0-alpha.0')) }
+  end
+
   context 'with an invalid version string' do
     it 'raises an exception' do
       expect { Version.new('potatoes') }.to raise_error(ArgumentError)

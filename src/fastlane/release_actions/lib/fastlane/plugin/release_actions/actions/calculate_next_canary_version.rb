@@ -6,7 +6,7 @@ module Fastlane
   module Actions
     class CalculateNextCanaryVersionAction < Action
       def self.run(params)
-        version = Version.new(Git.last_version)
+        version = Version.from(Git.last_tag)
 
         if version.prerelease?
           version = version.bump_prerelease
