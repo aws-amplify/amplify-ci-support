@@ -4,12 +4,17 @@ class Git
   SEPARATOR = "=====END====="
 
   def self.last_tag
-    command = %w(git describe --tag)
+    command = %w(git describe --tag --long)
     tag = run(command, 'Could not find tag from HEAD')
 
     2.times { tag, = tag.rpartition('-') }
 
     tag
+  end
+
+  def self.last_release_tag
+    command = 'git tag | sort -r | grep -v unstable | head -1'
+    run(command, 'Could not list tags').chomp
   end
 
   def self.log(from, to = 'HEAD')
