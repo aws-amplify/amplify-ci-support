@@ -9,7 +9,7 @@ module Fastlane
   module Actions
     class CalculateNextReleaseVersionAction < Action
       def self.run(params)
-        tag = Git.last_tag
+        tag = Git.last_release_tag
         version = Version.from(tag)
         messages = Git.log(tag)
         commits = Commits.from(messages)
