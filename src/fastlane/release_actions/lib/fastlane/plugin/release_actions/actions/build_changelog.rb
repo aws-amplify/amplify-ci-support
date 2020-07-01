@@ -1,7 +1,6 @@
 require 'fastlane/action'
 require_relative '../helper/git'
 require_relative '../helper/changelog/document'
-require_relative '../helper/changelog/writer'
 
 module Fastlane
   module Actions
@@ -19,14 +18,18 @@ module Fastlane
         if features.any?
           changelog.header(3) { 'Features' }
           changelog.unordered_list do
-            features.map { |feature| display(feature) }
+            features.map do |change|
+              change.scope ? "#{bold(change.scope)}: #{change.subject}" : change.subject
+            end
           end
         end
 
         if fixes.any?
           changelog.header(3) { 'Fixes' }
           changelog.unordered_list do
-            fixes.map { |fix| display(fix) }
+            fixes.map do |change|
+              change.scope ? "#{bold(change.scope)}: #{change.subject}" : change.subject
+            end
           end
         end
 
@@ -36,14 +39,6 @@ module Fastlane
         end
 
         changelog
-      end
-
-      def self.display(change)
-        if change.scope
-          "#{bold(change.scope)}: #{change.subject}"
-        else
-          change.subject
-        end
       end
 
       def self.description

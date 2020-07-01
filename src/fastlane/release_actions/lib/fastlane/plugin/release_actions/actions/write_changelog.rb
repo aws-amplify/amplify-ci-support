@@ -1,4 +1,5 @@
 require 'fastlane/action'
+require_relative '../helper/changelog/writer'
 
 module Fastlane
   module Actions
