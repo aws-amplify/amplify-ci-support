@@ -3,17 +3,13 @@ require 'fastlane_core/ui/ui'
 class Git
   SEPARATOR = "=====END====="
 
-  def self.last_version
+  def self.last_tag
     command = %w(git describe --tag)
-    last_tag = run(command, 'Could not find tag from HEAD')
+    tag = run(command, 'Could not find tag from HEAD')
 
-    2.times { last_tag, = last_tag.rpartition('-') }
+    2.times { tag, = tag.rpartition('-') }
 
-    # Currently iOS prepends their release tags with a 'v'. Strip
-    # this prior to parsing the semantic version.
-    return last_tag[1..-1] if last_tag.start_with?('v')
-
-    last_tag
+    tag
   end
 
   def self.log(from, to = 'HEAD')

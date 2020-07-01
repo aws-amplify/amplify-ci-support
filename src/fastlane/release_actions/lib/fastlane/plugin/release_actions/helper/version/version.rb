@@ -11,6 +11,13 @@ class Version
 
   attr_reader :segments, :prerelease, :build
 
+  # iOS uses a convention where tags start with a 'v'. This will detect that and
+  # return the semantic version.
+  def self.from(tag)
+    return new(tag[1..-1]) if tag.start_with?('v')
+    new(tag)
+  end
+
   def initialize(version)
     # Acceptor ensures our input version is valid per the semver spec. See
     # `Version::Acceptor` for details.
