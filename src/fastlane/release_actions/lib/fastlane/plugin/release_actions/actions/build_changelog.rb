@@ -1,3 +1,4 @@
+require 'date'
 require 'fastlane/action'
 require_relative '../helper/git'
 require_relative '../helper/changelog/document'
@@ -13,7 +14,12 @@ module Fastlane
         breaking_changes = commits.select(&:breaking_change?)
         changelog = Changelog::Document.new
 
-        changelog.header(2) { link("https://github.com/#{Git.repo_name}/releases/tag/#{version}", version) }
+        changelog.header(2) { "#{version} (#{Date.today})" }
+
+        if breaking_changes.any?
+          changelog.header(3) { '⚠️ BREAKING CHANGES' }
+          changelog.unordered_list { breaking_changes.map(&:breaking_change) }
+        end
 
         if features.any?
           changelog.header(3) { 'Features' }
@@ -25,17 +31,12 @@ module Fastlane
         end
 
         if fixes.any?
-          changelog.header(3) { 'Fixes' }
+          changelog.header(3) { 'Bug Fixes' }
           changelog.unordered_list do
             fixes.map do |change|
               change.scope ? "#{bold(change.scope)}: #{change.subject}" : change.subject
             end
           end
-        end
-
-        if breaking_changes.any?
-          changelog.header(3) { 'BREAKING CHANGES' }
-          changelog.unordered_list { breaking_changes.map(&:breaking_change) }
         end
 
         changelog
