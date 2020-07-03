@@ -6,7 +6,10 @@ module Fastlane
         key = params[:key]
         value = params[:value]
 
-        regex_key = /(?<=#{key})(\s*=\s*["'].*)/
+        # Will match just the version that's contained inside of either single or double quotes
+        # E.g., if key = AMPLIFY_VERSION and the file contains: $AMPLIFY_VERSION = "1.3.3"
+        # it will match 1.3.3
+        regex_key = /(?<=#{key}\s*=\s*["'])(.*?)(?=["'])/
         file_contents = File.read(file)
 
         unless file_contents.match(regex_key)
@@ -14,9 +17,7 @@ module Fastlane
           return
         end
 
-        new_value = " = '#{value}'"
-
-        file_contents = file_contents.gsub(regex_key, new_value)
+        file_contents = file_contents.gsub(regex_key, value)
 
         File.open(file, "w") { |f| f.puts(file_contents) }
         UI.success("Successfully modified #{key} to value #{value} in #{file}")
