@@ -9,7 +9,7 @@ module Fastlane
         # Will match just the version that's contained inside of either single or double quotes
         # E.g., if key = AMPLIFY_VERSION and the file contains: $AMPLIFY_VERSION = "1.3.3"
         # it will match 1.3.3
-        regex_key = /(?<=#{key}\s*=\s*["'])(.*?)(?=["'])/
+        regex_key = /(?<=#{key})(\s*=\s*["']\K)([\d\w.-]?)*/
         file_contents = File.read(file)
 
         unless file_contents.match(regex_key)
