@@ -1,25 +1,22 @@
+require_relative '../helper/key_value'
+
 module Fastlane
   module Actions
     class SetKeyValueAction < Action
       def self.run(params)
-        file = params[:file]
         key = params[:key]
+        file = params[:file]
         value = params[:value]
 
-        # Will match just the version that's contained inside of either single or double quotes
-        # E.g., if key = AMPLIFY_VERSION and the file contains: $AMPLIFY_VERSION = "1.3.3"
-        # it will match 1.3.3
-        regex_key = /(#{key}\s*=\s*["']\K)([\d\w.-]?)*/
-        file_contents = File.read(file)
+        key_value = KeyValue.new(key)
 
-        unless file_contents.match(regex_key)
-          UI.error("#{key} not present or doesn't have an explicit value in #{file}")
-          return
+        begin
+          key_value.match_and_replace_file(file: file, value: value)
+        rescue => exception
+          UI.error(exception)
+          raise exception
         end
 
-        file_contents = file_contents.gsub(regex_key, value)
-
-        File.open(file, "w") { |f| f.puts(file_contents) }
         UI.success("Successfully modified #{key} to value #{value} in #{file}")
       end
 
