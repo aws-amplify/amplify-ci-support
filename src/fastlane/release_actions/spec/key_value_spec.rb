@@ -46,7 +46,7 @@ describe KeyValue do
       result = swift_key_value.match(SWIFT_CONTENT_PRE).to_s
       expect(result).to eq('1.0.4')
     end
-    
+
     example do
       result = wrong_key_value.match(SPEC_CONTENT_PRE).to_s
       expect(result).to eq('')
@@ -58,7 +58,7 @@ describe KeyValue do
       result = spec_key_value.replace(file_contents: SPEC_CONTENT_PRE, value: '2.0.0').to_s
       expect(result).to eq(SPEC_CONTENT_POST)
     end
-    
+
     example do
       result = swift_key_value.replace(file_contents: SWIFT_CONTENT_PRE, value: '2.0.0').to_s
       expect(result).to eq(SWIFT_CONTENT_POST)
