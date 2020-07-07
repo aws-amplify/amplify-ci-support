@@ -1,24 +1,22 @@
+require_relative '../helper/key_value'
+
 module Fastlane
   module Actions
     class SetKeyValueAction < Action
       def self.run(params)
-        file = params[:file]
         key = params[:key]
+        file = params[:file]
         value = params[:value]
 
-        regex_key = /(?<=#{key})(\s*=\s*["'].*)/
-        file_contents = File.read(file)
+        key_value = KeyValue.new(key)
 
-        unless file_contents.match(regex_key)
-          UI.error("#{key} not present or doesn't have an explicit value in #{file}")
-          return
+        begin
+          key_value.match_and_replace_file(file: file, value: value)
+        rescue => exception
+          UI.error(exception)
+          raise exception
         end
 
-        new_value = " = '#{value}'"
-
-        file_contents = file_contents.gsub(regex_key, new_value)
-
-        File.open(file, "w") { |f| f.puts(file_contents) }
         UI.success("Successfully modified #{key} to value #{value} in #{file}")
       end
 
