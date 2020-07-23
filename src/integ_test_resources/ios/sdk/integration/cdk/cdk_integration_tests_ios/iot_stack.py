@@ -22,6 +22,8 @@ class IotStack(RegionAwareStack):
         self.setup_iot_endpoint_provider()
         self.setup_custom_authorizer()
 
+        self.setup_custom_authorizerUserPass()
+
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def setup_iot_endpoint_provider(self):
@@ -168,7 +170,7 @@ class IotStack(RegionAwareStack):
         authorizer_function_arn = self.setup_custom_authorizer_function()
 
         create_authorizer_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["iot:CreateAuthorizer"], resources=["*"],
+            effect=aws_iam.Effect.ALLOW, actions=["iot:CreateAuthorizer", "iot:UpdateAuthorizer", "iot:DeleteAuthorizer"], resources=["*"],
         )
         provider_lambda = aws_lambda.SingletonFunction(
             self,
@@ -205,6 +207,73 @@ class IotStack(RegionAwareStack):
             },
         )
 
+    def setup_custom_authorizerUserPass(self):
+        custom_authorizer_name = "iot_custom_authorizerUserPass"
+        self._parameters_to_save["custom_authorizerUserPass_name"] = custom_authorizer_name
+        token_key_name = "IoTTokenKeyName"
+        self._parameters_to_save["custom_authorizerUserPass_token_key_name"] = token_key_name
+
+        token_value = "allow"
+        self._parameters_to_save["custom_authorizerUserPass_token_value"] = token_value
+
+        iot_custom_authorizer_key_resource = self.create_custom_authorizerUserPass_signing_key(token_value)
+
+        custom_authorizer_token_signature = iot_custom_authorizer_key_resource.get_att(
+            "custom_authorizer_token_signature"
+        ).to_string()
+        self._parameters_to_save[
+            "custom_authorizerUserPass_token_signature"
+        ] = custom_authorizer_token_signature
+
+        #TODO: Need to parameterize this!
+        authorizer_function_arn = self.setup_custom_authorizerUserPass_function()
+
+        create_authorizer_policy = aws_iam.PolicyStatement(
+            effect=aws_iam.Effect.ALLOW, actions=["iot:CreateAuthorizer",
+                                                  "iot:UpdateAuthorizer",
+                                                  "iot:DeleteAuthorizer",
+                                                  "iot:UpdateDomainConfiguration",
+                                                  "iot:CreateDomainConfiguration",
+                                                  "iot:DescribeDomainConfiguration",
+                                                  "iot:DeleteDomainConfiguration"], resources=["*"],
+        )
+        provider_lambda = aws_lambda.SingletonFunction(
+            self,
+            "iot_custom_authorizerUserPass_provider_lambda",
+            uuid="iot_custom_authorizerUserPass_provider_lambda_20200507150213",
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizerUserPass_provider"),
+            handler="iot_custom_authorizerUserPass_provider.on_event",
+            description="Sets up an IoT custom authorizer for user password & required domain config due to beta status",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+            initial_policy=[create_authorizer_policy],
+        )
+
+        provider = custom_resources.Provider(
+            self, "iot_custom_authorizerUserPass_provider", on_event_handler=provider_lambda
+        )
+
+        public_key = iot_custom_authorizer_key_resource.get_att(
+            "custom_authorizer_public_key"
+        ).to_string()
+
+        iot_endpoint = core.CustomResource(
+            self,
+            "iot_custom_authorizerUserPass",
+            resource_type="Custom::IoTCustomAuthorizer",
+            service_token=provider.service_token,
+            properties={
+                "authorizer_function_arn": authorizer_function_arn,
+                "authorizer_name": custom_authorizer_name,
+                "public_key": public_key,
+                "token_key_name": token_key_name,
+            },
+        )
+        endpoint_address = iot_endpoint.get_att("BetaEndpointAddress").to_string()
+        self._parameters_to_save["iot_beta_endpoint_address"] = endpoint_address
+
     def setup_custom_authorizer_function(self) -> str:
         """
         Sets up the authorizer Lambda, and grants 'lambda:InvokeFunction' to the service principal
@@ -223,6 +292,27 @@ class IotStack(RegionAwareStack):
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
             environment={"RESOURCE_ARN": f"arn:aws:iot:{self.region}:{self.account}:*"},
+        )
+        authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
+        return authorizer_function.function_arn
+
+    """
+    Todo: refactor this to combine the two functions rather than just duplicate code.
+    todo:                for sure  need to update this so it's not hardcoded to us-east-1.. but..ya know.
+
+    """
+    def setup_custom_authorizerUserPass_function(self) -> str:
+        authorizer_function = aws_lambda.Function(
+            self,
+            "iot_custom_authorizerUserPass_function",
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizerUserPass_function"),
+            handler="iot_custom_authorizerUserPass.handler",
+            description="Sample custom authorizer that allows or denies based on username and password",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+            environment={"RESOURCE_ARN": f"arn:aws:iot:us-east-1:{self.account}:*"},
         )
         authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
         return authorizer_function.function_arn
@@ -264,6 +354,50 @@ class IotStack(RegionAwareStack):
         iot_custom_authorizer_key = core.CustomResource(
             self,
             "iot_custom_authorizer_key",
+            resource_type="Custom::IoTCustomAuthorizer",
+            service_token=provider.service_token,
+            properties={"token_value": token_value},
+        )
+
+        return iot_custom_authorizer_key
+
+    def create_custom_authorizerUserPass_signing_key(self, token_value) -> core.CustomResource:
+        """
+        Uses a Lambda to create an asymmetric key pair, since neither CFn nor CDK support that as of
+        this writing (2020-05-09)
+        https://github.com/aws-cloudformation/aws-cloudformation-coverage-roadmap/issues/337
+
+        After creating the key, it signs the token value using the private key, and stores all of
+        `token_value`, `token_value`'s signature, and the public key in the stack's parameter store.
+
+        :return: the CustomResource for the signing key
+        """
+        create_authorizer_policy = aws_iam.PolicyStatement(
+            effect=aws_iam.Effect.ALLOW,
+            actions=["kms:CreateKey", "kms:GetPublicKey", "kms:ScheduleKeyDeletion", "kms:Sign"],
+            resources=["*"],
+        )
+        provider_lambda = aws_lambda.SingletonFunction(
+            self,
+            "iot_custom_authorizerUserPass_key_provider_lambda",
+            uuid="iot_custom_authorizerUserPass_key_provider_lambda_20200507150213",
+            runtime=aws_lambda.Runtime.PYTHON_3_7,
+            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_key_provider"),
+            handler="iot_custom_authorizer_key_provider.on_event",
+            description="Manages an asymmetric CMK and token signature for iot custom authorizer.",
+            current_version_options=aws_lambda.VersionOptions(
+                removal_policy=core.RemovalPolicy.DESTROY
+            ),
+            initial_policy=[create_authorizer_policy],
+        )
+
+        provider = custom_resources.Provider(
+            self, "iot_custom_authorizerUserPass_key_provider", on_event_handler=provider_lambda
+        )
+
+        iot_custom_authorizer_key = core.CustomResource(
+            self,
+            "iot_custom_authorizerUserPass_key",
             resource_type="Custom::IoTCustomAuthorizer",
             service_token=provider.service_token,
             properties={"token_value": token_value},
