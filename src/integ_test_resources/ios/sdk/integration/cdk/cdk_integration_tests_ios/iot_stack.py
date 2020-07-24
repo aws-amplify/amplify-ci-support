@@ -169,7 +169,11 @@ class IotStack(RegionAwareStack):
             "custom_authorizer_token_signature"
         ] = custom_authorizer_token_signature
 
-        authorizer_function_arn = self.setup_custom_authorizer_function()
+        authorizer_function_arn = self.setup_custom_authorizer_function("1",
+                                                                        "custom_resources/iot_custom_authorizer_function",
+                                                                        "iot_custom_authorizer.handler",
+                                                                        "Sample custom authorizer that allows or denies based on 'token' value",
+                                                                        self.region)
 
         create_authorizer_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW, actions=["iot:CreateAuthorizer", "iot:UpdateAuthorizer", "iot:DeleteAuthorizer"], resources=["*"],
@@ -228,9 +232,12 @@ class IotStack(RegionAwareStack):
             "custom_authorizerUserPass_token_signature"
         ] = custom_authorizer_token_signature
 
-        #TODO: Need to parameterize this!
-        authorizer_function_arn = self.setup_custom_authorizerUserPass_function()
-
+        #Force region to 'us-east-1' due to enhanced custom authorizers only available in this region
+        authorizer_function_arn = self.setup_custom_authorizer_function("2",
+                                                                        "custom_resources/iot_custom_authorizerUserPass_function",
+                                                                        "iot_custom_authorizerUserPass.handler",
+                                                                        "Sample custom authorizer that allows or denies based on username and password",
+                                                                        "us-east-1")
         create_authorizer_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW, actions=["iot:CreateAuthorizer",
                                                   "iot:UpdateAuthorizer",
@@ -277,7 +284,7 @@ class IotStack(RegionAwareStack):
         endpoint_address = iot_endpoint.get_att("BetaEndpointAddress").to_string()
         self._parameters_to_save["iot_beta_endpoint_address"] = endpoint_address
 
-    def setup_custom_authorizer_function(self) -> str:
+    def setup_custom_authorizer_function(self, unique_id, code_asset, code_handler, description, region) -> str:
         """
         Sets up the authorizer Lambda, and grants 'lambda:InvokeFunction' to the service principal
         'iot.amazonaws.com'
@@ -286,36 +293,15 @@ class IotStack(RegionAwareStack):
         """
         authorizer_function = aws_lambda.Function(
             self,
-            "iot_custom_authorizer_function",
+            "iot_custom_authorizer_function_{}".format(unique_id),
             runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_function"),
-            handler="iot_custom_authorizer.handler",
-            description="Sample custom authorizer that allows or denies based on 'token' value",
+            code=aws_lambda.Code.asset(code_asset),
+            handler=code_handler,
+            description=description,
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
-            environment={"RESOURCE_ARN": f"arn:aws:iot:{self.region}:{self.account}:*"},
-        )
-        authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
-        return authorizer_function.function_arn
-
-    """
-    Todo: refactor this to combine the two functions rather than just duplicate code.
-    todo:                for sure  need to update this so it's not hardcoded to us-east-1.. but..ya know.
-
-    """
-    def setup_custom_authorizerUserPass_function(self) -> str:
-        authorizer_function = aws_lambda.Function(
-            self,
-            "iot_custom_authorizerUserPass_function",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizerUserPass_function"),
-            handler="iot_custom_authorizerUserPass.handler",
-            description="Sample custom authorizer that allows or denies based on username and password",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
-            ),
-            environment={"RESOURCE_ARN": f"arn:aws:iot:us-east-1:{self.account}:*"},
+            environment={"RESOURCE_ARN": f"arn:aws:iot:{region}:{self.account}:*"},
         )
         authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
         return authorizer_function.function_arn
