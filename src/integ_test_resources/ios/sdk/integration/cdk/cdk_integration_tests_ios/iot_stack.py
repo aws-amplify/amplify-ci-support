@@ -158,7 +158,9 @@ class IotStack(RegionAwareStack):
         token_value = "allow"
         self._parameters_to_save["custom_authorizer_token_value"] = token_value
 
-        iot_custom_authorizer_key_resource = self.create_custom_authorizer_signing_key(token_value)
+        iot_custom_authorizer_key_resource = self.create_custom_authorizer_signing_key_generic("1",
+            "Manages an asymmetric CMK and token signature for iot custom authorizer.",
+            token_value)
 
         custom_authorizer_token_signature = iot_custom_authorizer_key_resource.get_att(
             "custom_authorizer_token_signature"
@@ -212,11 +214,12 @@ class IotStack(RegionAwareStack):
         self._parameters_to_save["custom_authorizerUserPass_name"] = custom_authorizer_name
         token_key_name = "IoTTokenKeyName"
         self._parameters_to_save["custom_authorizerUserPass_token_key_name"] = token_key_name
-
         token_value = "allow"
         self._parameters_to_save["custom_authorizerUserPass_token_value"] = token_value
 
-        iot_custom_authorizer_key_resource = self.create_custom_authorizerUserPass_signing_key(token_value)
+        iot_custom_authorizer_key_resource = self.create_custom_authorizer_signing_key_generic("2",
+            "Manages an asymmetric CMK and token signature for iot custom authorizer with username and password.",
+            token_value)
 
         custom_authorizer_token_signature = iot_custom_authorizer_key_resource.get_att(
             "custom_authorizer_token_signature"
@@ -317,7 +320,7 @@ class IotStack(RegionAwareStack):
         authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
         return authorizer_function.function_arn
 
-    def create_custom_authorizer_signing_key(self, token_value) -> core.CustomResource:
+    def create_custom_authorizer_signing_key_generic(self, unique_id, description, token_value) -> core.CustomResource:
         """
         Uses a Lambda to create an asymmetric key pair, since neither CFn nor CDK support that as of
         this writing (2020-05-09)
@@ -335,12 +338,12 @@ class IotStack(RegionAwareStack):
         )
         provider_lambda = aws_lambda.SingletonFunction(
             self,
-            "iot_custom_authorizer_key_provider_lambda",
-            uuid="iot_custom_authorizer_key_provider_lambda_20200507150213",
+            "iot_custom_authorizer_key_provider_lambda_{}".format(unique_id),
+            uuid="iot_custom_authorizer_key_provider_lambda_20200507150213_{}".format(unique_id),
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_key_provider"),
             handler="iot_custom_authorizer_key_provider.on_event",
-            description="Manages an asymmetric CMK and token signature for iot custom authorizer.",
+            description=description,
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
@@ -348,56 +351,12 @@ class IotStack(RegionAwareStack):
         )
 
         provider = custom_resources.Provider(
-            self, "iot_custom_authorizer_key_provider", on_event_handler=provider_lambda
+            self, "iot_custom_authorizer_key_provider_{}".format(unique_id), on_event_handler=provider_lambda
         )
 
         iot_custom_authorizer_key = core.CustomResource(
             self,
-            "iot_custom_authorizer_key",
-            resource_type="Custom::IoTCustomAuthorizer",
-            service_token=provider.service_token,
-            properties={"token_value": token_value},
-        )
-
-        return iot_custom_authorizer_key
-
-    def create_custom_authorizerUserPass_signing_key(self, token_value) -> core.CustomResource:
-        """
-        Uses a Lambda to create an asymmetric key pair, since neither CFn nor CDK support that as of
-        this writing (2020-05-09)
-        https://github.com/aws-cloudformation/aws-cloudformation-coverage-roadmap/issues/337
-
-        After creating the key, it signs the token value using the private key, and stores all of
-        `token_value`, `token_value`'s signature, and the public key in the stack's parameter store.
-
-        :return: the CustomResource for the signing key
-        """
-        create_authorizer_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
-            actions=["kms:CreateKey", "kms:GetPublicKey", "kms:ScheduleKeyDeletion", "kms:Sign"],
-            resources=["*"],
-        )
-        provider_lambda = aws_lambda.SingletonFunction(
-            self,
-            "iot_custom_authorizerUserPass_key_provider_lambda",
-            uuid="iot_custom_authorizerUserPass_key_provider_lambda_20200507150213",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_key_provider"),
-            handler="iot_custom_authorizer_key_provider.on_event",
-            description="Manages an asymmetric CMK and token signature for iot custom authorizer.",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
-            ),
-            initial_policy=[create_authorizer_policy],
-        )
-
-        provider = custom_resources.Provider(
-            self, "iot_custom_authorizerUserPass_key_provider", on_event_handler=provider_lambda
-        )
-
-        iot_custom_authorizer_key = core.CustomResource(
-            self,
-            "iot_custom_authorizerUserPass_key",
+            "iot_custom_authorizer_key_{}".format(unique_id),
             resource_type="Custom::IoTCustomAuthorizer",
             service_token=provider.service_token,
             properties={"token_value": token_value},
