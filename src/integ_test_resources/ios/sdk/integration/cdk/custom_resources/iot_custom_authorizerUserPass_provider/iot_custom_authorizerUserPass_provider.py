@@ -2,7 +2,8 @@ import boto3
 
 # Note: Make this dynamic if there is more than one custom authorizer in the stack
 physical_id = "iot_custom_authorizerUserPass_provider_20200508074521"
-
+domain_configuration_name = "aws_test_iot_custom_authorizerUserPass"
+default_authorizer_name = "iot_custom_authorizerUserPass"
 
 def on_event(event, __):
     print(f"### on_event({event})")
@@ -35,6 +36,30 @@ def on_create_or_update(event):
     print(f"### on_create_or_update response: {response}")
     return response
 
+def create_or_update_domainConfig():
+    client = boto3.client("iot")
+
+    try:
+        create_domain_configuration_response = client.create_domain_configuration(
+            domainConfigurationName=domain_configuration_name)
+        print(f"### create_domain_configuration response: {create_domain_configuration_response}")
+    except client.exceptions.ResourceAlreadyExistsException as e:
+        print("Already defined, continuing")
+
+    update_domain_configuration_response = client.update_domain_configuration(
+        domainConfigurationName=domain_configuration_name,
+        domainConfigurationStatus='ENABLED',
+        authorizerConfig={'defaultAuthorizerName': default_authorizer_name})
+    print(f"### update_domain_configuration response: {update_domain_configuration_response}")
+
+    describe_domain_configuration_response = client.describe_domain_configuration(
+        domainConfigurationName=domain_configuration_name)
+    print(f"### describe_domain_configuration response: {describe_domain_configuration_response}")
+
+    beta_endpoint_addr = describe_domain_configuration_response["domainName"]
+    print(f"### beta_endpoint_addr: {beta_endpoint_addr}")
+
+    return beta_endpoint_addr
 
 def on_delete(event):
     print(f"### on_delete({event})")
@@ -68,7 +93,9 @@ def delete_authorizer(name):
     print(f"### delete_authorizer({name})")
     client = boto3.client("iot")
 
-    update_domain_configuration_response = client.update_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizerUserPass", domainConfigurationStatus='DISABLED')
+    update_domain_configuration_response = client.update_domain_configuration(
+        domainConfigurationName=domain_configuration_name,
+        domainConfigurationStatus='DISABLED')
     # It would be nice to clean this stuff up, but this will always fail because you will get an error of:
     # Failed to delete resource. Error: An error occurred (InvalidRequestException) when calling the DeleteDomainConfiguration operation: AWS Managed Domain Configuration must be disabled for at least 7 days before it can be deleted
     # delete_domain_configuration_response = client.delete_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizerUserPass")
@@ -78,23 +105,3 @@ def delete_authorizer(name):
 
     delete_authorizer_response = client.delete_authorizer(authorizerName=name)
     print(f"### delete_authorizer_response: {delete_authorizer_response}")
-
-def create_or_update_domainConfig():
-    client = boto3.client("iot")
-
-    try:
-        create_domain_configuration_response = client.create_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizerUserPass")
-        print(f"### create_domain_configuration response: {create_domain_configuration_response}")
-    except client.exceptions.ResourceAlreadyExistsException as e:
-        print("Already defined, continuing")
-
-    update_domain_configuration_response = client.update_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizerUserPass", domainConfigurationStatus='ENABLED', authorizerConfig={'defaultAuthorizerName': 'iot_custom_authorizerUserPass'})
-    print(f"### update_domain_configuration response: {update_domain_configuration_response}")
-
-    describe_domain_configuration_response = client.describe_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizerUserPass")
-    print(f"### describe_domain_configuration response: {describe_domain_configuration_response}")
-
-    beta_endpoint_addr = describe_domain_configuration_response["domainName"]
-    print(f"### beta_endpoint_addr: {beta_endpoint_addr}")
-
-    return beta_endpoint_addr
