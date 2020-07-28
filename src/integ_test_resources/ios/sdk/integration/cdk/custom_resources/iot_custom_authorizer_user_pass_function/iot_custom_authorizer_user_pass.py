@@ -7,14 +7,14 @@ def handler(event, __):
     token = event["token"].lower()
 
     mqtt_user = event["protocolData"]["mqtt"]["username"]
-    ios_token = os.environ["custom_auth_user_pass_username"]
+    expected_username = os.environ["custom_auth_user_pass_username"]
 
     expected_password = os.environ["custom_auth_user_pass_password"]
     password = event["protocolData"]["mqtt"]["password"]
     base64_decoded = base64.b64decode(password).decode("utf-8")
     passwordMatches = expected_password == base64_decoded
 
-    effect = "Allow" if token == "allow" and mqtt_user.startswith(ios_token) and passwordMatches else "Deny"
+    effect = "Allow" if token == "allow" and mqtt_user.startswith(expected_username) and passwordMatches else "Deny"
 
     response = make_auth_response(effect)
     response_string = json.dumps(response)

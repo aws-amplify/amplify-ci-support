@@ -6,9 +6,14 @@ from aws_cdk import aws_iam, aws_iot, aws_lambda, core, custom_resources
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
-from common.constants import Constants
 
 class IotStack(RegionAwareStack):
+    custom_auth_user_pass_username = "aws-sdk-user"
+    custom_auth_user_pass_password = "%%aws-sdk-password**"
+    custom_auth_user_pass_uuid = "iot_custom_authorizer_provider_lambda_20200507150213"
+    custom_auth_user_pass_default_authorizer_name = "iot_custom_authorizer_user_pass"
+    custom_auth_user_pass_domain_configuration_name = "aws_test_iot_custom_authorizer_user_pass"
+
     def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -188,7 +193,7 @@ class IotStack(RegionAwareStack):
         provider_lambda = aws_lambda.SingletonFunction(
             self,
             "iot_custom_authorizer_provider_lambda",
-            uuid=Constants.custom_auth_user_pass_uuid,
+            uuid=self.custom_auth_user_pass_uuid,
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_provider"),
             handler="iot_custom_authorizer_provider.on_event",
@@ -221,14 +226,14 @@ class IotStack(RegionAwareStack):
         )
 
     def setup_custom_authorizer_user_pass(self):
-        custom_authorizer_name = Constants.custom_auth_user_pass_default_authorizer_name
+        custom_authorizer_name = self.custom_auth_user_pass_default_authorizer_name
         self._parameters_to_save["custom_authorizer_user_pass_name"] = custom_authorizer_name
         token_key_name = "IoTTokenKeyName"
         self._parameters_to_save["custom_authorizer_user_pass_token_key_name"] = token_key_name
         token_value = "allow"
         self._parameters_to_save["custom_authorizer_user_pass_token_value"] = token_value
-        self._parameters_to_save["custom_authorizer_user_pass_username"] = Constants.custom_auth_user_pass_username
-        self._parameters_to_save["custom_authorizer_user_pass_password"] = Constants.custom_auth_user_pass_password
+        self._parameters_to_save["custom_authorizer_user_pass_username"] = self.custom_auth_user_pass_username
+        self._parameters_to_save["custom_authorizer_user_pass_password"] = self.custom_auth_user_pass_password
 
         iot_custom_authorizer_key_resource = self.create_custom_authorizer_signing_key_generic(
             "2",
@@ -243,14 +248,15 @@ class IotStack(RegionAwareStack):
             "custom_authorizer_user_pass_token_signature"
         ] = custom_authorizer_token_signature
 
+        # TODO: remove forcing of us-east-1 when enhanced custom authorizers are available in all regions
         # Force region to 'us-east-1' due to enhanced custom authorizers only available in this region
         authorizer_function_arn = self.setup_custom_authorizer_function(
             "2",
             "custom_resources/iot_custom_authorizer_user_pass_function",
             "iot_custom_authorizer_user_pass.handler",
             "Sample custom authorizer that allows or denies based on username and password",
-            {"custom_auth_user_pass_username": Constants.custom_auth_user_pass_username,
-             "custom_auth_user_pass_password": Constants.custom_auth_user_pass_password},
+            {"custom_auth_user_pass_username": self.custom_auth_user_pass_username,
+             "custom_auth_user_pass_password": self.custom_auth_user_pass_password},
             "us-east-1",
         )
         create_authorizer_policy = aws_iam.PolicyStatement(
@@ -274,9 +280,9 @@ class IotStack(RegionAwareStack):
             code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_user_pass_provider"),
             handler="iot_custom_authorizer_user_pass_provider.on_event",
             description="Sets up an IoT custom authorizer for user password & required domain config due to beta status",
-            environment={"custom_auth_user_pass_uuid" : Constants.custom_auth_user_pass_uuid,
-                         "custom_auth_user_pass_default_authorizer_name" : Constants.custom_auth_user_pass_default_authorizer_name,
-                         "custom_auth_user_pass_domain_configuration_name" : Constants.custom_auth_user_pass_domain_configuration_name},
+            environment={"custom_auth_user_pass_uuid" : self.custom_auth_user_pass_uuid,
+                         "custom_auth_user_pass_default_authorizer_name" : self.custom_auth_user_pass_default_authorizer_name,
+                         "custom_auth_user_pass_domain_configuration_name" : self.custom_auth_user_pass_domain_configuration_name},
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
@@ -306,10 +312,6 @@ class IotStack(RegionAwareStack):
         endpoint_address = iot_endpoint.get_att("BetaEndpointAddress").to_string()
         self._parameters_to_save["iot_beta_endpoint_address"] = endpoint_address
 
-    def merge_dict(self, dict1, dict2):
-        res = {**dict1, **dict2}
-        return res
-
     def setup_custom_authorizer_function(
         self, unique_id, code_asset, code_handler, description, environment, region
     ) -> str:
@@ -319,8 +321,8 @@ class IotStack(RegionAwareStack):
 
         :return: the ARN of the created function
         """
-        common_vars={"RESOURCE_ARN": f"arn:aws:iot:{region}:{self.account}:*"}
-        merged_environment_vars = self.merge_dict(common_vars, environment)
+        merged_environment_vars = {"RESOURCE_ARN": f"arn:aws:iot:{region}:{self.account}:*"}
+        merged_environment_vars.update(environment)
         authorizer_function = aws_lambda.Function(
             self,
             f"iot_custom_authorizer_function_{unique_id}",
