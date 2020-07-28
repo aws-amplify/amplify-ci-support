@@ -100,7 +100,7 @@ def delete_authorizer(name):
     client = boto3.client("iot")
     domain_configuration_name = os.environ["custom_auth_user_pass_domain_configuration_name"]
 
-    update_domain_configuration_response = client.update_domain_configuration(
+    client.update_domain_configuration(
         domainConfigurationName=domain_configuration_name, domainConfigurationStatus="DISABLED"
     )
     # It would be nice to clean this stuff up, but this will always fail because you will get an error of:
