@@ -36,11 +36,11 @@ module Fastlane
                                         description: "Is the release tag lightweight or annotated. Default = lightweight",
                                         default_value: 'lightweight',
                                         verify_block: proc do |value|
-                                          UI.user_error!("Parameter tag_type must be lightweight OR annotated.") unless ['lightweight','annotated'].include?(value)
+                                          UI.user_error!("Parameter tag_type must be lightweight OR annotated.") unless ['lightweight', 'annotated'].include?(value)
                                         end),
           FastlaneCore::ConfigItem.new(key: :release_tag_prefix,
                                        description: "Release tag prefix. Default = v",
-                                       default_value: 'v'),
+                                       default_value: 'v')
         ]
       end
 

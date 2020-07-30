@@ -4,10 +4,10 @@ class Git
   SEPARATOR = "=====END====="
 
   def self.last_tag(tag_type = 'lightweight')
-    if tag_type == 'lightweight' then
+    if tag_type == 'lightweight'
       command = %w(git describe --tag --long)
       tag = run(command, 'Could not find tag from HEAD')
-      
+
       2.times { tag, = tag.rpartition('-') }
     else
       command = %w(git tag --sort='-*authordate' | head -n 1)

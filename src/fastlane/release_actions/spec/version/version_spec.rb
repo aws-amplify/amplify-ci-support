@@ -11,8 +11,8 @@ describe Version do
     example { expect(Version.from('v1.0.0')).to eq(Version.new('1.0.0')) }
     example { expect(Version.from('1.0.0-alpha.0')).to eq(Version.new('1.0.0-alpha.0')) }
     example { expect(Version.from('v1.0.0-alpha.0')).to eq(Version.new('1.0.0-alpha.0')) }
-    example { expect(Version.from('release_v1.1.1','release_v')).to eq(Version.new('1.1.1'))}
-    example { expect(Version.from('release_v1.1.1-unstable.0','release_v')).to eq(Version.new('1.1.1-unstable.0'))}
+    example { expect(Version.from('release_v1.1.1', 'release_v')).to eq(Version.new('1.1.1')) }
+    example { expect(Version.from('release_v1.1.1-unstable.0', 'release_v')).to eq(Version.new('1.1.1-unstable.0')) }
   end
 
   context 'with an invalid version string' do

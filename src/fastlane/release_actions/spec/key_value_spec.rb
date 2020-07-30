@@ -57,7 +57,7 @@ describe KeyValue do
   let(:spec_key_value) { KeyValue.new('AMPLIFY_VERSION') }
   let(:swift_key_value) { KeyValue.new('version') }
   let(:wrong_key_value) { KeyValue.new('HOLY_GRAIL') }
-  let(:android_key_value) {  KeyValue.new('VERSION_NAME')}
+  let(:android_key_value) { KeyValue.new('VERSION_NAME') }
 
   describe '.match()' do
     example do
