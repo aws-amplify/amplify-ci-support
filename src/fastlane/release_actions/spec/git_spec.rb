@@ -12,5 +12,10 @@ describe Git do
       expect(Git).to receive(:run).and_return('v12.53.110-13-gabcdef0123')
       expect(Git.last_tag).to eq('v12.53.110')
     end
+
+    examples do
+      expect(Git).to receive(:run).and_return('release_v1.1.1')
+      expect(Git.last_tag('annotated')).to eq('release_v1.1.1')
+    end
   end
 end

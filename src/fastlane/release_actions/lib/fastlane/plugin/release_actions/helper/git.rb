@@ -3,11 +3,16 @@ require 'fastlane_core/ui/ui'
 class Git
   SEPARATOR = "=====END====="
 
-  def self.last_tag
-    command = %w(git describe --tag --long)
-    tag = run(command, 'Could not find tag from HEAD')
-
-    2.times { tag, = tag.rpartition('-') }
+  def self.last_tag(tag_type = 'lightweight')
+    if tag_type == 'lightweight' then
+      command = %w(git describe --tag --long)
+      tag = run(command, 'Could not find tag from HEAD')
+      
+      2.times { tag, = tag.rpartition('-') }
+    else
+      command = %w(git tag --sort='-*authordate' | head -n 1)
+      tag = run(command, 'Could not find tag from HEAD').strip!
+    end
 
     tag
   end

@@ -2,8 +2,8 @@ class KeyValue
   def initialize(key)
     # Will match just the value that's contained inside of either single or double quotes
     # E.g., if key = AMPLIFY_VERSION and the file contains: $AMPLIFY_VERSION = "1.3.3"
-    # it will match 1.3.3
-    @regex_key = /(#{key}\s*=\s*["']\K)([\d\w.-]?)*/
+    # it will match 1.3.3. Quotes are optional in support of gradle.properties file.
+    @regex_key = /(#{key}\s*=\s*["']*\K)([\d\w.-]?)*/
   end
 
   def match_and_replace_file(file:, value:)

@@ -6,16 +6,16 @@ module Fastlane
   module Actions
     class CalculateNextCanaryVersionAction < Action
       def self.run(params)
-        version = Version.from(Git.last_tag)
-
+        last_tag = Git.last_tag(params[:release_tag_type])
+        version = Version.from(last_tag, params[:release_tag_prefix])
         if version.prerelease?
           version = version.bump_prerelease
         else
           version = version.bump_patch
           version = version.as_prerelease('unstable')
         end
-
-        version.to_s
+        # Returning the version object instead of just the string.
+        return version
       end
 
       def self.description
@@ -31,7 +31,17 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :release_tag_type,
+                                        description: "Is the release tag lightweight or annotated. Default = lightweight",
+                                        default_value: 'lightweight',
+                                        verify_block: proc do |value|
+                                          UI.user_error!("Parameter tag_type must be lightweight OR annotated.") unless ['lightweight','annotated'].include?(value)
+                                        end),
+          FastlaneCore::ConfigItem.new(key: :release_tag_prefix,
+                                       description: "Release tag prefix. Default = v",
+                                       default_value: 'v'),
+        ]
       end
 
       def self.is_supported?(platform)
