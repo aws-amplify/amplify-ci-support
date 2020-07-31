@@ -10,11 +10,9 @@ class Git
 
       2.times { tag, = tag.rpartition('-') }
     else
-      command = %w(git tag --sort='-*authordate' | head -n 1)
+      command = %w(git tag --sort='-refname' | head -n 1)
       tag = run(command, 'Could not find tag from HEAD').strip!
     end
-
-    tag
   end
 
   def self.last_release_tag
