@@ -41,17 +41,18 @@ export AWS_DEFAULT_REGION=us-east-1
 
 **Bootstrap the CDK**
 If you have not yet, bootstrap the CDK:
-```
+```console
 cdk bootstrap
 ```
 
 ### Deploy all stacks
 
 Note that these steps do each take a _while_.
-
+```console
 list=$(cdk list 2>/dev/null | xargs)
 cdk synth $list
 cdk boostrap $list
+```
 
 ### Deploying a specific stack
 **Generate a Pinpoint stack template at**
