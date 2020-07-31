@@ -28,14 +28,32 @@ pip3 install -r requirements.txt
 
 **Export credentials and region:**
 
-Export appropriate role credentials to your local shell.
+Export appropriate role credentials to your local shell. Specifically, you must the following environment variables set:
+1. `AWS_ACCESS_KEY_ID`
+2. `AWS_SECRET_ACCESS_KEY`
+3. `AWS_SESSION_TOKEN`
 
-Also, set the AWS region to us-east-1:
+Also, you must set the AWS region to us-east-1:
 
 ```console
 export AWS_DEFAULT_REGION=us-east-1
 ```
 
+**Bootstrap the CDK**
+If you have not yet, bootstrap the CDK:
+```
+cdk bootstrap
+```
+
+### Deploy all stacks
+
+Note that these steps do each take a _while_.
+
+list=$(cdk list 2>/dev/null | xargs)
+cdk synth $list
+cdk boostrap $list
+
+### Deploying a specific stack
 **Generate a Pinpoint stack template at**
 `./cdk.out/pinpoint.template.json`:
 
@@ -62,4 +80,3 @@ long does, for security reasons.) This step only needs to be performed
 once, on the test account.
 
 [Instructions to allow S3 public access, here](https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#console-block-public-access-options)
-
