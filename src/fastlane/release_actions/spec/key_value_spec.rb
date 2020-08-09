@@ -31,9 +31,22 @@ SWIFT_CONTENT_POST = <<~EOS
   }
 EOS
 
+YAML_CONTENT_PRE = <<~EOS
+  name: amplify_plugin
+  description: Some Amplify Flutter plugin.
+  version: 1.0.4
+EOS
+
+YAML_CONTENT_POST = <<~EOS
+  name: amplify_plugin
+  description: Some Amplify Flutter plugin.
+  version: 2.0.0
+EOS
+
 describe KeyValue do
   let(:spec_key_value) { KeyValue.new('AMPLIFY_VERSION') }
   let(:swift_key_value) { KeyValue.new('version') }
+  let(:yaml_key_value) { KeyValue.new('version') }
   let(:wrong_key_value) { KeyValue.new('HOLY_GRAIL') }
 
   describe '.match()' do
@@ -44,6 +57,11 @@ describe KeyValue do
 
     example do
       result = swift_key_value.match(SWIFT_CONTENT_PRE).to_s
+      expect(result).to eq('1.0.4')
+    end
+
+    example do
+      result = yaml_key_value.match(YAML_CONTENT_PRE).to_s
       expect(result).to eq('1.0.4')
     end
 
@@ -62,6 +80,11 @@ describe KeyValue do
     example do
       result = swift_key_value.replace(file_contents: SWIFT_CONTENT_PRE, value: '2.0.0').to_s
       expect(result).to eq(SWIFT_CONTENT_POST)
+    end
+
+    example do
+      result = yaml_key_value.replace(file_contents: YAML_CONTENT_PRE, value: '2.0.0').to_s
+      expect(result).to eq(YAML_CONTENT_POST)
     end
   end
 end
