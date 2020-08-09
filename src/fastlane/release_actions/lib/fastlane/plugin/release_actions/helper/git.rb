@@ -13,7 +13,8 @@ class Git
   end
 
   def self.last_release_tag
-    command = 'git tag | sort -r | grep -v unstable | head -1'
+    # the hyphen should only occur in pre-release tags
+    command = 'git tag | sort -r | grep -v \'-\' | head -1'
     run(command, 'Could not list tags').chomp
   end
 

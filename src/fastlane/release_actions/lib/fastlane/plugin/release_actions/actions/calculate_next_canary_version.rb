@@ -12,7 +12,7 @@ module Fastlane
           version = version.bump_prerelease
         else
           version = version.bump_patch
-          version = version.as_prerelease('unstable')
+          version = version.as_prerelease(params[:prerelease_tag])
         end
 
         version.to_s
@@ -31,7 +31,16 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(
+            key: :prerelease_identifer,
+            env_name: "PRERELEASE_IDENTIFIER",
+            description: "The pre-release identifier (e.g. unstable, dev, preview) for prerelease versions",
+            type: String,
+            optional: true,
+            default_value: "unstable"
+          )
+        ]
       end
 
       def self.is_supported?(platform)
