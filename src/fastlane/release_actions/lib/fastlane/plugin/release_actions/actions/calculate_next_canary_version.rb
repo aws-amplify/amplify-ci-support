@@ -34,11 +34,11 @@ module Fastlane
         [
           FastlaneCore::ConfigItem.new(
             key: :prerelease_identifier,
-            env_name: "PRERELEASE_IDENTIFIER",
-            description: "The pre-release identifier (e.g. unstable, dev, preview) for prerelease versions",
+            env_name: 'PRERELEASE_IDENTIFIER',
+            description: 'The pre-release identifier (e.g. unstable, dev, preview) for prerelease versions',
             type: String,
             optional: true,
-            default_value: "unstable"
+            default_value: 'unstable'
           )
         ]
       end
