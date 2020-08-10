@@ -14,7 +14,6 @@ class Git
   end
 
   def self.last_release_tag
-    # the hyphen should only occur in pre-release tags
     command = "git tag | sort -r | egrep '#{RELEASE_REGEX}' | head -1"
     run(command, 'Could not list tags').chomp
   end
