@@ -2,6 +2,7 @@ require 'fastlane_core/ui/ui'
 
 class Git
   SEPARATOR = "=====END====="
+  RELEASE_REGEX = '(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
   def self.last_tag
     command = %w(git describe --tag --long)
@@ -14,7 +15,7 @@ class Git
 
   def self.last_release_tag
     # the hyphen should only occur in pre-release tags
-    command = 'git tag | sort -r | grep -v \'-\' | head -1'
+    command = "git tag | sort -r | grep -e '#{RERELEASE_REGEX}' | head -1"
     run(command, 'Could not list tags').chomp
   end
 
