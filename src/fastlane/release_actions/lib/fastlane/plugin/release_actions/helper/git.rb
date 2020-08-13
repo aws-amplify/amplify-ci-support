@@ -15,7 +15,7 @@ class Git
   def self.last_release_tag
     command = %w(git tag)
     tags = run(command, 'Could not list tags').chomp.gsub(/\s+/m, ' ').strip.split
-    release_tags = tags.select{ |tag| !Version.from(tag).prerelease? }
+    release_tags = tags.reject { |tag| Version.from(tag).prerelease? }
     release_tags.max_by { |tag| Version.from(tag) }
   end
 
