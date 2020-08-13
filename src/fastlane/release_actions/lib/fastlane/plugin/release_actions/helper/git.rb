@@ -2,7 +2,6 @@ require 'fastlane_core/ui/ui'
 
 class Git
   SEPARATOR = "=====END====="
-  RELEASE_REGEX = '(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
   def self.last_tag
     command = %w(git describe --tag --long)
@@ -14,8 +13,10 @@ class Git
   end
 
   def self.last_release_tag
-    command = "git tag | sort -r | egrep '#{RELEASE_REGEX}' | head -1"
-    run(command, 'Could not list tags').chomp
+    command = %w(git tag)
+    tags = run(command, 'Could not list tags').chomp.gsub(/\s+/m, ' ').strip.split
+    release_tags = tags.select{ |tag| !Version.from(tag).prerelease? }
+    release_tags.max_by { |tag| Version.from(tag) }
   end
 
   def self.log(from, to = 'HEAD')
