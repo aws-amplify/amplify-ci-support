@@ -1,6 +1,8 @@
 class Commits
   include Enumerable
 
+  attr_reader :commits
+
   def self.from(messages)
     commits = messages.map { |message| Commit::Parser.new(message).parse }
 
@@ -37,7 +39,4 @@ class Commits
     commits.empty?
   end
 
-  private
-
-  attr_reader :commits
 end
