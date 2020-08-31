@@ -13,8 +13,10 @@ class Git
   end
 
   def self.last_release_tag
-    command = 'git tag | sort -r | grep -v unstable | head -1'
-    run(command, 'Could not list tags').chomp
+    command = %w(git tag)
+    tags = run(command, 'Could not list tags').chomp.gsub(/\s+/m, ' ').strip.split
+    release_tags = tags.reject { |tag| Version.from(tag).prerelease? }
+    release_tags.max_by { |tag| Version.from(tag) }
   end
 
   def self.log(from, to = 'HEAD')
