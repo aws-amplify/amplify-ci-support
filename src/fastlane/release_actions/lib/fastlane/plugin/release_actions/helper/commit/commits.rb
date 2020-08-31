@@ -38,5 +38,4 @@ class Commits
   def empty?
     commits.empty?
   end
-
 end

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fastlane-plugin-release_actions (1.0.4)
+    fastlane-plugin-release_actions (1.1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -234,4 +234,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   2.1.2
+   2.1.4
