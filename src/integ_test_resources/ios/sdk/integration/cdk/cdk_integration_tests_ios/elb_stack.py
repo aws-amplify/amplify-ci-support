@@ -12,7 +12,10 @@ class ElbStack(RegionAwareStack):
 
         all_resources_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=["elasticloadbalancing:DescribeLoadBalancers"],
+            actions=[
+                "elasticloadbalancing:DescribeAccountLimits",
+                "elasticloadbalancing:DescribeLoadBalancers"
+            ],
             resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
