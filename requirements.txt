@@ -1,4 +1,7 @@
 aws_cdk.aws_apigateway
+aws_cdk.aws_codebuild
+aws_cdk.aws_codepipeline
+aws_cdk.aws_codepipeline_actions
 aws_cdk.aws_cognito
 aws_cdk.aws_iam
 aws_cdk.aws_iot
