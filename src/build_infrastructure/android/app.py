@@ -13,7 +13,7 @@ if region is None or account is None:
     )
 
 pipeline_stack = BuildPipelineStack(app, 
-                                    "AndroidBuildPipelineStack",
+                                    "AndroidBuildPipeline",
                                     {'pipeline_name':'amplify-android-pipeline', 'codebuild_project_name':'amplify-android-gradle-build'},
                                     env={ 'account': account, 'region': region})
 app.synth()

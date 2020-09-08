@@ -2,7 +2,7 @@
 
 Start from the CDK root, where this `README.md` lives:
 ```console
-cd ~/amplify-ci-support/src/build_infrastructure_resources/android
+cd ~/amplify-ci-support/src/build_infrastructure/android
 ```
 
 Ensure that you have the CDK installed, if you haven't yet.
@@ -48,22 +48,22 @@ cdk boostrap $list
 ```
 
 ### Deploying a specific stack
-**Generate a Pinpoint stack template at**
-`./cdk.out/pinpoint.template.json`:
+**Generate a single stack template at**
+`./cdk.out/<stack_Name>.template.json`:
 
 ```console
-cdk synth 'AndroidBuildPipelineStack' -c region=us-east-1 -c account=<target_account>
+cdk synth '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
 
 **Use that template file to deploy a stack into your AWS account:**
 ```console
-cdk deploy 'AndroidBuildPipelineStack' -c region=us-east-1 -c account=<target_account>
+cdk deploy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
 
 **Afterwards, to destroy the stack:**
 
 ```console
-cdk destroy 'build_pipeline_stack' -c region=us-east-1 -c account=<target_account>
+cdk destroy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
 
 ## Caveats
