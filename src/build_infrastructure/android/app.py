@@ -9,11 +9,20 @@ TARGET_REGION = app.node.try_get_context("region")
 TARGET_ACCOUNT = app.node.try_get_context("account")
 TARGET_ENV=core.Environment( account=TARGET_ACCOUNT, region=TARGET_REGION)
 
+github_owner=app.node.try_get_context("github_owner")
+branch=app.node.try_get_context("branch")
+
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
+
+props = {}
+if github_owner is not None:
+    props['github_owner'] = github_owner
+if branch is not None:
+    props['branch'] = branch
 
 pipeline_stack = BuildPipelineStack(app, 
                                     "AndroidBuildPipeline",
-                                    {'pipeline_name':'amplify-android-pipeline', 'codebuild_project_name':'amplify-android-gradle-build'},
+                                    props,
                                     env=TARGET_ENV)
 
 app.synth()
