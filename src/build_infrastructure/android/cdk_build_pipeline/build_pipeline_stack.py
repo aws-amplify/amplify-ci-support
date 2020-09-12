@@ -1,5 +1,6 @@
 import boto3
 import base64
+from typing import cast
 from botocore.exceptions import ClientError
 from aws_cdk import (
     aws_codebuild,
@@ -9,15 +10,14 @@ from aws_cdk import (
     core,
 )
 
-class BuildPipelineStack(core.Stack):
-    DEFAULT_GITHUB_SECRET_NAME = "AmplifyAndroidSecret"
-    DEFAULT_GITHUB_OWNER = "aws-amplify"
-    DEFAULT_BRANCH = "main"
+class AmplifyAndroidCodePipeline(core.Stack):
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+        if 'github_source' not in props:
+            raise "Parameter github_source (aws_codepipeline_actions.GitHubSourceAction) is required."
 
-        source_output = aws_codepipeline.Artifact("SourceOutput")
         amplify_android_build_output = aws_codepipeline.Artifact("AmplifyAndroidBuildOutput")
+        github_source = cast(aws_codepipeline_actions.GitHubSourceAction, props['github_source'])
 
         pipeline_project = aws_codebuild.PipelineProject(self, 
                                                         "AmplifyAndroidCodeBuildProject", 
@@ -25,31 +25,19 @@ class BuildPipelineStack(core.Stack):
                                                                                                     privileged=True,
                                                                                                     compute_type=aws_codebuild.ComputeType.MEDIUM),
                                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
-        github_secret_name = self.DEFAULT_GITHUB_SECRET_NAME if 'github_secret_name' not in props else props['github_secret_name']
-        github_owner  = self.DEFAULT_GITHUB_OWNER if 'github_owner' not in props else props['github_owner']
-        branch  = self.DEFAULT_GITHUB_OWNER if 'branch' not in props else props['branch']
         aws_codepipeline.Pipeline(self, 
             "Pipeline",
             stages=[
                 aws_codepipeline.StageProps(
                     stage_name="Source",
-                    actions=[
-                        aws_codepipeline_actions.GitHubSourceAction(
-                            output=source_output, 
-                            action_name="AmplifySource", 
-                            owner=github_owner, 
-                            repo="amplify-android",
-                            branch=branch, 
-                            oauth_token= core.SecretValue('{{'+f"resolve:secretsmanager:{github_secret_name}:SecretString:token"+'}}')
-                        )
-                    ]
+                    actions=[ github_source ]
                 ),
                 aws_codepipeline.StageProps(
                     stage_name="Build",
                         actions=[
                         aws_codepipeline_actions.CodeBuildAction(
                             action_name='GradleBuild',
-                            input=source_output,
+                            input=github_source.action_properties.outputs[0],
                             project=pipeline_project,
                             outputs=[amplify_android_build_output]
                         )
