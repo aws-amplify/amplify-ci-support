@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+import os
+import shlex
+import json
+import subprocess
+import boto3
+
+AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
+REGION = 'us-east-1'
+PROJECT_NAME = f"amplifyandroidinteg"
+ENVIRONMENT = 'integtest'
+PROJECT_DIR = f"{os.getenv('HOME')}/projects/amplify_project"
+
+AMPLIFY_COMMAND = "amplify"
+AMPLIFY_ACTION_PULL = "pull"
+AMPLIFY_ACTION_INIT = "init"
+
+AMPLIFY_PROVIDER_CONFIG = {
+    'awscloudformation': {
+        'configLevel': 'general',
+        'region': 'us-east-1'
+    }
+}
+
+AMPLIFY_FRONTEND_CONFIG = {
+    'frontend': 'android',
+    'config' : {
+        'ResDir': f"app/src/main/res"
+    }
+}
+
+AMPLIFY_CONFIG = {
+    'projectName': PROJECT_NAME,
+    'envName': ENVIRONMENT,
+    'defaultEditor': 'code'
+}
+
+AMPLIFY_CODEGEN_CONFIG = {
+    'generateCode': True,
+    'codeLanguage': 'java',
+    'generateDocs': True
+}
+
+AMPLIFY_AUTH_CONFIG = {
+    'version': 1,
+    'resourceName':'AndroidIntegTestAuth',
+    'serviceConfiguration': {
+        'serviceName': 'Cognito',
+        'userPoolConfiguration': {
+            'requiredSignupAttributes':['EMAIL', 'NAME', 'NICKNAME'],
+            'signinMethod':'USERNAME',
+            'userPoolGroups': [ 
+                { 'groupName': 'Admins' },
+                { 'groupName': 'Bloggers' },
+                { 'groupName': 'Moderators' }
+            ],
+            'writeAttributes': ['EMAIL', 'NAME', 'NICKNAME'],
+            'readAttributes':['EMAIL', 'NAME', 'NICKNAME'],
+            'refreshTokenPeriod': 365,
+            # 'adminQueries': {
+            #     'permissions': {
+            #         'restrictAccess': True,
+            #         'groupName': 'Admins'
+            #     }
+            # },
+        },
+        'includeIdentityPool': True,
+        'identityPoolConfiguration': {
+            'unauthenticatedLogin': True,
+            'identityPoolName': 'androididpool'
+        }
+
+    }
+}
+
+def get_existing_app_id():
+    try:
+        response = AMPLIFY_AWSSDK_CLIENT.list_apps()
+        existing_app_id = next(app for app in response['apps'] if app['name'] == PROJECT_NAME)
+        return existing_app_id
+    except StopIteration:
+        print(f"Unable to find existing Amplify app for {PROJECT_NAME}")
+        return None
+
+def initialize_new_app():
+    init_cmd = [AMPLIFY_COMMAND, 
+                AMPLIFY_ACTION_INIT, 
+                "--amplify", json.dumps(AMPLIFY_CONFIG), 
+                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
+                "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG)]
+    result = run_command(init_cmd)
+    return result.returncode
+
+
+def pull_existing_app(existing_app_id):
+    amplify_params = AMPLIFY_CONFIG.copy()
+    amplify_params.update({'appId': existing_app_id})
+    pull_cmd = [AMPLIFY_COMMAND, 
+                AMPLIFY_ACTION_PULL, 
+                "--amplify", json.dumps(amplify_params), 
+                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
+                "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
+                "--yes"]
+    print(' '.join(pull_cmd))
+    result = run_command(pull_cmd)
+    return result.returncode
+
+def add_auth():
+    add_auth_cmd = [AMPLIFY_COMMAND,
+                    "add",
+                    "auth",
+                    "--headless"]
+    result = run_command(add_auth_cmd, input=json.dumps(AMPLIFY_AUTH_CONFIG))
+    return result.returncode
+    
+def push():
+    push_cmd = [AMPLIFY_COMMAND,
+                "push",
+                "auth",
+                "--codegen", json.dumps(AMPLIFY_CODEGEN_CONFIG),
+                "--yes"]
+    result = run_command(push_cmd)
+    return result.returncode
+
+def run_command(cmd, input: str = None):
+    result = subprocess.run(cmd, 
+                        text=True,
+                        input = input if input is not None else '',
+                        cwd=PROJECT_DIR)
+                        # stdout=subprocess.PIPE, 
+                        # stderr=subprocess.PIPE)
+    return result
+
+def reset_local():
+    os.system(f"mkdir -p {PROJECT_DIR}")
+    os.system(f"rm -R {PROJECT_DIR}/*")
+
+# ENTRY POINT
+reset_local()
+existing_app = get_existing_app_id()
+if existing_app is None:
+    # create the app
+    print("Need to create a new app")
+    initialize_new_app()
+else:
+    # pull the app
+    print(f"Pulling existing app with id {existing_app['appId']}")
+    pull_existing_app(existing_app['appId'])
+
+if (add_auth() == 0):
+    push()
