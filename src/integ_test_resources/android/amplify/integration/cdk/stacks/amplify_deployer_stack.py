@@ -33,7 +33,9 @@ class AmplifyDeployer(core.Stack):
 
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))
-
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('IAMReadOnlyAccess'))
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('AWSLambdaFullAccess'))
+        
         aws_iam.Policy(
             self,
             "AmplifyDeployerPolicy",
