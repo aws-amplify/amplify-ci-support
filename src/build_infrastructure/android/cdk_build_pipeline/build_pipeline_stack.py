@@ -27,7 +27,7 @@ class BuildPipelineStack(core.Stack):
                                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
         github_secret_name = self.DEFAULT_GITHUB_SECRET_NAME if 'github_secret_name' not in props else props['github_secret_name']
         github_owner  = self.DEFAULT_GITHUB_OWNER if 'github_owner' not in props else props['github_owner']
-        branch  = self.DEFAULT_GITHUB_OWNER if 'branch' not in props else props['branch']
+        branch  = self.DEFAULT_BRANCH if 'branch' not in props else props['branch']
         aws_codepipeline.Pipeline(self, 
             "Pipeline",
             stages=[

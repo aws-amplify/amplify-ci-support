@@ -1,8 +1,10 @@
 ## Usage
 
+This CDK application is responsible for creating infrastructure needed by the Amplify for Android integration tests (i.e. `./gradlew cAT` in the `amplify-android` repo). It uses the Amplify CLI to bootstrap and configure an AWS with all the resources needed to support 
+
 Start from the CDK root, where this `README.md` lives:
 ```console
-cd ~/amplify-ci-support/src/build_infrastructure/android
+cd ~/amplify-ci-support/src/integ_test_resources/android/amplify-android/integration/cdk
 ```
 
 Ensure that you have the CDK installed, if you haven't yet.
@@ -48,25 +50,20 @@ cdk boostrap $list
 ```
 
 ### Deploying a specific stack
-**Generate a single stack template at**
-`./cdk.out/<stack_Name>.template.json`:
+**Generate stack template at**
+`./cdk.out/<stack_name>.template.json`:
 
 ```console
-cdk synth '<stack_Name>' -c region=us-east-1 -c account=<target_account> [-c github_owner=<GitHub org name> -c branch=<branch name>]
+cdk deploy -c region=us-east-1 -c account=******* -c github_owner=<owner> -c branch=<branch_name> -c github_repo=amplify-ci-support
 ```
-**github_owner**: (Optional) The org that owns the repo. Useful if you want to set it up for a fork for testing. (Default:aws-amplify)
-**branch**: (Optional) 
-
 
 **Use that template file to deploy a stack into your AWS account:**
 ```console
-cdk deploy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
+cdk deploy '<stack_name>'
 ```
 
 **Afterwards, to destroy the stack:**
 
 ```console
-cdk destroy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
+cdk destroy '<stack_name>'
 ```
-
-## Caveats
