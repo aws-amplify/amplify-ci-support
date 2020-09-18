@@ -9,7 +9,7 @@ AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
 REGION = 'us-east-1'
 PROJECT_NAME = f"amplifyandroidinteg"
 ENVIRONMENT = 'integtest'
-PROJECT_DIR = f"{os.getenv('AMPLIFY_PROJECT_PATH')}"
+PROJECT_DIR = f"{os.getenv('CODEBUILD_SRC_DIR')}/_amplify_project_tmp"
 
 AMPLIFY_COMMAND = "amplify"
 AMPLIFY_ACTION_PULL = "pull"

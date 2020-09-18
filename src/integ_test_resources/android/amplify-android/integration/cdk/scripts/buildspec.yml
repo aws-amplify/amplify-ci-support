@@ -1,8 +1,6 @@
 version: 0.2
 env:
   shell: /bin/sh
-  variables:
-    AMPLIFY_PROJECT_PATH: $CODEBUILD_SRC_DIR/_amplify_project_tmp
 phases:
   install:
     commands:
