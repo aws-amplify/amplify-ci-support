@@ -9,7 +9,7 @@ AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
 REGION = 'us-east-1'
 PROJECT_NAME = f"amplifyandroidinteg"
 ENVIRONMENT = 'integtest'
-PROJECT_DIR = f"{os.getenv('HOME')}/projects/amplify_project"
+PROJECT_DIR = f"{os.getenv('AMPLIFY_PROJECT_PATH')}"
 
 AMPLIFY_COMMAND = "amplify"
 AMPLIFY_ACTION_PULL = "pull"
@@ -136,7 +136,7 @@ def reset_local():
     os.system(f"rm -R {PROJECT_DIR}/*")
 
 # ENTRY POINT
-reset_local()
+# reset_local()
 existing_app = get_existing_app_id()
 if existing_app is None:
     # create the app

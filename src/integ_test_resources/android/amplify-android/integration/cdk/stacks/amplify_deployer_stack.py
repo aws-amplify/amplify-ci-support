@@ -3,6 +3,7 @@ import base64
 from botocore.exceptions import ClientError
 from aws_cdk import (
     aws_codebuild,
+    aws_iam,
     core,
 )
 
@@ -29,3 +30,18 @@ class AmplifyDeployer(core.Stack):
                                                                             webhook=False), # Will need to setup creds to make this true
                                         environment=build_environment,
                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename=build_file_path))
+                                        
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"))
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))
+
+        aws_iam.Policy(
+            self,
+            "AmplifyDeployerPolicy",
+            statements=[
+                aws_iam.PolicyStatement(actions=["amplify:*"], effect=aws_iam.Effect.ALLOW, resources=["*"]),
+                
+            ],
+            roles=[
+                project.role
+            ]
+        )

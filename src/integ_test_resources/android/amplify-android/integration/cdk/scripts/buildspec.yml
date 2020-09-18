@@ -1,6 +1,8 @@
 version: 0.2
 env:
   shell: /bin/sh
+  variables:
+    AMPLIFY_PROJECT_PATH: $CODEBUILD_SRC_DIR/_amplify_project_tmp
 phases:
   install:
     commands:
@@ -16,6 +18,8 @@ phases:
   build:
     commands:
       - echo 'Build phase starting'
+      - pwd
+      - ls -al
       - src/integ_test_resources/android/amplify-android/integration/cdk/scripts/setup_auth
     finally:
       - echo 'Build phase completed.'
