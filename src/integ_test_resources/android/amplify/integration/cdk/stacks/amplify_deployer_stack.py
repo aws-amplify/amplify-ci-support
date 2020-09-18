@@ -13,7 +13,7 @@ class AmplifyDeployer(core.Stack):
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        build_file_path = 'src/integ_test_resources/android/amplify-android/integration/cdk/scripts/buildspec.yml'
+        build_file_path = 'src/integ_test_resources/android/amplify/integration/cdk/scripts/buildspec.yml'
         github_repo = props['github_repo']
         github_owner  = self.DEFAULT_GITHUB_OWNER if 'github_owner' not in props else props['github_owner']
         branch  = self.DEFAULT_BRANCH if 'branch' not in props else props['branch']
