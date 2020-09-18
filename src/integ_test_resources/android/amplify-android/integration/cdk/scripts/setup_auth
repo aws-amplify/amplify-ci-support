@@ -9,7 +9,7 @@ AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
 REGION = 'us-east-1'
 PROJECT_NAME = f"amplifyandroidinteg"
 ENVIRONMENT = 'integtest'
-PROJECT_DIR = f"{os.getenv('CODEBUILD_SRC_DIR')}/_amplify_project_tmp"
+PROJECT_DIR = f"_amplify_project_tmp"
 
 AMPLIFY_COMMAND = "amplify"
 AMPLIFY_ACTION_PULL = "pull"
@@ -133,7 +133,7 @@ def run_command(cmd, input: str = None):
 
 def reset_local():
     os.system(f"mkdir -p {PROJECT_DIR}")
-    os.system(f"rm -R {PROJECT_DIR}/*")
+    # os.system(f"rm -R {PROJECT_DIR}/*")
 
 # ENTRY POINT
 # reset_local()
