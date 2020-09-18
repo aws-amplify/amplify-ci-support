@@ -52,11 +52,8 @@ cdk boostrap $list
 `./cdk.out/<stack_Name>.template.json`:
 
 ```console
-cdk synth '<stack_Name>' -c region=us-east-1 -c account=<target_account> [-c github_owner=<GitHub org name> -c branch=<branch name>]
+cdk synth '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
-**github_owner**: (Optional) The org that owns the repo. Useful if you want to set it up for a fork for testing. (Default:aws-amplify)
-**branch**: (Optional) 
-
 
 **Use that template file to deploy a stack into your AWS account:**
 ```console
