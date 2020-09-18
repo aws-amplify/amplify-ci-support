@@ -30,8 +30,8 @@ class AmplifyDeployer(core.Stack):
                                                                             webhook=False), # Will need to setup creds to make this true
                                         environment=build_environment,
                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename=build_file_path))
-                                        
-        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"))
+
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))
 
         aws_iam.Policy(
