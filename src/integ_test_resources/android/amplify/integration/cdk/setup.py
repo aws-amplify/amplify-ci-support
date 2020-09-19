@@ -3,7 +3,6 @@ import setuptools
 with open("README.md") as fp:
     long_description = fp.read()
 
-
 setuptools.setup(
     name="amplify_integration_tests_android",
     version="0.0.1",

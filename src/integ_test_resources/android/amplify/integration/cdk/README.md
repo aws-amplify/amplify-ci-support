@@ -1,6 +1,6 @@
 
 
-This CDK application is responsible for creating infrastructure needed by the Amplify for Android integration tests (i.e. `./gradlew :cAT` in the `amplify-android` repo). It uses the Amplify CLI to bootstrap and configure an AWS account with all the resources needed to support that test suite.
+This CDK application is responsible for creating infrastructure needed by [the Amplify for Android integration tests](https://github.com/aws-amplify/amplify-android/blob/main/CONTRIBUTING.md#run-instrumentation-tests). It uses the Amplify CLI to bootstrap and configure an AWS account with all the resources needed to support that test suite.
 
 Artifacts in this folder and its children fall under one of two categories:
 - CDK app assets
@@ -9,7 +9,7 @@ Artifacts in this folder and its children fall under one of two categories:
 The CDK app, once deployed, creates a CodeBuild project (and associated supporting resources such as roles, policies, etc.) that uses the Amplify CLI to provision backend resources for the integration tests.
 
 ## Folder and file structure
-When referring to root folder in this document, we're referring to the folder where this `README.md` is located (`<amplify-ci-support root>/src/integ_test_resources/android/amplify/integration/cdk`)
+When referring to "root" folder in this document, we're referring to the folder where this `README.md` is located (`<amplify-ci-support root>/src/integ_test_resources/android/amplify/integration/cdk`)
 
 ```bash
 |
