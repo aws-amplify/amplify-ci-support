@@ -7,7 +7,17 @@ AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
 REGION = 'us-east-1'
 PROJECT_NAME = f"amplifyandroidinteg"
 ENVIRONMENT = 'integtest'
-PROJECT_DIR = f"./_amplify_project_tmp"
+SCRIPTS_DIR = os.path.dirname(__file__)
+print(f"SCRIPTS_DIR = {SCRIPTS_DIR}")
+
+# If running within CodeBuild, we want to use the value of CODEBUILD_SRC_DIR environment variable as the base path.
+# If running on a developer's machine, use the value of the HOME environment variable as the base.
+CODEBUILD_SRC_DIR = os.getenv('CODEBUILD_SRC_DIR')
+BASE_PATH = os.getenv('HOME') if CODEBUILD_SRC_DIR is None else CODEBUILD_SRC_DIR
+print(f"BASE_PATH = {BASE_PATH}")
+
+PROJECT_DIR = f"{BASE_PATH}/_amplify_project_tmp"
+print(f"Amplify project dir = {PROJECT_DIR}")
 
 AMPLIFY_COMMAND = "amplify"
 AMPLIFY_ACTION_PULL = "pull"
@@ -67,9 +77,14 @@ def pull_existing_app(existing_app_id):
                 "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
                 "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
                 "--yes"]
-    print(' '.join(pull_cmd))
     result = run_command(pull_cmd)
     return result.returncode
+
+def get_category_config(category_name: str):
+    with open(f"{PROJECT_DIR}/amplify/backend/amplify-meta.json") as amplify_meta_file:
+        amplify_meta_content = json.load(amplify_meta_file)
+        category_config = amplify_meta_content[category_name]
+    return category_config
 
 def push():
     push_cmd = [AMPLIFY_COMMAND,
