@@ -1,6 +1,0 @@
-type Post @model 
-@auth(rules: [{ allow: owner }]) {
-  id: ID!
-  title: String!
-  owner: String
-}

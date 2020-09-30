@@ -17,7 +17,7 @@ else:
 
 auth_config = get_auth_config()
 if (config_auth(auth_config) == 0):
-    api_config = get_api_config('AmplifyAndroidIntegTestApi', f"{SCRIPTS_DIR}/../schemas/blog.graphql", "authAndroidIntegTestAuth") 
+    api_config = get_api_config('AmplifyAndroidIntegTestApi', f"{SCRIPTS_DIR}/../schemas", "authAndroidIntegTestAuth") 
     config_api(api_config)
     push()
 else:

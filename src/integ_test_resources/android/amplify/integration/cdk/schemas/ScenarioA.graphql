@@ -1,0 +1,35 @@
+type ScenarioATest1Post @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  title: String!
+}
+
+type ScenarioATest2Post @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  title: String!
+  owner: String
+}
+
+### Test 3 is pending
+
+type ScenarioATest4Post @model @auth(rules: [{ allow: owner, ownerField: "dominus" }]) {
+  id: ID!
+  title: String!
+}
+
+type ScenarioATest5Post @model @auth(rules: [{ allow: owner, ownerField: "dominus" }]) {
+  id: ID!
+  title: String!
+  dominus: String
+}
+
+type ScenarioATest6Post
+        @model 
+        @auth(rules: [{ allow: owner, identityClaim: "user_id" }]) {
+  id: ID!
+  title: String!
+}
+
+type ScenarioATest7Post @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  title: String!
+}
