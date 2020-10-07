@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
 import os
-import shlex
 import json
 import subprocess
 import boto3
@@ -9,7 +7,17 @@ AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
 REGION = 'us-east-1'
 PROJECT_NAME = f"amplifyandroidinteg"
 ENVIRONMENT = 'integtest'
-PROJECT_DIR = f"./_amplify_project_tmp"
+SCRIPTS_DIR = os.path.dirname(__file__)
+print(f"SCRIPTS_DIR = {SCRIPTS_DIR}")
+
+# If running within CodeBuild, we want to use the value of CODEBUILD_SRC_DIR environment variable as the base path.
+# If running on a developer's machine, use the value of the HOME environment variable as the base.
+CODEBUILD_SRC_DIR = os.getenv('CODEBUILD_SRC_DIR')
+BASE_PATH = os.getenv('HOME') if CODEBUILD_SRC_DIR is None else CODEBUILD_SRC_DIR
+print(f"BASE_PATH = {BASE_PATH}")
+
+PROJECT_DIR = f"{BASE_PATH}/_amplify_project_tmp"
+print(f"Amplify project dir = {PROJECT_DIR}")
 
 AMPLIFY_COMMAND = "amplify"
 AMPLIFY_ACTION_PULL = "pull"
@@ -41,38 +49,6 @@ AMPLIFY_CODEGEN_CONFIG = {
     'generateDocs': True
 }
 
-AMPLIFY_AUTH_CONFIG = {
-    'version': 1,
-    'resourceName':'AndroidIntegTestAuth',
-    'serviceConfiguration': {
-        'serviceName': 'Cognito',
-        'userPoolConfiguration': {
-            'requiredSignupAttributes':['EMAIL', 'NAME', 'NICKNAME'],
-            'signinMethod':'USERNAME',
-            'userPoolGroups': [ 
-                { 'groupName': 'Admins' },
-                { 'groupName': 'Bloggers' },
-                { 'groupName': 'Moderators' }
-            ],
-            'writeAttributes': ['EMAIL', 'NAME', 'NICKNAME'],
-            'readAttributes':['EMAIL', 'NAME', 'NICKNAME'],
-            'refreshTokenPeriod': 365,
-            # 'adminQueries': {
-            #     'permissions': {
-            #         'restrictAccess': True,
-            #         'groupName': 'Admins'
-            #     }
-            # },
-        },
-        'includeIdentityPool': True,
-        'identityPoolConfiguration': {
-            'unauthenticatedLogin': True,
-            'identityPoolName': 'androididpool'
-        }
-
-    }
-}
-
 def get_existing_app_id():
     try:
         response = AMPLIFY_AWSSDK_CLIENT.list_apps()
@@ -101,22 +77,18 @@ def pull_existing_app(existing_app_id):
                 "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
                 "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
                 "--yes"]
-    print(' '.join(pull_cmd))
     result = run_command(pull_cmd)
     return result.returncode
 
-def add_auth():
-    add_auth_cmd = [AMPLIFY_COMMAND,
-                    "add",
-                    "auth",
-                    "--headless"]
-    result = run_command(add_auth_cmd, input=json.dumps(AMPLIFY_AUTH_CONFIG))
-    return result.returncode
-    
+def get_category_config(category_name: str):
+    with open(f"{PROJECT_DIR}/amplify/backend/amplify-meta.json") as amplify_meta_file:
+        amplify_meta_content = json.load(amplify_meta_file)
+        category_config = amplify_meta_content[category_name]
+    return category_config
+
 def push():
     push_cmd = [AMPLIFY_COMMAND,
                 "push",
-                "auth",
                 "--codegen", json.dumps(AMPLIFY_CODEGEN_CONFIG),
                 "--yes"]
     result = run_command(push_cmd)
@@ -130,18 +102,3 @@ def run_command(cmd, input: str = None):
                         # stdout=subprocess.PIPE, 
                         # stderr=subprocess.PIPE)
     return result
-
-# ENTRY POINT
-os.system(f"mkdir -p {PROJECT_DIR}")
-existing_app = get_existing_app_id()
-if existing_app is None:
-    # create the app
-    print("Need to create a new app")
-    initialize_new_app()
-else:
-    # pull the app
-    print(f"Pulling existing app with id {existing_app['appId']}")
-    pull_existing_app(existing_app['appId'])
-
-if (add_auth() == 0):
-    push()

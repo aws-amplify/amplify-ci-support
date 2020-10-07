@@ -18,7 +18,7 @@ phases:
       - echo 'Build phase starting'
       - pwd
       - ls -al
-      - src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_auth
+      - src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_amplify
     finally:
       - echo 'Build phase completed.'
   post_build:

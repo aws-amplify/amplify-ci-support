@@ -30,20 +30,31 @@ class AmplifyDeployer(core.Stack):
                                                                             webhook=False), # Will need to setup creds to make this true
                                         environment=build_environment,
                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename=build_file_path))
+        individual_actions = [
+            "amplify:Get*",
+            "amplify:List*",
+            "iam:CreateRole",
+            "iam:DeleteRole",
+            "iam:PutRolePolicy",
+            "iam:DeleteRolePolicy"
+        ]
+
+        policy = aws_iam.ManagedPolicy(self,
+            "AmplifyDeployerLeastPrivilegePolicy", 
+            managed_policy_name="AmplifyDeployerLeastPrivilegePolicy",
+            description="Policy used by the CodeBuild role that manages the creation of backend resources using the Amplify CLI",
+            # document=aws_iam.PolicyDocument(
+            statements=[
+                aws_iam.PolicyStatement(actions=individual_actions, effect=aws_iam.Effect.ALLOW, resources=["*"]),
+            ]
+            # )
+
+        )
+
+        policy.attach_to_role(project.role)
 
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('IAMReadOnlyAccess'))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('AWSLambdaFullAccess'))
-        
-        aws_iam.Policy(
-            self,
-            "AmplifyDeployerPolicy",
-            statements=[
-                aws_iam.PolicyStatement(actions=["amplify:*"], effect=aws_iam.Effect.ALLOW, resources=["*"]),
-                
-            ],
-            roles=[
-                project.role
-            ]
-        )
+        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('AWSAppSyncAdministrator'))
