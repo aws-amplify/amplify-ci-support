@@ -35,13 +35,20 @@ class AmplifyDeployer(core.Stack):
             "amplify:List*",
             "iam:CreateRole",
             "iam:DeleteRole",
+            "iam:CreatePolicy",
+            "iam:DeletePolicy",
             "iam:PutRolePolicy",
-            "iam:DeleteRolePolicy"
+            "iam:DeleteRolePolicy",
+            "iam:CreatePolicyVersion",
+            "iam:DeletePolicyVersion",
+            "iam:AttachRolePolicy",
+            "iam:DetachRolePolicy",
+            "cognito-identity:DescribeIdentityPool"
         ]
 
         policy = aws_iam.ManagedPolicy(self,
-            "AmplifyDeployerLeastPrivilegePolicy", 
-            managed_policy_name="AmplifyDeployerLeastPrivilegePolicy",
+            "AmplifyCodeBuildScriptRunnerPolicy",
+            managed_policy_name="AmplifyCodeBuildScriptRunnerPolicy",
             description="Policy used by the CodeBuild role that manages the creation of backend resources using the Amplify CLI",
             # document=aws_iam.PolicyDocument(
             statements=[

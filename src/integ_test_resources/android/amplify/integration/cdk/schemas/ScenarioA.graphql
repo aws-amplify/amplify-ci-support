@@ -35,3 +35,11 @@ type ScenarioATest6Post
   id: ID!
   title: String!
 }
+
+#Test case 7 - A schema where multiple users can be owners of a record
+type ScenarioATest7Post @model
+  @auth(rules: [{ allow: owner, ownerField: "editors"}]) {
+    id: ID!
+    title: String!
+    editors: [String]
+}
