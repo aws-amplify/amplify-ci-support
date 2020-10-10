@@ -31,6 +31,6 @@ if github_owner is not None:
 if branch is not None:
     props['branch'] = branch
 
-AmplifyDeployer(app, "Amplify", props, env=TARGET_ENV)
+AmplifyDeployer(app, "AtAuthTestBackend", props, env=TARGET_ENV)
 
 app.synth()

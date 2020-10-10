@@ -6,3 +6,14 @@ type ScenarioBTestCase1Post @model
   title: String!
   owner: String
 }
+
+# Test case 2 - Multiple owner rules (although only one has a READ operation since multiple owner rules with READ operations are not currently supported)
+type ScenarioBTestCase2Post @model
+  @auth(rules: [
+    { allow: owner, operations: [create] },
+    { allow: owner, ownerField: "admin", operations: [read, update, delete] }
+  ]) {
+    id: ID!
+    title: String!
+    admin: String
+}
