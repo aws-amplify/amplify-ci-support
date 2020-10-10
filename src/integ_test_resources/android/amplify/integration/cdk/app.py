@@ -23,13 +23,14 @@ print(BANNER_TEXT)
 print(SEPARATOR)
 
 props = {}
-props['project_name'] = "AmplifyAndroidIntegTestDeployer"
+props['cb_project_name'] = "AmplifyAuthScenariosDeployer"
+props['buildspec_file_path'] = 'src/integ_test_resources/android/amplify/integration/cdk/scripts/buildspec.yml'
 props['github_repo'] = GITHUB_REPO
 if github_owner is not None:
     props['github_owner'] = github_owner
 if branch is not None:
     props['branch'] = branch
 
-AmplifyDeployer(app, "AndroidIntegTestInfraDeployer", props, env=TARGET_ENV)
+AmplifyDeployer(app, "AtAuthTestBackend", props, env=TARGET_ENV)
 
 app.synth()
