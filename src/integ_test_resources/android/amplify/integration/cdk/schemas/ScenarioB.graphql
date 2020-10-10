@@ -1,0 +1,8 @@
+
+# Test case 1 - Allow others to update and read your data, but not delete
+type ScenarioBTestCase1Post @model
+  @auth(rules: [{ allow: owner, operations: [create, delete] }]) {
+  id: ID!
+  title: String!
+  owner: String
+}
