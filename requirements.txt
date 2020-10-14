@@ -16,3 +16,4 @@ aws_cdk.core
 black
 boto3
 isort
+ruamel.yaml
