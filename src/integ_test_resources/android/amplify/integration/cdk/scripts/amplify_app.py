@@ -35,14 +35,14 @@ AMPLIFY_CODEGEN_CONFIG_ANDROID = {
 }
 
 class AmplifyApp:
-    app_name = None
+    backend_name = None
     app_id = None
     project_dir = None
     amplify_meta_content = None
 
-    def __init__(self, *, app_name:str):
-        self.app_name = app_name
-        self.project_dir = f"{BASE_PATH}/_amplify_{self.app_name}"
+    def __init__(self, *, backend_name:str):
+        self.backend_name = backend_name
+        self.project_dir = f"{BASE_PATH}/_amplify_{self.backend_name}"
         os.system(f"mkdir -p {self.project_dir}")
         self.app_id = self._get_existing_app_id()
         if self.app_id is None and self._initialize_new_app() != 0:
@@ -91,10 +91,10 @@ class AmplifyApp:
     def _get_existing_app_id(self):
         try:
             response = AMPLIFY_AWSSDK_CLIENT.list_apps()
-            existing_app_id = next(app['appId'] for app in response['apps'] if app['name'] == self.app_name)
+            existing_app_id = next(app['appId'] for app in response['apps'] if app['name'] == self.backend_name)
             return existing_app_id
         except StopIteration:
-            LOGGER.error(f"Unable to find existing Amplify app for {self.app_name}")
+            LOGGER.error(f"Unable to find existing Amplify app for {self.backend_name}")
             return None
 
     def _initialize_new_app(self):
@@ -122,7 +122,7 @@ class AmplifyApp:
 
     def _get_amplify_config(self):
         return {
-            'projectName': self.app_name,
+            'projectName': self.backend_name,
             'envName': AMPLIFY_ENVIRONMENT,
             'defaultEditor': 'code'
         }

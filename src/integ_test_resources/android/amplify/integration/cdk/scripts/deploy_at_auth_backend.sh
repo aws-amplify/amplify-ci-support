@@ -1,0 +1,1 @@
+src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_amplify --backend_name='AtAuthTests' --schema_dir 'auth_scenarios' --group_names 'Bloggers,Admins,Moderators' --log=DEBUG

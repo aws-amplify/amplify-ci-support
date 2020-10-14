@@ -12,8 +12,10 @@ class OperationType(Enum):
     REMOVE = "remove"
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Automation scripts that run the Amplify CLI in headless mode")
-    parser.add_argument("--app_name", help="The name of the Amplify app.", required=True)
+    parser = argparse.ArgumentParser(description="Utility that runs the Amplify CLI in headless mode to provision backend resources for integration tests.")
+    parser.add_argument("--backend_name", help="The name of the Amplify app.", required=True)
+    parser.add_argument("--schema_dir", help="Name of the subdirectory under the schemas folder that contains the GraphQL schemas for the backend API.", required=True)
+    parser.add_argument("--group_names", help="Comma-separated list of group names to be created.", default="")
     parser.add_argument("--log", help="Set the log level.", default='INFO')
     return parser.parse_args()
 
