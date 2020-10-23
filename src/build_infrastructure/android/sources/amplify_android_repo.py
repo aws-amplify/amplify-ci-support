@@ -12,8 +12,8 @@ class AmplifyAndroidRepo(aws_codepipeline_actions.GitHubSourceAction):
     OWNER = 'aws-amplify'
     TRIGGER = aws_codepipeline_actions.GitHubTrigger.NONE
     SECRET_NAME = "AmplifyAndroidSecret"
-    SOURCE_OUTPUT_NAME = "amplify-android-source-output"
-    ACTION_NAME = "amplify-android-source"
+    SOURCE_OUTPUT_NAME = "AmplifyAndroidSource"
+    ACTION_NAME = "AmplifyAndroidGitHubRepo"
     def __init__(self, 
                     owner_override:str = None, 
                     branch_override: str = None,
