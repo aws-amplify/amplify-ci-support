@@ -6,7 +6,6 @@ from aws_cdk import (
     aws_codepipeline_actions
 )
 
-from stacks.device_farm_bootstrap_stack import DeviceFarmBootstrap
 from stacks.build_pipeline_stack import AmplifyAndroidCodePipeline
 
 from sources.amplify_android_repo import AmplifyAndroidRepo
