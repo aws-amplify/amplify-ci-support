@@ -23,15 +23,9 @@ df_device_pool_arn = app.node.try_get_context("df_device_pool_arn")
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 
 
-# bootstrap_stack_props = {
-#     'device_farm_project_name': 'Amplify Android instrumented tests'
-# }
-# bootstrap_stack = DeviceFarmBootstrap(app, 
-#                                     "DeviceFarmBootstrap", 
-#                                     props=bootstrap_stack_props, 
-#                                     env=TARGET_ENV)
-
-# Need to get DF parameters from custom resource. Having trouble with that right now.
+# Currently, device pool arn comes from the CDK context. 
+# DeviceFarm project arn and id can be passed in (if using an existing one)
+#   or if it's not provided, a new DeviceFarm project will be created.
 code_pipeline_stack_props = {
     'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
     'device_farm_project_arn': df_project_arn,

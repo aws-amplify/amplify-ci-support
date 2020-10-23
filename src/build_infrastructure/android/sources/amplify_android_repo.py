@@ -31,3 +31,4 @@ class AmplifyAndroidRepo(aws_codepipeline_actions.GitHubSourceAction):
             branch = self.BRANCH if branch_override is None else branch_override,
             trigger = self.TRIGGER if trigger_override is None else trigger_override,
             oauth_token = core.SecretValue('{{'+f"resolve:secretsmanager:{oauth_token_secret_name}:SecretString:token"+'}}'))
+

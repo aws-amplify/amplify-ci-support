@@ -83,4 +83,3 @@ class DeviceFarmProject(core.Construct):
 
     def get_project_id(self):
         return self.project_id
-        
