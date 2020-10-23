@@ -293,7 +293,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
         module_names = ['core', 'aws-analytics-pinpoint', 'aws-datastore', 'aws-api', 'aws-storage-s3', 'aws-predictions']
         test_actions = []
         for module_name in module_names:
-            test_actions.append(self._build_device_farm_test_action(device_farm_project_arn, device_farm_project_id, device_farm_pool_arn, module_name))
+            test_actions.append(self._build_device_farm_test_junit_action(device_farm_project_arn, device_farm_project_id, device_farm_pool_arn, module_name))
 
         testing_stage = {
             "Name": "Test",
@@ -319,6 +319,33 @@ class AmplifyAndroidCodePipeline(core.Stack):
                 "DevicePoolArn": device_pool_arn,
                 "ProjectId": project_id,
                 "TestType": "INSTRUMENTATION"
+            },
+            "OutputArtifacts": [],
+            "InputArtifacts": [
+                {
+                    "Name": "AmplifyAndroidBuildOutput"
+                }
+            ]
+            # "Region": "us-west-2"
+        }
+
+    def _build_device_farm_test_junit_action(self, project_arn: str, project_id: str, device_pool_arn: str, module_name: str):
+        return {
+            "Name":f"{module_name}-InstrumentedTests",
+            "ActionTypeId": {
+                "Category": "Test",
+                "Owner": "AWS",
+                "Provider": "DeviceFarm",
+                "Version": "1"
+            },
+            "RunOrder": 1,
+            "Configuration": {
+                "App": f"{module_name}-debug-androidTest.apk",
+                "Test": f"{module_name}-debug-androidTest.apk",
+                "AppType": "Android",
+                "DevicePoolArn": device_pool_arn,
+                "ProjectId": project_id,
+                "TestType": "APPIUM_JAVA_JUNIT"
             },
             "OutputArtifacts": [],
             "InputArtifacts": [
