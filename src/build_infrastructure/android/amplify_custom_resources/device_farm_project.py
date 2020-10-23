@@ -48,9 +48,8 @@ class DeviceFarmProject(core.Construct):
             on_delete=self.delete_project(project_name),
             resource_type='Custom::AWS-DeviceFarm-Project',
             role=lambda_role)
-        project_arn = core.Fn.ref(self.custom_resource.node) # self.custom_resource.get_response_field('project.arn')
-        self.project_arn = core.Token.as_string(project_arn)
-        self.project_id  = core.Fn.select(6, core.Fn.split(":", self.project_arn))
+        self.project_arn = self.custom_resource.get_response_field_reference('project.arn')
+        self.project_id  = core.Fn.select(6, core.Fn.split(":", core.Token.as_string(self.project_arn)))
 
     def create_project(self, project_name):
         return AwsSdkCall(

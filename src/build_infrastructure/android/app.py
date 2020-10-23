@@ -35,7 +35,7 @@ print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 code_pipeline_stack_props = {
     'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
     'device_farm_project_arn': df_project_arn,
-    'device_farm_project_id': df_project_arn.split(":")[6],
+    'device_farm_project_id': df_project_arn.split(":")[6] if df_project_arn is not None else None,
     'device_farm_pool_arn': df_device_pool_arn,
     'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests'
 }
