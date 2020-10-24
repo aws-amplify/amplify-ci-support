@@ -42,13 +42,21 @@ at_auth_props = build_amplify_deployer_stack_props(cb_project_name="AmplifyAuthS
                                                     branch=branch,
                                                     shell_script_name="deploy_at_auth_backend.sh")
 
+# TODO: rename this to datastore_instrumented_tests*
 instrumented_test_props = build_amplify_deployer_stack_props(cb_project_name="InstrumentedTestBackendDeployer",
                                                     github_repo=GITHUB_REPO,
                                                     github_owner=github_owner,
                                                     branch=branch,
-                                                    shell_script_name="deploy_instrumented_tests_backend.sh")                                                  
+                                                    shell_script_name="deploy_instrumented_tests_backend.sh")
+
+api_instrumented_test_props = build_amplify_deployer_stack_props(cb_project_name="ApiInstrumentedTestBackendDeployer",
+                                                    github_repo=GITHUB_REPO,
+                                                    github_owner=github_owner,
+                                                    branch=branch,
+                                                    shell_script_name="deploy_api_instrumented_tests_backend.sh")                                             
 
 at_auth_backend_stack = AmplifyDeployer(app, "AtAuthScenariosBackend", at_auth_props, env=TARGET_ENV)
 instrumented_test_backend_stack = AmplifyDeployer(app, "InstrumentedTestsBackend", instrumented_test_props, env=TARGET_ENV)
+api_instrumented_test_backend_stack = AmplifyDeployer(app, "ApiInstrumentedTestsBackend", api_instrumented_test_props, env=TARGET_ENV)
 
 app.synth()
