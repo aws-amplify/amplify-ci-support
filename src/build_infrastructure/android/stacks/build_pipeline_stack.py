@@ -226,6 +226,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
             "devicefarm:UpdateUpload",
             "devicefarm:DeleteUpload"
         ]
+    code_build_project=None
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         if 'github_source' not in props:
@@ -251,6 +252,8 @@ class AmplifyAndroidCodePipeline(core.Stack):
                                                                                                     privileged=True,
                                                                                                     compute_type=aws_codebuild.ComputeType.LARGE),
                                                         build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
+        self.code_build_project = pipeline_project
+
         build_exec_policy = aws_iam.ManagedPolicy(self,
             "AmplifyAndroidBuildExecutorPolicy",
             managed_policy_name=f"AmplifyAndroidBuildExecutorPolicy",
@@ -300,6 +303,9 @@ class AmplifyAndroidCodePipeline(core.Stack):
         pipeline_node = pipeline.node.default_child
         pipeline_node.add_property_override("Stages.2", testing_stage)
     
+    def get_codebuild_project_name(self):
+        return self.code_build_project.project_name
+
     def _create_build_and_assemble_action(self,
         input_artifact:aws_codepipeline.Artifact,
         output_artifact:aws_codepipeline.Artifact, 
