@@ -9,6 +9,7 @@ from aws_cdk import (
 from stacks.build_pipeline_stack import AmplifyAndroidCodePipeline
 from stacks.github_reporting_stack import GithubReporting
 from sources.amplify_android_repo import AmplifyAndroidRepo
+from sources.amplify_android_repo_connection import AmplifyAndroidRepoConnection
 
 app = core.App()
 TARGET_REGION = app.node.try_get_context("region")
@@ -22,6 +23,7 @@ df_device_pool_arn = app.node.try_get_context("df_device_pool_arn")
 config_source_bucket = app.node.try_get_context("config_source_bucket")
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 log_level=app.node.try_get_context("log_level")
+connection_arn=app.node.try_get_context("connection_arn")
 
 
 # Currently, device pool arn comes from the CDK context. 
@@ -30,7 +32,7 @@ log_level=app.node.try_get_context("log_level")
 code_pipeline_stack_props = {
     # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
     'config_source_bucket': config_source_bucket, 
-    'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
+    'github_source': AmplifyAndroidRepoConnection(owner_override=github_owner, branch_override=branch, connection_arn=connection_arn),
     'device_farm_project_arn': df_project_arn,
     'device_farm_project_id': df_project_arn.split(":")[6] if df_project_arn is not None else None,
     'device_farm_pool_arn': df_device_pool_arn,

@@ -39,7 +39,7 @@ class GithubReporting(core.Stack):
             parameters={
                 'CodeBuildProjectName': code_build_project_name,
                 'GitHubOAuthToken': core.Token.as_string(core.SecretValue('{{'+f"resolve:secretsmanager:{oauth_token_secret_name}:SecretString:token"+'}}')),
-                'DeletePreviousComments': True,
+                'DeletePreviousComments': "true",
                 'LogLevel': log_level
             }
         )

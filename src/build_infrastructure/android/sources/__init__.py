@@ -1,1 +1,2 @@
 from .amplify_android_repo import AmplifyAndroidRepo
+from .amplify_android_repo_connection import AmplifyAndroidRepoConnection
