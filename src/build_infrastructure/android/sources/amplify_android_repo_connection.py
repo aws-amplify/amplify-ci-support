@@ -7,6 +7,10 @@ from aws_cdk import (
 )
 
 class AmplifyAndroidRepoConnection(aws_codepipeline_actions.BitBucketSourceAction):
+    """
+    Even though we're using BitBucketSourceAction, this works for any type of CodeStar connection 
+    according to this post in the CDK repo. (https://github.com/aws/aws-cdk/issues/10632)
+    """
     REPO_NAME = 'amplify-android'
     BRANCH = 'main'
     OWNER = 'aws-amplify'
