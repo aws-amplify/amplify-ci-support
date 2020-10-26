@@ -233,6 +233,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
         
         amplify_android_build_output = aws_codepipeline.Artifact("AmplifyAndroidBuildOutput")
         github_source = cast(aws_codepipeline_actions.GitHubSourceAction, props['github_source'])
+        config_source_bucket = props['config_source_bucket']
         device_farm_project_arn = props['device_farm_project_arn']
         device_farm_project_id = props['device_farm_project_id']
         device_farm_pool_arn = props['device_farm_pool_arn']
@@ -278,14 +279,11 @@ class AmplifyAndroidCodePipeline(core.Stack):
                 ),
                 aws_codepipeline.StageProps(
                     stage_name="Build",
-                        actions=[
-                        aws_codepipeline_actions.CodeBuildAction(
-                            action_name='BuildAndAssemble',
-                            input=github_source.action_properties.outputs[0],
-                            project=pipeline_project,
-                            outputs=[amplify_android_build_output]
-                        )
-                    ]
+                        actions=[self._create_build_and_assemble_action(input_artifact=github_source.action_properties.outputs[0],
+                                                                            output_artifact=amplify_android_build_output, 
+                                                                            pipeline_project=pipeline_project,
+                                                                            config_source_bucket=config_source_bucket)
+                                ]
                 )
             ])
         df_runner_policy.attach_to_role(pipeline.role)
@@ -302,6 +300,30 @@ class AmplifyAndroidCodePipeline(core.Stack):
         pipeline_node = pipeline.node.default_child
         pipeline_node.add_property_override("Stages.2", testing_stage)
     
+    def _create_build_and_assemble_action(self,
+        input_artifact:aws_codepipeline.Artifact,
+        output_artifact:aws_codepipeline.Artifact, 
+        pipeline_project:aws_codebuild.PipelineProject,
+        config_source_bucket: str = None):
+        if config_source_bucket is None:
+            return aws_codepipeline_actions.CodeBuildAction(
+                action_name='BuildAndAssemble',
+                input=input_artifact,
+                project=pipeline_project,
+                outputs=[output_artifact]
+            )
+        else:
+            return aws_codepipeline_actions.CodeBuildAction(
+                action_name='BuildAndAssemble',
+                input=input_artifact,
+                project=pipeline_project,
+                environment_variables={
+                    'CONFIG_SOURCE_BUCKET': aws_codebuild.BuildEnvironmentVariable(value=config_source_bucket)
+                },
+                outputs=[output_artifact]
+            )
+
+
     def _build_device_farm_test_action(self, project_arn: str, project_id: str, device_pool_arn: str, module_name: str):
         return {
             "Name":f"{module_name}-InstrumentedTests",

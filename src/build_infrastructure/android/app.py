@@ -19,6 +19,7 @@ github_owner=app.node.try_get_context("github_owner")
 branch=app.node.try_get_context("branch")
 df_project_arn = app.node.try_get_context("df_project_arn")
 df_device_pool_arn = app.node.try_get_context("df_device_pool_arn")
+config_source_bucket = app.node.try_get_context("config_source_bucket")
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 
 
@@ -26,6 +27,8 @@ print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 # DeviceFarm project arn and id can be passed in (if using an existing one)
 #   or if it's not provided, a new DeviceFarm project will be created.
 code_pipeline_stack_props = {
+    # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
+    'config_source_bucket': config_source_bucket, 
     'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
     'device_farm_project_arn': df_project_arn,
     'device_farm_project_id': df_project_arn.split(":")[6] if df_project_arn is not None else None,
@@ -36,6 +39,7 @@ code_pipeline_stack_props = {
 pipeline_stack = AmplifyAndroidCodePipeline(app, 
                                     "AndroidBuildPipeline",
                                     code_pipeline_stack_props,
+                                    description="CI Pipeline assets for amplify-android",
                                     env=TARGET_ENV)
 # pipeline_stack.add_dependency(bootstrap_stack)
 app.synth()
