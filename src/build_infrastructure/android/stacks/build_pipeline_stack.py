@@ -6,16 +6,16 @@ import os
 from typing import cast
 from botocore.exceptions import ClientError
 from aws_cdk import (
+    core,
+    custom_resources,
     aws_iam,
     aws_codebuild,
     aws_codepipeline,
     aws_codepipeline_actions,
-    aws_ssm,
     aws_cloudformation,
-    aws_logs,
-    custom_resources,
     aws_lambda,
-    core,
+    aws_logs,
+    aws_s3
 )
 from amplify_custom_resources import DeviceFarmProject
 
@@ -226,43 +226,35 @@ class AmplifyAndroidCodePipeline(core.Stack):
             "devicefarm:UpdateUpload",
             "devicefarm:DeleteUpload"
         ]
+    MODULES_WITH_INSTRUMENTED_TESTS = ['core', 'aws-analytics-pinpoint', 'aws-datastore', 'aws-api', 'aws-storage-s3', 'aws-predictions']
     code_build_project=None
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        if 'github_source' not in props:
-            raise RuntimeError("Parameter github_source (aws_codepipeline_actions.GitHubSourceAction) is required.")
+        required_props = ['build_pipeline_name','github_source', 'config_source_bucket', 'device_farm_project_name', 'device_farm_pool_arn']
+        for prop in required_props:
+            if prop not in props:
+                raise RuntimeError(f"Parameter {prop} is required.")
         
-        amplify_android_build_output = aws_codepipeline.Artifact("AmplifyAndroidBuildOutput")
         github_source = cast(aws_codepipeline_actions.GitHubSourceAction, props['github_source'])
         config_source_bucket = props['config_source_bucket']
-        device_farm_project_arn = props['device_farm_project_arn']
-        device_farm_project_id = props['device_farm_project_id']
         device_farm_pool_arn = props['device_farm_pool_arn']
         device_farm_project_name = props['device_farm_project_name']
-
-        # If an existing project ARN was not provides via the context, then create one using the custom resource.
-        if device_farm_project_arn is None:
-            df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
-            device_farm_project_arn = df_project.get_arn()
-            device_farm_project_id = df_project.get_project_id()
+        build_pipeline_name= props['build_pipeline_name']
         
-        pipeline_project = aws_codebuild.PipelineProject(self, 
-                                                        "AmplifyAndroidCodeBuildProject", 
-                                                        environment=aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
-                                                                                                    privileged=True,
-                                                                                                    compute_type=aws_codebuild.ComputeType.LARGE),
-                                                        build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
-        self.code_build_project = pipeline_project
+        artifact_bucket = self._create_artifact_bucket(f"pipeline-assets-{build_pipeline_name.lower()}-{self.account}")
 
-        build_exec_policy = aws_iam.ManagedPolicy(self,
-            "AmplifyAndroidBuildExecutorPolicy",
-            managed_policy_name=f"AmplifyAndroidBuildExecutorPolicy",
-            description="Policy used by the CodeBuild role that executes builds.",
-            statements=[
-                aws_iam.PolicyStatement(actions=self.CODE_BUILD_AMPLIFY_ACTIONS, effect=aws_iam.Effect.ALLOW, resources=["*"]),
-            ]
-        )
+        df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
+        
+        self.code_build_project = self._create_codebuild_project()
+        pipeline = self._create_pipeline(build_pipeline_name, github_source, self.code_build_project, config_source_bucket, artifact_bucket)
 
+        self._add_devicefarm_test_runner_permissions_to_role(pipeline.role)
+        self._add_devicefarm_test_stage(pipeline, df_project.get_project_id(), device_farm_pool_arn)
+    
+    def get_codebuild_project_name(self):
+        return self.code_build_project.project_name
+
+    def _add_devicefarm_test_runner_permissions_to_role(self, role: aws_iam.Role):
         df_runner_policy = aws_iam.ManagedPolicy(self,
             "AmplifyAndroidDeviceFarmTestRunnerPolicy",
             managed_policy_name=f"AmplifyAndroidDeviceFarmTestRunnerPolicy",
@@ -271,10 +263,66 @@ class AmplifyAndroidCodePipeline(core.Stack):
                 aws_iam.PolicyStatement(actions=self.DEVICE_FARM_TEST_RUNNER_ACTIONS, effect=aws_iam.Effect.ALLOW, resources=["*"]),
             ]
         )
-        build_exec_policy.attach_to_role(pipeline_project.role)
+        df_runner_policy.attach_to_role(role)
 
-        pipeline = aws_codepipeline.Pipeline(self, 
+    def _add_devicefarm_test_stage(self, pipeline, device_farm_project_id, device_farm_pool_arn):
+        test_actions = []
+        for module_name in self.MODULES_WITH_INSTRUMENTED_TESTS:
+            test_actions.append(self._create_devicefarm_test_action(device_farm_project_id, device_farm_pool_arn, module_name))
+
+        testing_stage = {
+            "Name": "Test",
+            "Actions": test_actions
+        }
+        pipeline_node = pipeline.node.default_child
+        pipeline_node.add_property_override("Stages.2", testing_stage)
+
+    def _create_artifact_bucket(self, bucket_name:str):
+        artifact_bucket = aws_s3.Bucket(self, "PipelineAssets", 
+            bucket_name=bucket_name, 
+            encryption=aws_s3.BucketEncryption.KMS_MANAGED,
+            removal_policy=core.RemovalPolicy.DESTROY)
+        artifact_bucket.add_to_resource_policy(permission=aws_iam.PolicyStatement(
+            principals=[aws_iam.AnyPrincipal()],
+            effect=aws_iam.Effect.DENY,
+            resources=[
+                artifact_bucket.bucket_arn, 
+                f"{artifact_bucket.bucket_arn}/*"
+            ],
+            actions=["s3:*"],
+            conditions={
+                "Bool": {
+                    "aws:SecureTransport": "false"
+                }
+            }
+        ))
+        artifact_bucket.add_to_resource_policy(permission=aws_iam.PolicyStatement(
+            principals=[aws_iam.AnyPrincipal()],
+            effect=aws_iam.Effect.DENY,
+            resources=[
+                artifact_bucket.bucket_arn, 
+                f"{artifact_bucket.bucket_arn}/*"
+            ],
+            actions=["s3:PutObject"],
+            conditions={
+                "StringNotEquals": {
+                    "s3:x-amz-server-side-encryption": "aws:kms"
+                }
+            }
+        ))
+        return artifact_bucket
+
+    def _create_pipeline(self, 
+                            build_pipeline_name: str, 
+                            github_source: aws_codepipeline_actions.GitHubSourceAction, 
+                            codebuild_project: aws_codebuild.PipelineProject,
+                            config_file_source_bucket_name:str,
+                            artifact_bucket: aws_s3.Bucket):
+        amplify_android_build_output = aws_codepipeline.Artifact("AmplifyAndroidBuildOutput")
+        return aws_codepipeline.Pipeline(self, 
             "Pipeline",
+            pipeline_name=build_pipeline_name,
+            artifact_bucket=artifact_bucket,
             stages=[
                 aws_codepipeline.StageProps(
                     stage_name="Source",
@@ -284,27 +332,29 @@ class AmplifyAndroidCodePipeline(core.Stack):
                     stage_name="Build",
                         actions=[self._create_build_and_assemble_action(input_artifact=github_source.action_properties.outputs[0],
                                                                             output_artifact=amplify_android_build_output, 
-                                                                            pipeline_project=pipeline_project,
-                                                                            config_source_bucket=config_source_bucket)
+                                                                            pipeline_project=codebuild_project,
+                                                                            config_source_bucket=config_file_source_bucket_name)
                                 ]
                 )
             ])
-        df_runner_policy.attach_to_role(pipeline.role)
 
-        module_names = ['core', 'aws-analytics-pinpoint', 'aws-datastore', 'aws-api', 'aws-storage-s3', 'aws-predictions']
-        test_actions = []
-        for module_name in module_names:
-            test_actions.append(self._build_device_farm_test_action(device_farm_project_arn, device_farm_project_id, device_farm_pool_arn, module_name))
-
-        testing_stage = {
-            "Name": "Test",
-            "Actions": test_actions
-        }
-        pipeline_node = pipeline.node.default_child
-        pipeline_node.add_property_override("Stages.2", testing_stage)
-    
-    def get_codebuild_project_name(self):
-        return self.code_build_project.project_name
+    def _create_codebuild_project(self):
+        pipeline_project = aws_codebuild.PipelineProject(self, 
+                                            "AmplifyAndroidCodeBuildProject", 
+                                            environment=aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
+                                                                                        privileged=True,
+                                                                                        compute_type=aws_codebuild.ComputeType.LARGE),
+                                            build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
+        build_exec_policy = aws_iam.ManagedPolicy(self,
+            "AmplifyAndroidBuildExecutorPolicy",
+            managed_policy_name=f"AmplifyAndroidBuildExecutorPolicy",
+            description="Policy used by the CodeBuild role that executes builds.",
+            statements=[
+                aws_iam.PolicyStatement(actions=self.CODE_BUILD_AMPLIFY_ACTIONS, effect=aws_iam.Effect.ALLOW, resources=["*"]),
+            ]
+        )
+        build_exec_policy.attach_to_role(pipeline_project.role)
+        return pipeline_project
 
     def _create_build_and_assemble_action(self,
         input_artifact:aws_codepipeline.Artifact,
@@ -329,8 +379,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
                 outputs=[output_artifact]
             )
 
-
-    def _build_device_farm_test_action(self, project_arn: str, project_id: str, device_pool_arn: str, module_name: str):
+    def _create_devicefarm_test_action(self, project_id: str, device_pool_arn: str, module_name: str):
         return {
             "Name":f"{module_name}-InstrumentedTests",
             "ActionTypeId": {
@@ -354,5 +403,4 @@ class AmplifyAndroidCodePipeline(core.Stack):
                     "Name": "AmplifyAndroidBuildOutput"
                 }
             ]
-            # "Region": "us-west-2"
         }

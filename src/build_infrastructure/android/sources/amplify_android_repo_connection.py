@@ -30,5 +30,7 @@ class AmplifyAndroidRepoConnection(aws_codepipeline_actions.BitBucketSourceActio
             repo = self.REPO_NAME,
             connection_arn=connection_arn,
             output = aws_codepipeline.Artifact(source_output_name), 
+            variables_namespace=f"{self.ACTION_NAME}Variables",
             action_name = self.ACTION_NAME,
+            code_build_clone_output=True,
             branch = self.BRANCH if branch_override is None else branch_override)
