@@ -18,7 +18,7 @@ from aws_cdk import (
     aws_s3
 )
 from amplify_custom_resources import DeviceFarmProject
-
+from amplify_custom_resources import PullRequestBuilder
 class AmplifyAndroidCodePipeline(core.Stack):
     CODE_BUILD_AMPLIFY_ACTIONS = [
         "amplify:CreateApp",
@@ -228,6 +228,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
         ]
     MODULES_WITH_INSTRUMENTED_TESTS = ['core', 'aws-analytics-pinpoint', 'aws-datastore', 'aws-api', 'aws-storage-s3', 'aws-predictions']
     code_build_project=None
+
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         required_props = ['build_pipeline_name','github_source', 'config_source_bucket', 'device_farm_project_name', 'device_farm_pool_arn']
@@ -239,7 +240,9 @@ class AmplifyAndroidCodePipeline(core.Stack):
         config_source_bucket = props['config_source_bucket']
         device_farm_pool_arn = props['device_farm_pool_arn']
         device_farm_project_name = props['device_farm_project_name']
-        build_pipeline_name= props['build_pipeline_name']
+        build_pipeline_name = props['build_pipeline_name']
+
+        PullRequestBuilder(self, "PullRequestBuilderProject", project_name="PullRequestBuilder",github_owner=github_source.owner, github_repo=github_source.repo)
         
         artifact_bucket = self._create_artifact_bucket(f"pipeline-assets-{build_pipeline_name.lower()}-{self.account}")
 
@@ -344,7 +347,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
                                             environment=aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
                                                                                         privileged=True,
                                                                                         compute_type=aws_codebuild.ComputeType.LARGE),
-                                            build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='buildspec.yml'))
+                                            build_spec=aws_codebuild.BuildSpec.from_source_filename(filename='scripts/apk-builder-buildspec.yml'))
         build_exec_policy = aws_iam.ManagedPolicy(self,
             "AmplifyAndroidBuildExecutorPolicy",
             managed_policy_name=f"AmplifyAndroidBuildExecutorPolicy",

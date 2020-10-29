@@ -25,8 +25,9 @@ class AmplifyAndroidRepoConnection(aws_codepipeline_actions.BitBucketSourceActio
                     source_output_name_override: str = None
                 ) -> None:
         source_output_name = self.SOURCE_OUTPUT_NAME if source_output_name_override is None else source_output_name_override
-        
-        super().__init__(owner = self.OWNER if owner_override is None else owner_override, 
+        self.owner = self.OWNER if owner_override is None else owner_override
+        self.repo = self.REPO_NAME
+        super().__init__(owner = self.owner, 
             repo = self.REPO_NAME,
             connection_arn=connection_arn,
             output = aws_codepipeline.Artifact(source_output_name), 
