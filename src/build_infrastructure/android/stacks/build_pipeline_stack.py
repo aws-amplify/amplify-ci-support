@@ -241,12 +241,18 @@ class AmplifyAndroidCodePipeline(core.Stack):
         device_farm_pool_arn = props['device_farm_pool_arn']
         device_farm_project_name = props['device_farm_project_name']
         build_pipeline_name = props['build_pipeline_name']
+        codebuild_project_name_prefix = props['codebuild_project_name_prefix']
 
         df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
 
-        unittest_project = PullRequestBuilder(self, "UnitTestRunner", project_name="UnitTestRunner",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/pr-builder-buildspec.yml")
-        integtest_project = PullRequestBuilder(self, "IntegrationTestrunner", project_name="IntegrationTestrunner",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", environment_variables={'DEVICEFARM_PROJECT_ARN': df_project.get_arn()})
-        
+        PullRequestBuilder(self, "UnitTestRunner", project_name=f"{codebuild_project_name_prefix}-UnitTest",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/pr-builder-buildspec.yml")
+        integtest_project = PullRequestBuilder(self, "IntegrationTestrunner", project_name=f"{codebuild_project_name_prefix}-IntegrationTest",github_owner=github_source.owner, 
+                                                github_repo=github_source.repo, buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", 
+                                                environment_variables={
+                                                    'DEVICEFARM_PROJECT_ARN': aws_codebuild.BuildEnvironmentVariable(value=df_project.get_arn()), 
+                                                    'DEVICEFARM_POOL_ARN': aws_codebuild.BuildEnvironmentVariable(value=device_farm_pool_arn),
+                                                    'CONFIG_SOURCE_BUCKET': aws_codebuild.BuildEnvironmentVariable(value=config_source_bucket)})
+        self._add_codebuild_project_runner_permissions(integtest_project.role)
         self._add_devicefarm_test_runner_permissions_to_role(integtest_project.role)
     
     def get_codebuild_project_name(self):
@@ -360,6 +366,18 @@ class AmplifyAndroidCodePipeline(core.Stack):
         )
         build_exec_policy.attach_to_role(pipeline_project.role)
         return pipeline_project
+
+    def _add_codebuild_project_runner_permissions(self, role: aws_iam.Role):
+        build_exec_policy = aws_iam.ManagedPolicy(self,
+            "AmplifyAndroidBuildExecutorPolicy",
+            managed_policy_name=f"AmplifyAndroidBuildExecutorPolicy",
+            description="Policy used by the CodeBuild role that executes builds.",
+            statements=[
+                aws_iam.PolicyStatement(actions=self.CODE_BUILD_AMPLIFY_ACTIONS, effect=aws_iam.Effect.ALLOW, resources=["*"]),
+            ]
+        )
+        build_exec_policy.attach_to_role(role)
+
 
     def _create_build_and_assemble_action(self,
         input_artifact:aws_codepipeline.Artifact,

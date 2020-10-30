@@ -29,24 +29,22 @@ build_pipeline_name=app.node.try_get_context("build_pipeline_name")
 
 account_bootstrap = AccountBootstrap(app, "AccountBootstrap", {})
 
-if connection_arn is not None:
-    # Currently, device pool arn comes from the CDK context. 
-    # DeviceFarm project arn and id can be passed in (if using an existing one)
-    #   or if it's not provided, a new DeviceFarm project will be created.
-    code_pipeline_stack_props = {
-        # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
-        'config_source_bucket': config_source_bucket, 
-        'github_source': AmplifyAndroidRepoConnection(owner_override=github_owner, branch_override=branch, connection_arn=connection_arn),
-        'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests',
-        'device_farm_pool_arn': df_device_pool_arn,
-        'build_pipeline_name': 'AmplifyAndroidBuildPipeline'
-    }
+# Currently, device pool arn comes from the CDK context. 
+code_pipeline_stack_props = {
+    # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
+    'config_source_bucket': config_source_bucket, 
+    'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
+    'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests',
+    'device_farm_pool_arn': df_device_pool_arn,
+    'build_pipeline_name': 'AmplifyAndroidBuildPipeline',
+    'codebuild_project_name_prefix': 'AmplifyAndroid'
+}
 
-    pipeline_stack = AmplifyAndroidCodePipeline(app, 
-                                        "AndroidBuildPipeline",
-                                        code_pipeline_stack_props,
-                                        description="CI Pipeline assets for amplify-android",
-                                        env=TARGET_ENV)
+pipeline_stack = AmplifyAndroidCodePipeline(app,
+                                    "AndroidBuildPipeline",
+                                    code_pipeline_stack_props,
+                                    description="CI Pipeline assets for amplify-android",
+                                    env=TARGET_ENV)
 
 
 app.synth()

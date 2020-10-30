@@ -38,6 +38,7 @@ class PullRequestBuilder(aws_codebuild.Project):
             project_name=project_name,
             environment_variables=environment_variables,
             build_spec=aws_codebuild.BuildSpec.from_source_filename(buildspec_path),
+            badge=True,
             source=aws_codebuild.Source.git_hub(owner=github_owner,
                                                 report_build_status=True,
                                                 repo=github_repo, 

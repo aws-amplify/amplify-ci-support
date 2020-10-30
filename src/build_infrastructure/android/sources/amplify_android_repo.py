@@ -23,9 +23,10 @@ class AmplifyAndroidRepo(aws_codepipeline_actions.GitHubSourceAction):
                 ) -> None:
         source_output_name = self.SOURCE_OUTPUT_NAME if source_output_name_override is None else source_output_name_override
         oauth_token_secret_name = self.SECRET_NAME if oauth_token_secret_name_override is None else oauth_token_secret_name_override
-        
-        super().__init__(owner = self.OWNER if owner_override is None else owner_override, 
-            repo = self.REPO_NAME, 
+        self.owner = self.OWNER if owner_override is None else owner_override
+        self.repo = self.REPO_NAME
+        super().__init__(owner = self.owner, 
+            repo = self.repo, 
             output = aws_codepipeline.Artifact(source_output_name), 
             action_name = self.ACTION_NAME,
             branch = self.BRANCH if branch_override is None else branch_override,
