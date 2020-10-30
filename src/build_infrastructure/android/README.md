@@ -65,10 +65,3 @@ cdk deploy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```console
 cdk destroy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
-
-## Caveats
-- If the gradle daemon fails locally (in a docker container using CodeBuild local) or on the CodeBuild host, increase the available memory
-- 
-
-## Testing CodeBuild locally
-codebuild_build.sh -i aws/codebuild/amazonlinux2-x86_64-standard:3.0  -a build/codebuild-out -s <path_to_amplify-android> -d -m
