@@ -48,17 +48,5 @@ if connection_arn is not None:
                                         description="CI Pipeline assets for amplify-android",
                                         env=TARGET_ENV)
 
-    github_reporting_stack_props = {
-        'code_build_project_name': pipeline_stack.get_codebuild_project_name(),
-        'oauth_token_secret_name_override': None,
-        'log_level': log_level
-    }
-
-    github_reporting_stack = GithubReporting(app, 
-                                        "AndroidBuildPipelineGithubReporting", 
-                                        github_reporting_stack_props,
-                                        description="App from serverless repo that reports build status back to Github",
-                                        env=TARGET_ENV)
-    github_reporting_stack.add_dependency(pipeline_stack)
 
 app.synth()

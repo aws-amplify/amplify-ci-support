@@ -19,13 +19,13 @@ from aws_cdk import (
     aws_s3
 )
 
-
-
 class PullRequestBuilder(aws_codebuild.Project):
     def __init__(self, scope: core.Construct, id: str, *,
                     project_name: str,
                     github_owner,
                     github_repo,
+                    buildspec_path,
+                    environment_variables = {},
                     base_branch: str = "main"):
 
         build_environment = aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
@@ -36,7 +36,8 @@ class PullRequestBuilder(aws_codebuild.Project):
             
         super().__init__(scope, id,
             project_name=project_name,
-            build_spec=aws_codebuild.BuildSpec.from_source_filename("scripts/pr-builder-buildspec.yml"),
+            environment_variables=environment_variables,
+            build_spec=aws_codebuild.BuildSpec.from_source_filename(buildspec_path),
             source=aws_codebuild.Source.git_hub(owner=github_owner,
                                                 report_build_status=True,
                                                 repo=github_repo, 

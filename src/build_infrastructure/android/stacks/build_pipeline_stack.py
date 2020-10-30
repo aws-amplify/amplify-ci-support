@@ -242,17 +242,12 @@ class AmplifyAndroidCodePipeline(core.Stack):
         device_farm_project_name = props['device_farm_project_name']
         build_pipeline_name = props['build_pipeline_name']
 
-        PullRequestBuilder(self, "PullRequestBuilderProject", project_name="PullRequestBuilder",github_owner=github_source.owner, github_repo=github_source.repo)
-        
-        artifact_bucket = self._create_artifact_bucket(f"pipeline-assets-{build_pipeline_name.lower()}-{self.account}")
-
         df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
-        
-        self.code_build_project = self._create_codebuild_project()
-        pipeline = self._create_pipeline(build_pipeline_name, github_source, self.code_build_project, config_source_bucket, artifact_bucket)
 
-        self._add_devicefarm_test_runner_permissions_to_role(pipeline.role)
-        self._add_devicefarm_test_stage(pipeline, df_project.get_project_id(), device_farm_pool_arn)
+        unittest_project = PullRequestBuilder(self, "UnitTestRunner", project_name="UnitTestRunner",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/pr-builder-buildspec.yml")
+        integtest_project = PullRequestBuilder(self, "IntegrationTestrunner", project_name="IntegrationTestrunner",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", environment_variables={'DEVICEFARM_PROJECT_ARN': df_project.get_arn()})
+        
+        self._add_devicefarm_test_runner_permissions_to_role(integtest_project.role)
     
     def get_codebuild_project_name(self):
         return self.code_build_project.project_name
@@ -315,15 +310,19 @@ class AmplifyAndroidCodePipeline(core.Stack):
         ))
         return artifact_bucket
 
+    # Not calling this right now since we can't filter out PRs in CodePipeline.
     def _create_pipeline(self, 
                             build_pipeline_name: str, 
                             github_source: aws_codepipeline_actions.GitHubSourceAction, 
                             codebuild_project: aws_codebuild.PipelineProject,
                             config_file_source_bucket_name:str,
-                            artifact_bucket: aws_s3.Bucket):
+                            df_project: DeviceFarmProject,
+                            device_farm_pool_arn:str):
+        artifact_bucket = self._create_artifact_bucket(f"pipeline-assets-{build_pipeline_name.lower()}-{self.account}")
+        self.code_build_project = self._create_codebuild_project("AmplifyAndroidCodeBuildProject")
         amplify_android_build_output = aws_codepipeline.Artifact("AmplifyAndroidBuildOutput")
-        return aws_codepipeline.Pipeline(self, 
-            "Pipeline",
+        pipeline = aws_codepipeline.Pipeline(self, 
+            f"{build_pipeline_name}Pipeline",
             pipeline_name=build_pipeline_name,
             artifact_bucket=artifact_bucket,
             stages=[
@@ -340,10 +339,13 @@ class AmplifyAndroidCodePipeline(core.Stack):
                                 ]
                 )
             ])
+        self._add_devicefarm_test_runner_permissions_to_role(pipeline.role)
+        self._add_devicefarm_test_stage(pipeline, df_project.get_project_id(), device_farm_pool_arn)
+        return pipeline
 
-    def _create_codebuild_project(self):
+    def _create_codebuild_project(self, id: str):
         pipeline_project = aws_codebuild.PipelineProject(self, 
-                                            "AmplifyAndroidCodeBuildProject", 
+                                            id, 
                                             environment=aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
                                                                                         privileged=True,
                                                                                         compute_type=aws_codebuild.ComputeType.LARGE),
