@@ -236,22 +236,34 @@ class AmplifyAndroidCodePipeline(core.Stack):
             if prop not in props:
                 raise RuntimeError(f"Parameter {prop} is required.")
         
-        github_source = cast(aws_codepipeline_actions.GitHubSourceAction, props['github_source'])
         config_source_bucket = props['config_source_bucket']
         device_farm_pool_arn = props['device_farm_pool_arn']
         device_farm_project_name = props['device_farm_project_name']
-        build_pipeline_name = props['build_pipeline_name']
         codebuild_project_name_prefix = props['codebuild_project_name_prefix']
+
+        github_source = props['github_source']
+        owner = github_source['owner']
+        repo = github_source['repo']
+        base_branch = github_source['base_branch']
 
         df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
 
-        PullRequestBuilder(self, "UnitTestRunner", project_name=f"{codebuild_project_name_prefix}-UnitTest",github_owner=github_source.owner, github_repo=github_source.repo, buildspec_path="scripts/pr-builder-buildspec.yml")
-        integtest_project = PullRequestBuilder(self, "IntegrationTestrunner", project_name=f"{codebuild_project_name_prefix}-IntegrationTest",github_owner=github_source.owner, 
-                                                github_repo=github_source.repo, buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", 
-                                                environment_variables={
-                                                    'DEVICEFARM_PROJECT_ARN': aws_codebuild.BuildEnvironmentVariable(value=df_project.get_arn()), 
-                                                    'DEVICEFARM_POOL_ARN': aws_codebuild.BuildEnvironmentVariable(value=device_farm_pool_arn),
-                                                    'CONFIG_SOURCE_BUCKET': aws_codebuild.BuildEnvironmentVariable(value=config_source_bucket)})
+        PullRequestBuilder(self, "UnitTestRunner", project_name=f"{codebuild_project_name_prefix}-UnitTest",
+                                                   github_owner=owner, 
+                                                   github_repo=repo, 
+                                                   base_branch=base_branch,
+                                                   buildspec_path="scripts/pr-builder-buildspec.yml")
+
+        integtest_project = PullRequestBuilder(self, "IntegrationTestrunner", project_name=f"{codebuild_project_name_prefix}-IntegrationTest",
+                                                                              github_owner=owner, 
+                                                                              github_repo=repo, 
+                                                                              base_branch=base_branch,
+                                                                              buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", 
+                                                                              environment_variables={
+                                                                                'DEVICEFARM_PROJECT_ARN': aws_codebuild.BuildEnvironmentVariable(value=df_project.get_arn()), 
+                                                                                'DEVICEFARM_POOL_ARN': aws_codebuild.BuildEnvironmentVariable(value=device_farm_pool_arn),
+                                                                                'CONFIG_SOURCE_BUCKET': aws_codebuild.BuildEnvironmentVariable(value=config_source_bucket)
+                                                                              })
         self._add_codebuild_project_runner_permissions(integtest_project.role)
         self._add_devicefarm_test_runner_permissions_to_role(integtest_project.role)
     

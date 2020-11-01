@@ -17,6 +17,7 @@ app = core.App()
 TARGET_REGION = app.node.try_get_context("region")
 TARGET_ACCOUNT = app.node.try_get_context("account")
 TARGET_ENV=core.Environment( account=TARGET_ACCOUNT, region=TARGET_REGION)
+REPO='amplify-android'
 
 github_owner=app.node.try_get_context("github_owner")
 branch=app.node.try_get_context("branch")
@@ -33,7 +34,11 @@ account_bootstrap = AccountBootstrap(app, "AccountBootstrap", {})
 code_pipeline_stack_props = {
     # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
     'config_source_bucket': config_source_bucket, 
-    'github_source': AmplifyAndroidRepo(owner_override=github_owner, branch_override=branch),
+    'github_source': { 
+        'owner': github_owner, 
+        'repo': REPO , 
+        'base_branch': branch 
+    },
     'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests',
     'device_farm_pool_arn': df_device_pool_arn,
     'build_pipeline_name': 'AmplifyAndroidBuildPipeline',
