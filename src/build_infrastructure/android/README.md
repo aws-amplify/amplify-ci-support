@@ -65,5 +65,3 @@ cdk deploy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```console
 cdk destroy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
 ```
-
-## Caveats
