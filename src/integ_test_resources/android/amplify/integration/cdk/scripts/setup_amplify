@@ -1,25 +1,69 @@
 #!/usr/bin/env python3
+"""
+This is the entry point for the process that uses Amplify CLI commands to deploy backend resources
+
+Typically, this is executed within a CodeBuild container although it can be executed from anywhere with a 
+valid AWS credentials having all the permissions listed in 
+src/integ_test_resources/android/amplify/integration/cdk/stacks/amplify_deployer_stack.py.
+
+"""
+
 import os
-from common import *
-from auth import *
-from api import *
+import argparse
+import logging
+from common import (
+    OperationType,
+    parse_arguments,
+    SCRIPTS_DIR,
+    LOGGER,
 
-# ENTRY POINT
-os.system(f"mkdir -p {PROJECT_DIR}")
-existing_app = get_existing_app_id()
-if existing_app is None:
-    # create the app
-    print("Need to create a new app")
-    initialize_new_app()
-else:
-    # pull the app
-    print(f"Pulling existing app with id {existing_app['appId']}")
-    pull_existing_app(existing_app['appId'])
+)
+from auth import AuthConfigFactory
+from api import (
+    ApiAuthModeFactory,
+    ApiConfigFactory,
+    ApiAuthMode
+)
+from amplify_app import AmplifyApp
 
-auth_config = get_auth_config()
-if (config_auth(auth_config) == 0):
-    api_config = get_api_config('AmplifyAndroidIntegTestApi', f"{SCRIPTS_DIR}/../schemas", "authAndroidIntegTestAuth") 
-    config_api(api_config)
-    push()
+arguments = parse_arguments()
+LOGGER.setLevel(level=arguments.log)
+
+amplify_backend_name = arguments.backend_name
+schema_dir = arguments.schema_dir
+group_names = arguments.group_names.split(",")
+
+
+auth_resource_name = f"{amplify_backend_name}Auth"
+idp_name = f"{amplify_backend_name}Idp"
+
+
+amplify_app = AmplifyApp(backend_name=amplify_backend_name)
+auth_op_type = OperationType.UPDATE if amplify_app.is_category_configured('auth') else OperationType.ADD
+api_op_type = OperationType.UPDATE if amplify_app.is_category_configured('api') else OperationType.ADD
+
+auth_config = AuthConfigFactory.create(auth_resource_name=auth_resource_name, 
+                                        identity_pool_name=idp_name,
+                                        op_type=auth_op_type,
+                                        group_names=group_names)
+
+auth_cmd_result = amplify_app.config_auth(auth_config=auth_config, op_type=auth_op_type)
+if auth_cmd_result == 0:
+    LOGGER.info("Auth category configured.")
 else:
-    print("Failed to configure auth.")
+    LOGGER.error("Failed to configure Auth category.")
+    exit(-1)
+
+user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=auth_resource_name)
+api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api", 
+                                        op_type=api_op_type, 
+                                        schema_dir=f"{SCRIPTS_DIR}/../schemas/{schema_dir}", 
+                                        default_auth_mode=user_pools_config)
+
+api_cmd_result = amplify_app.config_api(api_config, api_op_type)
+if api_cmd_result == 0:
+    LOGGER.info("API category configured.")
+    amplify_app.push()
+else:
+    LOGGER.error("Failed to configure API category.")
+    exit(-1)
