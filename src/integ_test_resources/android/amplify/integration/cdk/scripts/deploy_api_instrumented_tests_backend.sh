@@ -1,1 +1,0 @@
-src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_amplify --backend_name='ApiInstrumentedTests' --schema_dir 'api_instrumented_tests' --group_names 'Admins' --log=DEBUG

@@ -1,54 +1,51 @@
+from common import *
 import json
 import os
-from common import OperationType
+def get_auth_config():
+    is_update = True if get_category_config("auth") is not None else False
+    if(is_update):
+        auth_config_json_element_name = 'serviceModification'
+        user_pool_config_json_element_name = 'userPoolModification'
+        id_pool_config_json_element_name = 'identityPoolModification'
+    else:
+        auth_config_json_element_name = 'serviceConfiguration'
+        user_pool_config_json_element_name = 'userPoolConfiguration'
+        id_pool_config_json_element_name = 'identityPoolConfiguration'
 
-class AuthConfigFactory:
-    @classmethod
-    def create(cls, *, auth_resource_name:str, 
-                        identity_pool_name:str,
-                        op_type:OperationType,
-                        allow_unauth = True,
-                        signin_method = 'USERNAME',
-                        group_names = [],
-                        refresh_token_period_in_days = 365,
-                        required_signup_attributes = ['EMAIL', 'NAME', 'NICKNAME'],
-                        write_attributes = ['EMAIL', 'NAME', 'NICKNAME'],
-                        read_attributes = ['EMAIL', 'NAME', 'NICKNAME']):
-        if(OperationType.UPDATE == op_type):
-            auth_config_json_element_name = 'serviceModification'
-            user_pool_config_json_element_name = 'userPoolModification'
-            id_pool_config_json_element_name = 'identityPoolModification'
-        else:
-            auth_config_json_element_name = 'serviceConfiguration'
-            user_pool_config_json_element_name = 'userPoolConfiguration'
-            id_pool_config_json_element_name = 'identityPoolConfiguration'
+    auth_config = {
+        'version': 1,
+        'resourceName':'AndroidIntegTestAuth'
+    }
+    user_pool_config = {
+        'requiredSignupAttributes':['EMAIL', 'NAME', 'NICKNAME'],
+        'signinMethod':'USERNAME',
+        'userPoolGroups': [ 
+            { 'groupName': 'Admins' },
+            { 'groupName': 'Bloggers' },
+            { 'groupName': 'Moderators' }
+        ],
+        'writeAttributes': ['EMAIL', 'NAME', 'NICKNAME'],
+        'readAttributes':['EMAIL', 'NAME', 'NICKNAME'],
+        'refreshTokenPeriod': 365
+    }
+    id_pool_config = {
+        'unauthenticatedLogin': True,
+        'identityPoolName': 'androididpool'
+    }
+    
+    auth_config[auth_config_json_element_name] = {
+        'serviceName': 'Cognito',
+        'includeIdentityPool': True
+    }
+    auth_config[auth_config_json_element_name][user_pool_config_json_element_name] = user_pool_config
+    auth_config[auth_config_json_element_name][id_pool_config_json_element_name] = id_pool_config
 
-        groups = list(map(lambda group_name: { 'groupName': group_name }, group_names))
-
-        auth_config = {
-            'version': 1,
-            'resourceName': auth_resource_name
-        }
-        user_pool_config = {
-            'requiredSignupAttributes': required_signup_attributes,
-            'signinMethod': signin_method,
-            'userPoolGroups': groups,
-            'writeAttributes': write_attributes,
-            'readAttributes': read_attributes,
-            'refreshTokenPeriod': refresh_token_period_in_days
-        }
-
-        id_pool_config = {
-            'unauthenticatedLogin': allow_unauth,
-            'identityPoolName': identity_pool_name
-        }
-        
-        auth_config[auth_config_json_element_name] = {
-            'serviceName': 'Cognito',
-            'includeIdentityPool': True
-        }
-        auth_config[auth_config_json_element_name][user_pool_config_json_element_name] = user_pool_config
-        auth_config[auth_config_json_element_name][id_pool_config_json_element_name] = id_pool_config
-
-        return auth_config
-
+    return auth_config
+    
+def config_auth(auth_config):
+    cmd = [AMPLIFY_COMMAND,
+                    "add" if get_category_config('auth') is None else "update",
+                    "auth",
+                    "--headless"]
+    result = run_command(cmd, input=json.dumps(auth_config))
+    return result.returncode
