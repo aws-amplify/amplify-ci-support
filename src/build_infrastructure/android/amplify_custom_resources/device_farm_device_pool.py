@@ -1,8 +1,3 @@
-import boto3
-import os
-from typing import cast
-from botocore.exceptions import ClientError
-
 from aws_cdk import (
     aws_iam,
     aws_cloudformation,
