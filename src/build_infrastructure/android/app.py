@@ -7,7 +7,6 @@ from aws_cdk import (
 )
 
 from stacks.build_pipeline_stack import AmplifyAndroidCodePipeline
-from stacks.github_reporting_stack import GithubReporting
 from stacks.account_bootstrap_stack import AccountBootstrap
 
 from sources.amplify_android_repo import AmplifyAndroidRepo
