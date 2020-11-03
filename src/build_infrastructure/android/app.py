@@ -9,9 +9,6 @@ from aws_cdk import (
 from stacks.build_pipeline_stack import AmplifyAndroidCodePipeline
 from stacks.account_bootstrap_stack import AccountBootstrap
 
-from sources.amplify_android_repo import AmplifyAndroidRepo
-from sources.amplify_android_repo_connection import AmplifyAndroidRepoConnection
-
 app = core.App()
 TARGET_REGION = app.node.try_get_context("region")
 TARGET_ACCOUNT = app.node.try_get_context("account")
