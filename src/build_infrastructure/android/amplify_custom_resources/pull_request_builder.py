@@ -1,7 +1,6 @@
 
 import boto3
 import base64
-from ruamel import yaml
 import json
 import os
 from typing import cast
