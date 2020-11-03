@@ -21,7 +21,6 @@ REPO='amplify-android'
 
 github_owner=app.node.try_get_context("github_owner")
 branch=app.node.try_get_context("branch")
-df_device_pool_arn = app.node.try_get_context("df_device_pool_arn")
 config_source_bucket = app.node.try_get_context("config_source_bucket")
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 log_level=app.node.try_get_context("log_level")
@@ -40,7 +39,6 @@ code_pipeline_stack_props = {
         'base_branch': branch 
     },
     'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests',
-    'device_farm_pool_arn': df_device_pool_arn,
     'build_pipeline_name': 'AmplifyAndroidBuildPipeline',
     'codebuild_project_name_prefix': 'AmplifyAndroid'
 }

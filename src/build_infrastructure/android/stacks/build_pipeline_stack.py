@@ -17,7 +17,10 @@ from aws_cdk import (
     aws_logs,
     aws_s3
 )
-from amplify_custom_resources import DeviceFarmProject
+from amplify_custom_resources import (
+    DeviceFarmProject,
+    DeviceFarmDevicePool
+)
 from amplify_custom_resources import PullRequestBuilder
 class AmplifyAndroidCodePipeline(core.Stack):
     CODE_BUILD_AMPLIFY_ACTIONS = [
@@ -231,13 +234,12 @@ class AmplifyAndroidCodePipeline(core.Stack):
 
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        required_props = ['build_pipeline_name','github_source', 'config_source_bucket', 'device_farm_project_name', 'device_farm_pool_arn']
+        required_props = ['build_pipeline_name','github_source', 'config_source_bucket', 'device_farm_project_name']
         for prop in required_props:
             if prop not in props:
                 raise RuntimeError(f"Parameter {prop} is required.")
         
         config_source_bucket = props['config_source_bucket']
-        device_farm_pool_arn = props['device_farm_pool_arn']
         device_farm_project_name = props['device_farm_project_name']
         codebuild_project_name_prefix = props['codebuild_project_name_prefix']
 
@@ -247,6 +249,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
         base_branch = github_source['base_branch']
 
         df_project = DeviceFarmProject(self, id, project_name=device_farm_project_name)
+        df_pool = DeviceFarmDevicePool(self, f"{id}DevicePool", project_arn=core.Token.as_string(df_project.project_arn), device_pool_name="SingleDeviceIntegTestDevicePool")
 
         PullRequestBuilder(self, "UnitTestRunner", project_name=f"{codebuild_project_name_prefix}-UnitTest",
                                                    github_owner=owner, 
@@ -261,7 +264,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
                                                                               buildspec_path="scripts/devicefarm-test-runner-buildspec.yml", 
                                                                               environment_variables={
                                                                                 'DEVICEFARM_PROJECT_ARN': aws_codebuild.BuildEnvironmentVariable(value=df_project.get_arn()), 
-                                                                                'DEVICEFARM_POOL_ARN': aws_codebuild.BuildEnvironmentVariable(value=device_farm_pool_arn),
+                                                                                'DEVICEFARM_POOL_ARN': aws_codebuild.BuildEnvironmentVariable(value=df_pool.device_pool_arn),
                                                                                 'CONFIG_SOURCE_BUCKET': aws_codebuild.BuildEnvironmentVariable(value=config_source_bucket)
                                                                               })
         self._add_codebuild_project_runner_permissions(integtest_project.role)

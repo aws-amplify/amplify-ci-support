@@ -28,16 +28,6 @@ class DeviceFarmProject(core.Construct):
         super().__init__(scope, id)
         self.project_name = project_name
         policy = AwsCustomResourcePolicy.from_sdk_calls(resources=AwsCustomResourcePolicy.ANY_RESOURCE)
-        lambda_role = aws_iam.Role(
-            scope=self,
-            id=f'{id}-LambdaRole',
-            assumed_by=aws_iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[aws_iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole")],
-            inline_policies={ 'DeviceFarmProjectPolicy': aws_iam.PolicyDocument(statements=[
-                    aws_iam.PolicyStatement(actions=self.DEVICE_FARM_CFN_HANDLER_ACTIONS, effect=aws_iam.Effect.ALLOW, resources=["*"])
-                ])
-            }
-        )
 
         self.custom_resource = AwsCustomResource(scope=self,
             id=f'{id}-CustomResource',
@@ -46,8 +36,7 @@ class DeviceFarmProject(core.Construct):
             on_create=self.create_project(project_name), 
             on_update=self.update_project(project_name), 
             on_delete=self.delete_project(project_name),
-            resource_type='Custom::AWS-DeviceFarm-Project',
-            role=lambda_role)
+            resource_type='Custom::AWS-DeviceFarm-Project')
         self.project_arn = self.custom_resource.get_response_field_reference('project.arn')
         self.project_id  = core.Fn.select(6, core.Fn.split(":", core.Token.as_string(self.project_arn)))
 
