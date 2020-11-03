@@ -36,12 +36,6 @@ print(SEPARATOR)
 print(BANNER_TEXT)
 print(SEPARATOR)
 
-at_auth_props = build_amplify_deployer_stack_props(cb_project_name="AmplifyAuthScenariosDeployer",
-                                                    github_repo=GITHUB_REPO,
-                                                    github_owner=github_owner,
-                                                    branch=branch,
-                                                    shell_script_name="deploy_at_auth_backend.sh")
-
 # TODO: rename this to datastore_instrumented_tests*
 instrumented_test_props = build_amplify_deployer_stack_props(cb_project_name="InstrumentedTestBackendDeployer",
                                                     github_repo=GITHUB_REPO,
