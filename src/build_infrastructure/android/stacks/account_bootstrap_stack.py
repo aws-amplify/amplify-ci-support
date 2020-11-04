@@ -20,5 +20,5 @@ class AccountBootstrap(core.Stack):
             send_to_cloud_watch_logs=True, 
             trail_name="OpsTrail")
 
-        aws_s3.Bucket(self, "AmplifyConfigBucket", bucket_name=f"amplify-ci-assets-{self.account}", removal_policy=core.RemovalPolicy.DESTROY)
+        self.config_source_bucket = aws_s3.Bucket(self, "AmplifyConfigBucket", bucket_name=f"amplify-ci-assets-{self.account}", removal_policy=core.RemovalPolicy.DESTROY)
         

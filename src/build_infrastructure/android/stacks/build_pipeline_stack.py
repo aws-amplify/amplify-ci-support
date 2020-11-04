@@ -227,7 +227,7 @@ class AmplifyAndroidCodePipeline(core.Stack):
 
     def __init__(self, scope: core.App, id: str, props, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
-        required_props = ['build_pipeline_name','github_source', 'config_source_bucket', 'device_farm_project_name']
+        required_props = ['github_source', 'config_source_bucket', 'device_farm_project_name']
         for prop in required_props:
             if prop not in props:
                 raise RuntimeError(f"Parameter {prop} is required.")

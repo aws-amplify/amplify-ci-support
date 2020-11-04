@@ -20,22 +20,18 @@ branch=app.node.try_get_context("branch")
 config_source_bucket = app.node.try_get_context("config_source_bucket")
 print(f"AWS Account={TARGET_ACCOUNT} Region={TARGET_REGION}")
 log_level=app.node.try_get_context("log_level")
-connection_arn=app.node.try_get_context("connection_arn")
-build_pipeline_name=app.node.try_get_context("build_pipeline_name")
 
-account_bootstrap = AccountBootstrap(app, "AccountBootstrap", {})
+account_bootstrap = AccountBootstrap(app, "AccountBootstrap", {}, env=TARGET_ENV)
 
-# Currently, device pool arn comes from the CDK context. 
 code_pipeline_stack_props = {
     # If set, config files for tests will be copied from S3. Otherwise, it will attempt to retrieve using the Amplify CLI
-    'config_source_bucket': config_source_bucket, 
+    'config_source_bucket': account_bootstrap.config_source_bucket.bucket_name, 
     'github_source': { 
         'owner': github_owner, 
         'repo': REPO , 
         'base_branch': branch 
     },
     'device_farm_project_name': 'AmplifyAndroidDeviceFarmTests',
-    'build_pipeline_name': 'AmplifyAndroidBuildPipeline',
     'codebuild_project_name_prefix': 'AmplifyAndroid'
 }
 

@@ -1,23 +1,42 @@
-## Usage
+# Build infrastructure for amplify-android
 
-Start from the CDK root, where this `README.md` lives:
-```console
-cd ~/amplify-ci-support/src/build_infrastructure/android
-```
+This CDK app is contains the stacks that manage the AWS components responsible for building and testing pull requests submitted against the main branch of amplify-android.
+
+## Stacks
+
+**Bootstrap stack:** 
+
+Creates some core components in the target account.
+
+**AndroidBuildPipeline stack:** 
+
+This stack sets up the following components:
+
+- **Unit test runner:** CodeBuild project that runs `/gradlew build` and reports the result as a PR check.
+- **Integration test runner:** CodeBuild project that run `/graldlew assembleAndroidTest` to create the instrumentation test APKs, which are then executed in DeviceFarm by running `./gradlew runTestsInDeviceFarm`.
+
+
+## Usage
 
 Ensure that you have the CDK installed, if you haven't yet.
 ```console
 npm install -g aws-cdk
 ```
 
+Install CDK dependencies from the root directory of the repo:
+```console
+## Best to do this in a virtualenv
+pip3 install -r requirements.txt
+```
+
+Start from the CDK app's root, where this `README.md` lives:
+```console
+cd ~/amplify-ci-support/src/build_infrastructure/android
+```
+
 Ensure that you have [credentials in your environment sufficient to run
 the CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#getting_started_credentials).
 
-Install CDK dependencies from the root directory of the repo:
-```console
-# Best to do this in a virtualenv
-pip3 install -r requirements.txt
-```
 
 **Export credentials and region:**
 
@@ -33,35 +52,29 @@ export AWS_DEFAULT_REGION=us-east-1
 ```
 
 **Bootstrap the CDK**
-If you have not yet, bootstrap the CDK:
+
+Bootstrap the CDK (if necessary):
 ```console
 cdk bootstrap
 ```
 
-### Deploy all stacks
-
-Note that these steps do each take a _while_.
-```console
-list=$(cdk list 2>/dev/null | xargs)
-cdk synth $list
-cdk boostrap $list
-```
-
-### Deploying a specific stack
+### Deploying the stacks
 **Generate a single stack template at**
 `./cdk.out/<stack_Name>.template.json`:
 
-```console
-cdk synth '<stack_Name>' -c region=us-east-1 -c account=<target_account>
+```bash
+cdk deploy AndroidBuildPipeline \
+    -c region=us-east-1 \ 
+    -c account=<account_id>  \ # AWS Account ID where the stacks will be deployed
+    -c github_owner="aws-amplify" \ # Or different owner if testing from a fork.
+    -c branch="main" \ # PRs against this branch will trigger the build
+    --yes
 ```
 
-**Use that template file to deploy a stack into your AWS account:**
-```console
-cdk deploy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
-```
+**NOTE:** be sure to copy the config files in the bucket whose name contains "amplify-ci-assets" created by the AccountBootstrap.
 
-**Afterwards, to destroy the stack:**
+If necessary, during testing/debugging, add:
 
-```console
-cdk destroy '<stack_Name>' -c region=us-east-1 -c account=<target_account>
+```bash
+     -c log_level=DEBUG \
 ```
