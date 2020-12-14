@@ -82,7 +82,6 @@ class AmplifyApp:
     def push(self):
         push_cmd = [AMPLIFY_COMMAND,
                     "push",
-                    "--codegen", json.dumps(AMPLIFY_CODEGEN_CONFIG_ANDROID),
                     "--yes"]
         result = run_command(push_cmd, self.project_dir)
         self._load_metadata()
