@@ -102,7 +102,9 @@ class AmplifyApp:
                     AMPLIFY_ACTION_INIT, 
                     "--amplify", json.dumps(self._get_amplify_config()), 
                     "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
-                    "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG)]
+                    "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
+                    "--forcePush",
+                    "--yes"]
         result = run_command(init_cmd, self.project_dir)
         self.app_id = self._get_existing_app_id()
         return result.returncode
