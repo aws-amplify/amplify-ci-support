@@ -54,8 +54,10 @@ else:
     LOGGER.error("Failed to configure Auth category.")
     exit(-1)
 
+amplify_app.push()
+
 api_key_config = ApiAuthModeFactory.create_api_key_config()
-user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=auth_resource_name)
+user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=f"auth{auth_resource_name}")
 api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api", 
                                         op_type=api_op_type, 
                                         schema_dir=f"{SCRIPTS_DIR}/../schemas/{schema_dir}", 

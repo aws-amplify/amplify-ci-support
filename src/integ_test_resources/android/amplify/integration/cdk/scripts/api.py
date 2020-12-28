@@ -64,7 +64,12 @@ class ApiConfigFactory:
             'serviceName': 'AppSync',
             'apiName': api_name,
             'transformSchema': gql_schema,
-            'defaultAuthType': default_auth_mode
+            'defaultAuthType': default_auth_mode,
+            'conflictResolution': {
+                'defaultResolutionStrategy': {
+                    'type': 'AUTOMERGE'
+                }
+            }
         }
         if additional_auth_modes is not None:
             api_config[api_config_json_element_name]['additionalAuthTypes'] = list(additional_auth_modes.values())
