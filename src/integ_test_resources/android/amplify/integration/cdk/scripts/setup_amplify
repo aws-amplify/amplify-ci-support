@@ -32,6 +32,7 @@ LOGGER.setLevel(level=arguments.log)
 amplify_backend_name = arguments.backend_name
 schema_dir = arguments.schema_dir
 group_names = arguments.group_names.split(",")
+conflict_resolution = arguments.conflict_resolution
 
 
 auth_resource_name = f"{amplify_backend_name}Auth"
@@ -62,7 +63,8 @@ api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api",
                                         op_type=api_op_type, 
                                         schema_dir=f"{SCRIPTS_DIR}/../schemas/{schema_dir}", 
                                         default_auth_mode=api_key_config,
-                                        additional_auth_modes= { "user_pools_config": user_pools_config})
+                                        additional_auth_modes= { "user_pools_config": user_pools_config},
+                                        conflict_resolution=conflict_resolution)
 
 api_cmd_result = amplify_app.config_api(api_config, api_op_type)
 if api_cmd_result == 0:

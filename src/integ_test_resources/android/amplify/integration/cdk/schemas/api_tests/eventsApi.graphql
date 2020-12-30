@@ -1,0 +1,20 @@
+type Event @model {
+  id: ID!
+  name: String!
+  where: String!
+  when: String!
+  description: String
+  comments: [Comment] @connection(name: "EventComments")
+}
+
+type Comment @model {
+  id: ID!
+  eventId: String!
+  content: String!
+  createdAt: AWSTimestamp!
+  event: Event @connection(name: "EventComments")
+}
+
+type Subscription {
+    subscribeToEventComments(eventId: String!): Comment @aws_subscribe(mutations: ["createComment"])
+}

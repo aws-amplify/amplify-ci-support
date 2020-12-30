@@ -1,0 +1,14 @@
+type Person @model {
+  id: ID!
+  first_name: String!
+  last_name: String!
+  age: Int
+  dob: AWSDate
+  relationship: MaritalStatus
+}
+
+enum MaritalStatus {
+    single
+    engaged
+    married
+}

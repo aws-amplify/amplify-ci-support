@@ -1,1 +1,1 @@
-src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_amplify --backend_name='DataStoreIntegTests' --schema_dir 'datastore_tests' --group_names 'Admins' --log=DEBUG
+src/integ_test_resources/android/amplify/integration/cdk/scripts/setup_amplify --backend_name='DataStoreIntegTests' --schema_dir 'datastore_tests' --group_names 'Admins' --conflict_resolution 'AUTOMERGE' --log=DEBUG

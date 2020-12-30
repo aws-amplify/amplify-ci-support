@@ -50,7 +50,8 @@ class ApiConfigFactory:
                         op_type:OperationType, 
                         schema_dir:str, 
                         default_auth_mode:ApiAuthMode, 
-                        additional_auth_modes: dict = None  ):
+                        additional_auth_modes: dict = None,
+                        conflict_resolution: str = None  ):
         gql_schema = ""
         for entry in os.listdir(schema_dir):
             if os.path.isfile(os.path.join(schema_dir, entry)):
@@ -64,13 +65,16 @@ class ApiConfigFactory:
             'serviceName': 'AppSync',
             'apiName': api_name,
             'transformSchema': gql_schema,
-            'defaultAuthType': default_auth_mode,
-            'conflictResolution': {
+            'defaultAuthType': default_auth_mode
+            
+        }
+        print(f"conflict resolution = {conflict_resolution}")
+        if conflict_resolution is not None:
+            api_config[api_config_json_element_name]['conflictResolution'] = {
                 'defaultResolutionStrategy': {
-                    'type': 'AUTOMERGE'
+                    'type': conflict_resolution
                 }
             }
-        }
         if additional_auth_modes is not None:
             api_config[api_config_json_element_name]['additionalAuthTypes'] = list(additional_auth_modes.values())
 

@@ -16,6 +16,7 @@ def parse_arguments():
     parser.add_argument("--backend_name", help="The name of the Amplify app.", required=True)
     parser.add_argument("--schema_dir", help="Name of the subdirectory under the schemas folder that contains the GraphQL schemas for the backend API.", required=True)
     parser.add_argument("--group_names", help="Comma-separated list of group names to be created.", default="")
+    parser.add_argument("--conflict_resolution", help="Conflict resolution mode.")
     parser.add_argument("--log", help="Set the log level.", default='INFO')
     return parser.parse_args()
 
