@@ -8,11 +8,15 @@ type Event @model {
 }
 
 type Comment @model {
-  id: ID!
-  eventId: String!
-  content: String!
-  createdAt: AWSTimestamp!
+	eventId: ID!
+	commentId: String!
+	content: String!
+	createdAt: String!
   event: Event @connection(name: "EventComments")
+}
+
+type Mutation {
+  commentOnEvent(eventId: ID!, content: String!, createdAt: String!): Comment
 }
 
 type Subscription {
