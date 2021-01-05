@@ -1,4 +1,6 @@
 aws_cdk.aws_apigateway
+aws_cdk.aws_cloudtrail
+aws_cdk.aws_cloudwatch
 aws_cdk.aws_codebuild
 aws_cdk.aws_codepipeline
 aws_cdk.aws_codepipeline_actions
