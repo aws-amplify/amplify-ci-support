@@ -23,7 +23,10 @@ class ApiAuthModeFactory:
 
     @classmethod
     def create_api_key_config(cls):
-        return { 'mode': 'API_KEY' }
+        return { 
+            'mode': 'API_KEY',
+            'expirationTime': 365
+        }
 
     @classmethod
     def create_oidc_config(cls, client_id: str, issuer_url: str, provider_name: str, is_default: bool = False):
