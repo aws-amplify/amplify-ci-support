@@ -8,9 +8,6 @@ src/integ_test_resources/android/amplify/integration/cdk/stacks/amplify_deployer
 
 """
 
-import os
-import argparse
-import logging
 from common import (
     OperationType,
     parse_arguments,
@@ -21,8 +18,7 @@ from common import (
 from auth import AuthConfigFactory
 from api import (
     ApiAuthModeFactory,
-    ApiConfigFactory,
-    ApiAuthMode
+    ApiConfigFactory
 )
 from amplify_app import AmplifyApp
 
