@@ -83,7 +83,7 @@ def pull_existing_app(existing_app_id):
 def get_category_config(category_name: str):
     with open(f"{PROJECT_DIR}/amplify/backend/amplify-meta.json") as amplify_meta_file:
         amplify_meta_content = json.load(amplify_meta_file)
-        category_config = amplify_meta_content[category_name]
+        category_config = amplify_meta_content[category_name] if category_name in amplify_meta_content else None
     return category_config
 
 def push():
