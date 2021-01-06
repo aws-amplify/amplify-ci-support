@@ -59,10 +59,23 @@ There are two parts to this CDK application:
 - The scripts that are executed inside the CodeBuild project.
 
 That being said, there are a couple of different usage scenarios:
-1. You are setting a new AWS account for integration testing purposes and you want changes made to the `scripts` and/or `schemas`  folders to be executed from the CodeBuild project when something is committed to a branch.
-2. You just want to setup the backend resources against your own AWS account for running the tests, adding/modifying test scenarios, etc. In this case, you would be running the scripts that run inside CodeBuild on your local environment.
+1. You just want to setup the backend resources against your own AWS account for running the tests, adding/modifying test scenarios, etc. In this case, you would be running the scripts that run inside CodeBuild on your local environment.
+2. You are setting a new AWS account for integration testing purposes and you want changes made to the `scripts` and/or `schemas`  folders to be executed from the CodeBuild project when something is committed to a branch.
 
-### Option 1 - Setup a new AWS account to run integration tests
+### Option 1 - Run the scripts locally
+Ensure your AWS credentials have rights to execute the script.
+
+1. Start from the CDK app root, where this `README.md` lives:
+```console
+cd <amplify-ci-support root>/src/integ_test_resources/android/amplify/integration/cdk
+```
+
+2. Run one of the deployment scripts located under the `scripts` folder. For example:
+```Console
+python ./scripts/deploy_api_tests_backend.sh
+```
+
+### Option 2 - Setup a new AWS account to run integration tests
 Ensure that you have [credentials in your environment sufficient to run
 the CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html#getting_started_credentials).
 
@@ -116,17 +129,4 @@ cdk deploy <context parameters>
 
 ```console
 cdk destroy <context parameters>
-```
-
-### Option 2 - Run the scripts locally
-Ensure your AWS credentials have rights to execute the script.
-
-1. Start from the CDK app root, where this `README.md` lives:
-```console
-cd <amplify-ci-support root>/src/integ_test_resources/android/amplify/integration/cdk
-```
-
-2. Run the deployment script
-```Console
-python ./scripts/setup_amplify
 ```
