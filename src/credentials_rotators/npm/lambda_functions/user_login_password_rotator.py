@@ -55,19 +55,15 @@ class UserLoginPasswordRotator(SecretRotator):
             HttpError: If the API call to update user login password fails
         """
         npm_login_username = get_secret_value(self.service_client, 'npm_login_username_secret')
-        print(npm_login_username)
 
         otp_seed = get_secret_value(self.service_client, 'npm_otp_seed_secret')
-        print(f'otp_seed: {otp_seed}')
 
         current_npm_login_password = get_secret_value(self.service_client, 'npm_login_password_secret')
 
         new_npm_login_password = get_secret_value(self.service_client, 'npm_login_password_secret', 'AWSPENDING',
                                                   token=self.token)
 
-        print(
-            f'user: {npm_login_username} and old pass: {current_npm_login_password} and new pass: {new_npm_login_password}')
-        update_login_password(npm_login_username, otp_seed, current_npm_login_password, 'FantaFree@08')
+        update_login_password(npm_login_username, otp_seed, current_npm_login_password, new_npm_login_password)
 
     def test_secret(self):
         """Test the secret
@@ -76,13 +72,10 @@ class UserLoginPasswordRotator(SecretRotator):
             HttpError: If the API call to fetch user profile information fails
         """
         npm_login_username = get_secret_value(self.service_client, 'npm_login_username_secret')
-        print(npm_login_username)
 
         otp_seed = get_secret_value(self.service_client, 'npm_otp_seed_secret')
-        print(f'otp_seed: {otp_seed}')
 
         npm_login_password = get_secret_value(self.service_client, 'npm_login_password_secret', 'AWSPENDING',
                                               token=self.token)
 
-        print(f'user: {npm_login_username} and pass: {npm_login_password}')
-        get_user_info(npm_login_username, otp_seed, 'FantaFree@08')
+        get_user_info(npm_login_username, otp_seed, npm_login_password)
