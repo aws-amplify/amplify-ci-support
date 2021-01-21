@@ -16,22 +16,26 @@ information about the secrets in secrets manager that hold the necessary secrets
   },
   "npm_login_password_secret": {
     "arn": "<npm_login_password_secret_arn>",
-    "secret_key": "password"
+    "secret_key": "password",
+    "alarm_subscriptions": ["my_monitoring_email@domain.com"]
   },
   "npm_otp_seed_secret": {
     "arn": "<npm_otp_seed_secret_arn>",
     "secret_key": "npm_otp_seed"
   },
-  "npm_access_token_secrets": [
-    {
-      "arn": "<npm_access_token_codegen_arn>",
-      "secret_key": "npm_access_token_codegen"
-    },
-    {
-      "arn": "<npm_access_token_js_arn>",
-      "secret_key": "npm_access_token_js"
-    }
-  ]
+  "npm_access_token_secrets": {
+    "secrets": [
+      {
+        "arn": "<npm_access_token_codegen_arn>",
+        "secret_key": "npm_access_token_codegen"
+      },
+      {
+        "arn": "<npm_access_token_js_arn>",
+        "secret_key": "npm_access_token_js"
+      }
+    ],
+    "alarm_subscriptions": ["my_monitoring_email@domain.com"]
+  }
 }
 ```
 Since, CDK does not support creating/populating the secrets, recommended best practise is
@@ -45,11 +49,12 @@ The `secret_key` (`username` in this case) can also be customized.
 
 Similarly, create the other secrets required in the configuration file:
 * `npm_login_username_secret`: stores the login username for the npm user. This secret is static and is not rotated.
-* `npm_login_password_secret`: stores the login password for the npm user. This secret is configured for rotation.
+* `npm_login_password_secret`: stores the login password for the npm user. This secret is configured for rotation and accepts
+a list of emails to alert in case the rotation fails.
 * `npm_otp_seed_secret`: stores the OTP seed for the npm user. This is created when the NPM user enables 2-factor Authentication. 
 This secret is static and is not rotated.
 * `npm_access_token_secrets`: stores the list of secrets that hold the access keys created by the npm user. 
-This secret is configured for rotation.
+This secret is configured for rotation and accepts a list of emails to alert in case the rotation fails.
 
 #### Deploying the infrastructure
 The AWS credentials have to be set using following environment variables:
@@ -88,4 +93,3 @@ To deploy a single stack, use `cdk deploy UserLoginPasswordRotatorStack`
 ------------------
 
 [amplify.aws](https://amplify.aws)
-

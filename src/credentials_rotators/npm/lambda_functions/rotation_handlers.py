@@ -34,14 +34,9 @@ def rotate_login_password(event, context):
         ValueError: If the secret is not properly configured for rotation
         KeyError: If the event parameters do not contain the expected keys
     """
-    print(event)
     arn = event['SecretId']
     token = event['ClientRequestToken']
     step = event['Step']
 
     user_login_password_rotator = UserLoginPasswordRotator(arn, token, step)
     user_login_password_rotator.rotate()
-
-# url = "https://registry.npmjs.org/-/npm/v1/tokens"
-
-

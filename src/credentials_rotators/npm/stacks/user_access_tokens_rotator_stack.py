@@ -1,5 +1,4 @@
 from aws_cdk import core
-from aws_cdk.aws_lambda import *
 from stacks.common_stack import CommonStack
 
 

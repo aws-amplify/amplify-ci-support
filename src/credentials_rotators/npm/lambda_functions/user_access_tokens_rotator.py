@@ -25,5 +25,3 @@ def rotate_access_keys(event, context):
     # handle_secret_rotation_step(step, arn, token)
 
 # url = "https://registry.npmjs.org/-/npm/v1/tokens"
-
-

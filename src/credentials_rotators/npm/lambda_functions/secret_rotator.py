@@ -35,7 +35,6 @@ class SecretRotator:
             ValueError: If the secret is not properly configured for rotation
             KeyError: If the event parameters do not contain the expected keys
         """
-
         self.check_secret_versions()
 
         ## process the current rotation step

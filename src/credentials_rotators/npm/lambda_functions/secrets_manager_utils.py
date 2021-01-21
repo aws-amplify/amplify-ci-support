@@ -20,17 +20,15 @@ def get_secret_dict(service_client, secret_id, stage='AWSCURRENT', token=None):
     """
 
     secret_name = get_secret_arn(secret_id)
-    print(f'secret_name: {secret_name}')
     # Only do VersionId validation against the stage if a token is passed in
     if token:
         secret = service_client.get_secret_value(SecretId=secret_name, VersionId=token, VersionStage=stage)
     else:
         secret = service_client.get_secret_value(SecretId=secret_name, VersionStage=stage)
     plaintext = secret['SecretString']
-    print(f'plaintext: {plaintext}')
-    secret_dict = json.loads(plaintext)
 
     # Parse and return the secret JSON string
+    secret_dict = json.loads(plaintext)
     return secret_dict
 
 
@@ -45,11 +43,10 @@ def get_secret_key(secret_id):
     """
     with open('secrets_config.json') as config_file:
         config = json.load(config_file)
-        print(f'config: {config}')
         try:
             return config[secret_id]['secret_key']
         except KeyError as e:
-            print(f'Invalid config object. Could not read secret_key of secret {secret_id}')
+            logger.info(f'Invalid config object. Could not read secret_key of secret {secret_id}')
             raise e
 
 
@@ -64,11 +61,10 @@ def get_secret_arn(secret_id):
     """
     with open('secrets_config.json') as config_file:
         config = json.load(config_file)
-        print(f'config: {config}')
         try:
             return config[secret_id]['arn']
         except KeyError as e:
-            print(f'Invalid config object. Could not read arn of secret {secret_id}')
+            logger.info(f'Invalid config object. Could not read arn of secret {secret_id}')
             raise e
 
 
@@ -90,6 +86,5 @@ def get_secret_value(service_client, secret_id, stage='AWSCURRENT', token=None):
     try:
         return secret_dict[get_secret_key(secret_id)]
     except KeyError as e:
-        print(f'Could not find the secret_key in secret {secret_id}')
+        logger.info(f'Could not find the secret_key in secret {secret_id}')
         raise e
-

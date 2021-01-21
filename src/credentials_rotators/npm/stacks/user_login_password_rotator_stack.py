@@ -22,6 +22,7 @@ class UserLoginPasswordRotatorStack(CommonStack):
             ]
         )
 
+        # static user credentials used for authentication
         required_static_secret_ids = ['npm_login_username_secret', 'npm_otp_seed_secret']
         # Add required permissions
         self.grant_secrets_manager_access_to_lambda(rotator_lambda)
@@ -29,6 +30,5 @@ class UserLoginPasswordRotatorStack(CommonStack):
         self.grant_lambda_access_to_static_secrets(rotator_lambda, required_static_secret_ids)
         self.configure_secret_rotation(rotator_lambda, self.secret_id, core.Duration.days(5))
 
-        # add cloudwatch alarm
-        subscription_emails = ['edupp@amazon.com']
-        self.enable_cloudwatch_alarm_notifications(self.secret_id, rotator_lambda,subscription_emails)
+        # add cloudwatch alarm email notifications
+        self.enable_cloudwatch_alarm_notifications(rotator_lambda, self.secret_id)

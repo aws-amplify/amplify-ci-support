@@ -7,7 +7,10 @@ from aws_cdk.aws_sns_subscriptions import EmailSubscription
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 import subprocess
 import json
+import logging
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 class CommonStack(core.Stack):
     """
@@ -46,12 +49,26 @@ class CommonStack(core.Stack):
         """
         with open('lambda_functions/secrets_config.json') as config_file:
             config = json.load(config_file)
-            print(f'config: {config}')
             try:
                 return config[secret_id]['arn']
             except KeyError as e:
-                print(f'Invalid config object. Could not read arn of secret {secret_id}')
+                logger.info(f'Invalid config object. Could not read arn of secret {secret_id}')
                 raise e
+
+    def get_alarm_subscriptions(self, secret_id):
+        """Gets the list of emails to subscribe to cloudwatch alarms referenced using secret_id in the secrets_config.json
+        Args:
+            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
+        Returns:
+            The list of emails to subscribe to cloudwatch alarms for the secret rotation
+        """
+        with open('lambda_functions/secrets_config.json') as config_file:
+            config = json.load(config_file)
+            try:
+                return config[secret_id]['alarm_subscriptions']
+            except KeyError as e:
+                logger.info(f'No emails to subscribe for secret {secret_id}')
+                return []
 
     def grant_secrets_manager_access_to_lambda(self, rotator_lambda):
         """
@@ -119,23 +136,28 @@ class CommonStack(core.Stack):
                                                     automatically_after=duration,
                                                     rotation_lambda=rotator_lambda)
 
-    def enable_cloudwatch_alarm_notifications(self, alarm_name, rotator_lambda, emails):
+    def enable_cloudwatch_alarm_notifications(self, rotator_lambda, secret_id):
         """
-
+        Adds a cloudwatch alarm to monitor the error metrics.
+        Subscribes the given emails to receive email alerts.
+        Args:
+            rotator_lambda (Function): The lambda function used for rotating a secret
+            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
         """
 
         # create an sns topic for the rotator lambda monitoring
-        alarm_sns_topic_id = f'{alarm_name}_alarm_sns_topic'
+        alarm_sns_topic_id = f'{secret_id}_alarm_sns_topic'
         alarm_sns_topic = Topic(self,
                                 alarm_sns_topic_id)
 
         # subscribe the given emails to the sns topic
+        emails = self.get_alarm_subscriptions(secret_id)
         for email in emails:
             alarm_sns_topic.add_subscription(EmailSubscription(email))
 
         # add errors metric alarm to rotator lambda
         # should send and email notification if the errors metric >= threshold every single time(evaluation_periods)
-        errors_alarm_id = f'{alarm_name}_errors_alarm'
+        errors_alarm_id = f'{secret_id}_errors_alarm'
         errors_alarm = rotator_lambda.metric_errors().create_alarm(self,
                                                                    errors_alarm_id,
                                                                    threshold=1,

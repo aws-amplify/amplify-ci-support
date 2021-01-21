@@ -12,7 +12,6 @@ def generate_otp(username, otp_seed):
     """
     totp = pyotp.parse_uri(f'otpauth://totp/{username}?secret={otp_seed}&issuer=npm')
     otp = totp.now()
-    print(f'otp is: {otp}')
     return otp
 
 
@@ -27,7 +26,6 @@ def update_login_password(username, otp_seed, current_password, new_password):
         HttpError: If the password update fails
     """
     otp = generate_otp(username, otp_seed)
-    print(f"otp:{otp}")
 
     headers = {
         'content-type': 'application/json',
@@ -37,10 +35,8 @@ def update_login_password(username, otp_seed, current_password, new_password):
     url = 'https://registry.npmjs.org/-/npm/v1/user'
     data_dict = {'password': {'old': current_password, 'new': new_password}}
     data = json.dumps(data_dict)
-    print(f'data: {data}')
 
     response = requests.post(url, headers=headers, data=data, auth=(username, current_password))
-    print(response)
     response.raise_for_status()
 
 
@@ -54,7 +50,6 @@ def get_user_info(username, otp_seed, password):
         HttpError: If the user profile information cannot be fetched
     """
     otp = generate_otp(username, otp_seed)
-    print(f"otp:{otp}")
 
     headers = {
         'content-type': 'application/json',
@@ -62,8 +57,5 @@ def get_user_info(username, otp_seed, password):
     }
 
     url = 'https://registry.npmjs.org/-/npm/v1/user'
-    print(f'user: {username} and pass: {password}')
-
     response = requests.get(url, headers=headers, auth=(username, password))
-    print(response)
     response.raise_for_status()
