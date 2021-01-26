@@ -1,4 +1,5 @@
 from user_login_password_rotator import UserLoginPasswordRotator
+from user_access_token_rotator import UserAccessTokenRotator
 
 def rotate_access_keys(event, context):
     """ Handler for lambda that rotates the npm user's access keys
@@ -13,12 +14,13 @@ def rotate_access_keys(event, context):
         ValueError: If the secret is not properly configured for rotation
         KeyError: If the event parameters do not contain the expected keys
     """
-    # print(event)
-    # arn = event['SecretId']
-    # token = event['ClientRequestToken']
-    # step = event['Step']
-    #
-    # handle_secret_rotation_step(step, arn, token)
+
+    arn = event['SecretId']
+    token = event['ClientRequestToken']
+    step = event['Step']
+
+    user_access_token_rotator = UserAccessTokenRotator(arn, token, step)
+    user_access_token_rotator.rotate()
 
 
 def rotate_login_password(event, context):

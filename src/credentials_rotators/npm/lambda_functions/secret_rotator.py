@@ -1,10 +1,7 @@
 import os
 import boto3
 import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
+from secrets_config_utils import get_secrets_config
 
 class SecretRotator:
     """
@@ -19,6 +16,7 @@ class SecretRotator:
         self.arn = arn
         self.token = token
         self.step = step
+        self.secrets_config = get_secrets_config()
 
         # Create a Secrets Manager client to be used to access the secret
         # Default to us-west-2 in case region is not specified using AWS_DEFAULT_REGION variable
@@ -27,6 +25,10 @@ class SecretRotator:
             service_name='secretsmanager',
             region_name=os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
         )
+
+        # Re-use the logger instance when possible
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.INFO)
 
     def rotate(self):
         """
@@ -58,18 +60,18 @@ class SecretRotator:
         """
         metadata = self.service_client.describe_secret(SecretId=self.arn)
         if not metadata['RotationEnabled']:
-            logger.error("Secret %s is not enabled for rotation" % self.arn)
+            self.logger.error("Secret %s is not enabled for rotation" % self.arn)
             raise ValueError("Secret %s is not enabled for rotation" % self.arn)
         versions = metadata['VersionIdsToStages']
         print(f'versions: {versions}')
         if self.token not in versions:
-            logger.error("Secret version %s has no stage for rotation of secret %s." % (self.token, self.arn))
+            self.logger.error("Secret version %s has no stage for rotation of secret %s." % (self.token, self.arn))
             raise ValueError("Secret version %s has no stage for rotation of secret %s." % (self.token, self.arn))
         if "AWSCURRENT" in versions[self.token]:
-            logger.info("Secret version %s already set as AWSCURRENT for secret %s." % (self.token, self.arn))
+            self.logger.info("Secret version %s already set as AWSCURRENT for secret %s." % (self.token, self.arn))
             return
         elif "AWSPENDING" not in versions[self.token]:
-            logger.error("Secret version %s not set as AWSPENDING for rotation of secret %s." % (self.token, self.arn))
+            self.logger.error("Secret version %s not set as AWSPENDING for rotation of secret %s." % (self.token, self.arn))
             raise ValueError("Secret version %s not set as AWSPENDING for rotation of secret %s." % (self.token, self.arn))
 
 
@@ -109,7 +111,7 @@ class SecretRotator:
 
 
     def finish_secret(self):
-        """Finish the secret
+        """Finalize the secret rotation
         This method finalizes the rotation process by marking the secret version passed in as the AWSCURRENT secret.
         Raises:
             ResourceNotFoundException: If the secret with the specified arn does not exist
@@ -121,7 +123,7 @@ class SecretRotator:
             if "AWSCURRENT" in metadata["VersionIdsToStages"][version]:
                 if version == self.token:
                     # The correct version is already marked as current, return
-                    logger.info("finishSecret: Version %s already marked as AWSCURRENT for %s" % (version, self.arn))
+                    self.logger.info("finishSecret: Version %s already marked as AWSCURRENT for %s" % (version, self.arn))
                     return
                 current_version = version
                 break
@@ -131,4 +133,4 @@ class SecretRotator:
                                                         VersionStage="AWSCURRENT",
                                                         MoveToVersionId=self.token,
                                                         RemoveFromVersionId=current_version)
-        logger.info("finishSecret: Successfully set AWSCURRENT stage to version %s for secret %s." % (self.token, self.arn))
+        self.logger.info("finishSecret: Successfully set AWSCURRENT stage to version %s for secret %s." % (self.token, self.arn))

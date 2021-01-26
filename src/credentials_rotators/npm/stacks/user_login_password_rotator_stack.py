@@ -1,7 +1,11 @@
 from aws_cdk import core
 from aws_cdk.aws_lambda import *
 from stacks.common_stack import CommonStack
+from lambda_functions.secrets_config_utils import get_secret_config
+import logging
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 class UserLoginPasswordRotatorStack(CommonStack):
     """
@@ -9,7 +13,8 @@ class UserLoginPasswordRotatorStack(CommonStack):
     """
     def __init__(self, scope: core.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
-        self.secret_id = 'npm_login_password_secret'
+        secret_id = 'npm_login_password_secret'
+        secret_config = get_secret_config(secret_id)
 
         rotator_lambda = Function(
             self,
@@ -22,13 +27,15 @@ class UserLoginPasswordRotatorStack(CommonStack):
             ]
         )
 
-        # static user credentials used for authentication
-        required_static_secret_ids = ['npm_login_username_secret', 'npm_otp_seed_secret']
+        # user credentials used for authentication
+        required_secret_ids = ['npm_login_username_secret', 'npm_otp_seed_secret']
+        required_secret_configs = [get_secret_config(secret_id) for secret_id in required_secret_ids]
+
         # Add required permissions
         self.grant_secrets_manager_access_to_lambda(rotator_lambda)
-        self.grant_lambda_access_to_rotation_secret(rotator_lambda, self.secret_id)
-        self.grant_lambda_access_to_static_secrets(rotator_lambda, required_static_secret_ids)
-        self.configure_secret_rotation(rotator_lambda, self.secret_id, core.Duration.days(5))
+        self.grant_lambda_access_to_rotation_secret(rotator_lambda, secret_config)
+        self.grant_lambda_access_to_secrets(rotator_lambda, required_secret_configs)
+        self.configure_secret_rotation(rotator_lambda, secret_config, core.Duration.days(7))
 
         # add cloudwatch alarm email notifications
-        self.enable_cloudwatch_alarm_notifications(rotator_lambda, self.secret_id)
+        self.enable_cloudwatch_alarm_notifications(rotator_lambda, secret_id)
