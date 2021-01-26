@@ -1,10 +1,8 @@
 import json
 
 from npm_credentials_rotator import NPMCredentialsRotator
-from npm_utils import (create_access_token, delete_access_token,
-                       get_user_info_using_access_token)
-from secrets_config_utils import (get_access_token_secrets_configs,
-                                  get_secret_config, get_secret_key)
+from npm_utils import (create_access_token, delete_access_token, get_user_info_using_access_token)
+from secrets_config_utils import (get_access_token_secrets_configs, get_secret_key)
 from secrets_manager_utils import get_secret_value
 
 
