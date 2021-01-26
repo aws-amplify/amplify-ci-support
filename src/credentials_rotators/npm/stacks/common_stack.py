@@ -5,12 +5,13 @@ from aws_cdk.aws_secretsmanager import Secret
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sns_subscriptions import EmailSubscription
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from lambda_functions.secrets_config_utils import get_secrets_config, get_alarm_subscriptions, get_secret_arn, get_secret_key
 import subprocess
-import json
 import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 
 class CommonStack(core.Stack):
     """
@@ -20,6 +21,7 @@ class CommonStack(core.Stack):
     def __init__(self, scope: core.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         self.dependencies_lambda_layer = self.create_dependencies_layer()
+        self.secrets_config = get_secrets_config()
 
     def create_dependencies_layer(self) -> LayerVersion:
         """
@@ -38,37 +40,47 @@ class CommonStack(core.Stack):
 
         return LayerVersion(self, layer_id, code=layer_code)
 
-    def get_secret_arn(self, secret_id):
-        """Gets the full arn of the secret referenced using secret_id in the secrets_config.json
-        Args:
-            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
-        Returns:
-            The full arn of the secret as a String
-        Raises:
-            KeyError: If the arn is not present in secrets_config.json
-        """
-        with open('lambda_functions/secrets_config.json') as config_file:
-            config = json.load(config_file)
-            try:
-                return config[secret_id]['arn']
-            except KeyError as e:
-                logger.info(f'Invalid config object. Could not read arn of secret {secret_id}')
-                raise e
+    # def get_secrets_config(self):
+    #     """Reads the secrets_config.json into a Dictionary
+    #     Returns:
+    #         The secrets_config.json file as a Dictionary
+    #     Raises:
+    #         IOError: If the secrets configuration file cannot be read
+    #     """
+    #     with open('lambda_functions/secrets_config.json') as config_file:
+    #         config = json.load(config_file)
+    #         return config
+    #
+    # def get_secret_arn(self, secret_config):
+    #     """Gets the full arn of the secret from its configuration
+    #     Args:
+    #         secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
+    #     Returns:
+    #         The full arn of the secret as a String
+    #     Raises:
+    #         KeyError: If the arn is not present in secret configuration
+    #     """
+    #     try:
+    #         return secret_config['arn']
+    #     except KeyError as e:
+    #         logger.info(f'Invalid config object. Could not read arn from secret configuration: {secret_config}')
+    #         raise e
+    #
+    # def get_secret_key(self, secret_config):
+    #     """Gets the key of the secret from its configuration
+    #     Args:
+    #         secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
+    #     Returns:
+    #         The key of the secret as a String
+    #     Raises:
+    #         KeyError: If the key is not present in secret configuration
+    #     """
+    #     try:
+    #         return secret_config['secret_key']
+    #     except KeyError as e:
+    #         logger.info(f'Invalid config object. Could not read secret_key from secret configuration: {secret_config}')
+    #         raise e
 
-    def get_alarm_subscriptions(self, secret_id):
-        """Gets the list of emails to subscribe to cloudwatch alarms referenced using secret_id in the secrets_config.json
-        Args:
-            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
-        Returns:
-            The list of emails to subscribe to cloudwatch alarms for the secret rotation
-        """
-        with open('lambda_functions/secrets_config.json') as config_file:
-            config = json.load(config_file)
-            try:
-                return config[secret_id]['alarm_subscriptions']
-            except KeyError as e:
-                logger.info(f'No emails to subscribe for secret {secret_id}')
-                return []
 
     def grant_secrets_manager_access_to_lambda(self, rotator_lambda):
         """
@@ -81,17 +93,17 @@ class CommonStack(core.Stack):
         service_principal = ServicePrincipal(service='secretsmanager.amazonaws.com')
         rotator_lambda.add_permission('invoke_access_to_secrets_manager', principal=service_principal)
 
-    def grant_lambda_access_to_rotation_secret(self, rotator_lambda, secret_id):
+    def grant_lambda_access_to_rotation_secret(self, rotator_lambda, secret_config):
         """
         Adds a custom policy to the lambda role which gives it access to the secret being rotated.
         Documentation can be found here: https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot_rotation.html#tshoot-lambda-accessdeniedduringrotation
         Args:
             rotator_lambda (Function): The lambda function used for rotating a secret
-            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
+            secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
         """
-        login_password_secret_arn = self.get_secret_arn(secret_id)
+        secret_arn = get_secret_arn(secret_config)
         rotator_lambda.add_to_role_policy(PolicyStatement(effect=Effect.ALLOW,
-                                                          resources=[login_password_secret_arn],
+                                                          resources=[secret_arn],
                                                           actions=["secretsmanager:DescribeSecret",
                                                                    "secretsmanager:GetSecretValue",
                                                                    "secretsmanager:PutSecretValue",
@@ -104,37 +116,38 @@ class CommonStack(core.Stack):
                                                           )
                                           )
 
-    def grant_lambda_access_to_static_secrets(self, rotator_lambda, secret_ids):
+    def grant_lambda_access_to_secrets(self, rotator_lambda, secret_configs):
         """
         Adds a custom policy to the lambda role which gives it access to the static secrets
         used for authentication.
         Args:
             rotator_lambda (Function): The lambda function used for rotating a secret
-            secret_ids ([string]): list of static secrets used for authentication by rotator_lambda
+            secret_configs (Dictionary): list of configurations for static secrets used for authentication by rotator_lambda
         """
-        for secret_id in secret_ids:
-            secret_arn = self.get_secret_arn(secret_id)
+        for secret_config in secret_configs:
+            secret_arn = get_secret_arn(secret_config)
             rotator_lambda.add_to_role_policy(PolicyStatement(effect=Effect.ALLOW,
                                                               resources=[secret_arn],
                                                               actions=["secretsmanager:GetSecretValue"]
                                                               )
                                               )
 
-    def configure_secret_rotation(self, rotator_lambda, secret_id, duration):
+    def configure_secret_rotation(self, rotator_lambda, secret_config, duration):
         """
         Adds the rotator_lambda to the secret referenced using secret_id in the secrets_config.json.
         Args:
             rotator_lambda (Function): The lambda function used for rotating a secret
-            secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
+            secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
             duration (Duration): The rotation time interval
         """
-        login_password_secret_arn = self.get_secret_arn(secret_id)
-        login_password_secret = Secret.from_secret_complete_arn(self,
-                                                                'npm_login_password_secret',
-                                                                secret_complete_arn=login_password_secret_arn)
-        login_password_secret.add_rotation_schedule(id='npm_login_password_secret_rotator',
-                                                    automatically_after=duration,
-                                                    rotation_lambda=rotator_lambda)
+        secret_arn = get_secret_arn(secret_config)
+        secret_key = get_secret_key(secret_config)
+        secret = Secret.from_secret_complete_arn(self,
+                                                 secret_key,
+                                                 secret_complete_arn=secret_arn)
+        secret.add_rotation_schedule(id=f'{secret_key}-rotator',
+                                     automatically_after=duration,
+                                     rotation_lambda=rotator_lambda)
 
     def enable_cloudwatch_alarm_notifications(self, rotator_lambda, secret_id):
         """
@@ -144,15 +157,14 @@ class CommonStack(core.Stack):
             rotator_lambda (Function): The lambda function used for rotating a secret
             secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
         """
-
         # create an sns topic for the rotator lambda monitoring
         alarm_sns_topic_id = f'{secret_id}_alarm_sns_topic'
         alarm_sns_topic = Topic(self,
                                 alarm_sns_topic_id)
 
         # subscribe the given emails to the sns topic
-        emails = self.get_alarm_subscriptions(secret_id)
-        for email in emails:
+        subscription_emails = get_alarm_subscriptions(secret_id)
+        for email in subscription_emails:
             alarm_sns_topic.add_subscription(EmailSubscription(email))
 
         # add errors metric alarm to rotator lambda
