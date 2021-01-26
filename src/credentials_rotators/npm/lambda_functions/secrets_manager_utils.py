@@ -1,5 +1,6 @@
-import logging
 import json
+import logging
+
 from secrets_config_utils import get_secret_arn, get_secret_key
 
 logger = logging.getLogger()

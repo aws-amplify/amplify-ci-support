@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -16,7 +16,7 @@ def get_secrets_config():
             config = json.load(config_file)
             return config
     except FileNotFoundError as e:
-        # try reading from lambda_functions package (used when accessing from stacks package)
+        # used when accessing from outside the current package
         with open('lambda_functions/secrets_config.json') as config_file:
             config = json.load(config_file)
             return config
@@ -25,7 +25,9 @@ def get_secret_config(secret_id):
     """
     Returns the secret configuration of the secret referenced using secret_id in secrets_config.json
     Args:
-        secret_id: Identifier for the secret in secrets_config.json
+        secret_id (string): Identifier for the secret in secrets_config.json
+    Returns:
+        The secret configuration as a Dictionary
     Raises:
         KeyError: If the required secret is not present in the configuration
     """
@@ -85,6 +87,8 @@ def get_access_token_secrets_configs(secret_id):
     Returns the configurations of secrets containing the npm access tokens to be rotated
     Args:
         secret_id (string): The identifier corresponding to the secret in the secrets_config.json file
+    Returns:
+        The configurations for the access token secrets as a list of Dictionary objects
     Raises:
         KeyError: If the access_token secrets are not present in the config
     """
