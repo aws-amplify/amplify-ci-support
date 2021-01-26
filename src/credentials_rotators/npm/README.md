@@ -5,18 +5,18 @@ This CDK app helps to automate the credentials rotation for a NPM user.
 The credentials that are configured for rotation include login password and access keys.
 
 #### Configuring the app
-The `lambda_functions/secrets.json` configuration file should be populated with the 
+The `lambda_functions/secrets_config.json` configuration file should be populated with the 
 information about the secrets in secrets manager that hold the necessary secrets.
 
 ```
 {
   "npm_login_username_secret": {
     "arn": "<npm_login_username_secret_arn>",
-    "secret_key": "username"
+    "secret_key": "npm_login_username"
   },
   "npm_login_password_secret": {
     "arn": "<npm_login_password_secret_arn>",
-    "secret_key": "password",
+    "secret_key": "npm_login_password",
     "alarm_subscriptions": ["my_monitoring_email@domain.com"]
   },
   "npm_otp_seed_secret": {
@@ -38,14 +38,14 @@ information about the secrets in secrets manager that hold the necessary secrets
   }
 }
 ```
-Since, CDK does not support creating/populating the secrets, recommended best practise is
+Since, CDK does not support creating/populating the secrets, recommended best practice is
 to use the AWS CLI or Console to create the above secrets. 
 For example, to create a secret to hold the npm username using CLI:
 ```
-aws secretsmanager create-secret --name npm-username-secret --secret-string "{ \"username\": \"my-npm-username\" }"
+aws secretsmanager create-secret --name npm-username-secret --secret-string "{ \"npm_login_username\": \"my-npm-username\" }"
 ```
 Paste the `ARN` returned from above operation under `npm_login_username_secret`.
-The `secret_key` (`username` in this case) can also be customized.
+The `secret_key` (`npm_login_username` in this case) can also be customized.
 
 Similarly, create the other secrets required in the configuration file:
 * `npm_login_username_secret`: stores the login username for the npm user. This secret is static and is not rotated.
@@ -68,7 +68,7 @@ Run `pip3 install -r requirements.txt --upgrade` from the app root to fetch nece
 
 At this point you can now deploy the infrastructure using:
 ```
-$ cdk deploy
+$ cdk deploy --all
 ```
 or run any of the cdk commands listed below.
 

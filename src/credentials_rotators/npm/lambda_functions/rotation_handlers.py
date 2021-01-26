@@ -1,5 +1,6 @@
-from user_login_password_rotator import UserLoginPasswordRotator
 from user_access_token_rotator import UserAccessTokenRotator
+from user_login_password_rotator import UserLoginPasswordRotator
+
 
 def rotate_access_keys(event, context):
     """ Handler for lambda that rotates the npm user's access keys

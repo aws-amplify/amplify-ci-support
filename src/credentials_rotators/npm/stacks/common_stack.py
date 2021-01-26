@@ -1,13 +1,18 @@
+import logging
+import subprocess
+
 from aws_cdk import core
-from aws_cdk.aws_lambda import LayerVersion, Code
-from aws_cdk.aws_iam import ServicePrincipal, PolicyStatement, Effect
+from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
+from aws_cdk.aws_lambda import Code, LayerVersion
 from aws_cdk.aws_secretsmanager import Secret
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sns_subscriptions import EmailSubscription
-from aws_cdk.aws_cloudwatch_actions import SnsAction
-from lambda_functions.secrets_config_utils import get_secrets_config, get_alarm_subscriptions, get_secret_arn, get_secret_key
-import subprocess
-import logging
+
+from lambda_functions.secrets_config_utils import (get_alarm_subscriptions,
+                                                   get_secret_arn,
+                                                   get_secret_key,
+                                                   get_secrets_config)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -39,48 +44,6 @@ class CommonStack(core.Stack):
         layer_code = Code.from_asset(output_dir)
 
         return LayerVersion(self, layer_id, code=layer_code)
-
-    # def get_secrets_config(self):
-    #     """Reads the secrets_config.json into a Dictionary
-    #     Returns:
-    #         The secrets_config.json file as a Dictionary
-    #     Raises:
-    #         IOError: If the secrets configuration file cannot be read
-    #     """
-    #     with open('lambda_functions/secrets_config.json') as config_file:
-    #         config = json.load(config_file)
-    #         return config
-    #
-    # def get_secret_arn(self, secret_config):
-    #     """Gets the full arn of the secret from its configuration
-    #     Args:
-    #         secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
-    #     Returns:
-    #         The full arn of the secret as a String
-    #     Raises:
-    #         KeyError: If the arn is not present in secret configuration
-    #     """
-    #     try:
-    #         return secret_config['arn']
-    #     except KeyError as e:
-    #         logger.info(f'Invalid config object. Could not read arn from secret configuration: {secret_config}')
-    #         raise e
-    #
-    # def get_secret_key(self, secret_config):
-    #     """Gets the key of the secret from its configuration
-    #     Args:
-    #         secret_config (Dictionary): The configuration for the secret specified in secrets_config.json
-    #     Returns:
-    #         The key of the secret as a String
-    #     Raises:
-    #         KeyError: If the key is not present in secret configuration
-    #     """
-    #     try:
-    #         return secret_config['secret_key']
-    #     except KeyError as e:
-    #         logger.info(f'Invalid config object. Could not read secret_key from secret configuration: {secret_config}')
-    #         raise e
-
 
     def grant_secrets_manager_access_to_lambda(self, rotator_lambda):
         """

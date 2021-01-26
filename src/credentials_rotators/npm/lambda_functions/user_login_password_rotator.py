@@ -1,9 +1,10 @@
-import os
 import json
-from secrets_manager_utils import get_secret_value
-from secrets_config_utils import get_secret_config, get_secret_key
+import os
+
 from npm_credentials_rotator import NPMCredentialsRotator
-from npm_utils import update_login_password, get_user_info_using_password
+from npm_utils import get_user_info_using_password, update_login_password
+from secrets_config_utils import get_secret_config, get_secret_key
+from secrets_manager_utils import get_secret_value
 
 
 class UserLoginPasswordRotator(NPMCredentialsRotator):

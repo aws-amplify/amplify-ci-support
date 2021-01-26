@@ -1,7 +1,10 @@
-import os
-import boto3
 import logging
+import os
+
+import boto3
+
 from secrets_config_utils import get_secrets_config
+
 
 class SecretRotator:
     """

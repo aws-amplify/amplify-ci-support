@@ -1,8 +1,11 @@
 import json
-from secrets_manager_utils import get_secret_value
-from secrets_config_utils import get_secret_config, get_secret_key
+
 from npm_credentials_rotator import NPMCredentialsRotator
-from npm_utils import create_access_token, delete_access_token, get_user_info_using_access_token
+from npm_utils import (create_access_token, delete_access_token,
+                       get_user_info_using_access_token)
+from secrets_config_utils import (get_access_token_secrets_configs,
+                                  get_secret_config, get_secret_key)
+from secrets_manager_utils import get_secret_value
 
 
 class UserAccessTokenRotator(NPMCredentialsRotator):
@@ -91,15 +94,14 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
             KeyError: If the arn cannot be found in the configuration
         """
         try:
-            access_token_secrets_configs = get_secret_config('npm_access_token_secrets')['secrets']
-            secret_found = False
+            access_token_secrets_configs = get_access_token_secrets_configs('npm_access_token_secrets')
             for secret_config in access_token_secrets_configs:
                 if secret_config['arn'] == self.arn:
-                    secret_found = True
                     return secret_config
-            if not secret_found:
-                raise KeyError(
-                    f'The secret arn ({self.arn}) cannot be found in the list of access token secrets from config')
+                else:
+                    raise KeyError(
+                        f'The secret arn ({self.arn}) cannot be found in the list of access token secrets from config'
+                    )
         except KeyError as e:
             self.logger.info(
                 f'The secret arn ({self.arn}) could not be matched with any known access token secrets from config')
