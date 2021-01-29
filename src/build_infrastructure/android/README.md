@@ -71,7 +71,8 @@ cdk deploy AndroidBuildPipeline \
     --yes
 ```
 
-**NOTE:** be sure to copy the config files in the bucket whose name contains "amplify-ci-assets" created by the AccountBootstrap.
+**NOTE 1:** be sure to copy the config files in the bucket whose name contains "amplify-ci-assets" created by the AccountBootstrap.
+**NOTE 2:** When deploying in an account for testing purposes, it's a good idea to set the branch to something other than main so the webhook doesn't trigger a build (unless you're modifying/testing the webhook of course).
 
 If necessary, during testing/debugging, add:
 

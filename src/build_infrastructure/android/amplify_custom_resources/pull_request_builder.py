@@ -1,4 +1,3 @@
-
 from aws_cdk import core
 from aws_cdk.aws_codebuild import (
     BuildEnvironment,
@@ -6,6 +5,7 @@ from aws_cdk.aws_codebuild import (
     ComputeType,
     EventAction,
     FilterGroup,
+    IArtifacts,
     LinuxBuildImage,
     Project,
     Source
@@ -19,7 +19,9 @@ class PullRequestBuilder(Project):
                     github_repo,
                     buildspec_path,
                     environment_variables = {},
-                    base_branch: str = "main"):
+                    base_branch: str = "main",
+                    primary_artifact = None,
+                    secondary_artifacts = []):
 
         build_environment = BuildEnvironment(build_image=self.BUILD_IMAGE, privileged = True, compute_type = ComputeType.LARGE)
 
@@ -30,9 +32,15 @@ class PullRequestBuilder(Project):
             environment_variables = environment_variables,
             build_spec=BuildSpec.from_source_filename(buildspec_path),
             badge = True,
+            artifacts=primary_artifact,
+            secondary_artifacts=secondary_artifacts,
             source = Source.git_hub(owner = github_owner,
                                     report_build_status = True,
                                     repo = github_repo, 
                                     webhook = True,
                                     webhook_filters = [trigger_on_pr]),
             environment = build_environment)
+
+    def add_secondary_artifact(self):
+        pass
+    
