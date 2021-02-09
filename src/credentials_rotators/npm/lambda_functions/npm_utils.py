@@ -1,12 +1,6 @@
 import json
-import logging
-
 import pyotp
-
 import requests
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 def generate_otp(username, otp_seed):
     """Generate a time based OTP using the OTP_SEED for the npm user

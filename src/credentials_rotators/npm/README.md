@@ -5,8 +5,9 @@ This CDK app helps to automate the credentials rotation for a NPM user.
 The credentials that are configured for rotation include login password and access keys.
 
 #### Configuring the app
-The `lambda_functions/secrets_config.json` configuration file should be populated with the 
-information about the secrets in secrets manager that hold the necessary secrets.
+The `lambda_functions/secrets.json` configuration file should be populated with the 
+information about **accessing** secret values from AWS Secrets Manager. **It must not be
+used to store the secret values themselves.**
 
 ```
 {

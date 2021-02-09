@@ -50,5 +50,5 @@ def get_secret_value(service_client, secret_config, stage='AWSCURRENT', token=No
     try:
         return secret_dict[get_secret_key(secret_config)]
     except KeyError as e:
-        logger.info(f'Could not find the secret_key in secret {secret_config}')
+        logger.error('Could not find the secret_key in secret')
         raise e

@@ -25,17 +25,12 @@ class UserLoginPasswordRotator(NPMCredentialsRotator):
         # Make sure the current secret exists
         self.check_secret_exists()
 
-        # Now try to get the secret version, if that fails, put a new secret
+        # Now try to get the secret's pending version, if that fails, put a new secret
         try:
             self.service_client.get_secret_value(SecretId=self.arn, VersionId=self.token, VersionStage="AWSPENDING")
-            self.logger.info("createSecret: Successfully retrieved secret for %s." % self.arn)
+            self.logger.info("createSecret: Successfully retrieved secret")
         except self.service_client.exceptions.ResourceNotFoundException:
-            # Get exclude characters from environment variable used to create new password
-            exclude_characters = os.environ[
-                'EXCLUDE_CHARACTERS'] if 'EXCLUDE_CHARACTERS' in os.environ else '/@"\'\\'
-            # Generate a random password
-            new_password = self.service_client.get_random_password(ExcludeCharacters=exclude_characters)[
-                'RandomPassword']
+            new_password = self.create_random_password()
             npm_login_password_secret_config = get_secret_config('npm_login_password_secret')
             npm_login_password_secret_key = get_secret_key(npm_login_password_secret_config)
             npm_login_password_secret = json.dumps({npm_login_password_secret_key: new_password})
@@ -45,8 +40,7 @@ class UserLoginPasswordRotator(NPMCredentialsRotator):
                                                  ClientRequestToken=self.token,
                                                  SecretString=npm_login_password_secret,
                                                  VersionStages=['AWSPENDING'])
-            self.logger.info(
-                'createSecret: Successfully put secret for ARN %s and version %s.' % (self.arn, self.token))
+            self.logger.info('createSecret: Successfully put secret')
 
     def set_secret(self):
         """Set the secret
@@ -60,8 +54,7 @@ class UserLoginPasswordRotator(NPMCredentialsRotator):
                                               token=self.token)
 
         update_login_password(self.login_username, self.otp_seed, self.login_password, new_login_password)
-        self.logger.info(
-            'setSecret: Successfully set secret for ARN %s and version %s.' % (self.arn, self.token))
+        self.logger.info('setSecret: Successfully set secret')
 
     def test_secret(self):
         """Test the secret
@@ -75,5 +68,15 @@ class UserLoginPasswordRotator(NPMCredentialsRotator):
                                                   token=self.token)
 
         get_user_info_using_password(self.login_username, self.otp_seed, pending_login_password)
-        self.logger.info(
-            'testSecret: Successfully tested secret for ARN %s and version %s.' % (self.arn, self.token))
+        self.logger.info('testSecret: Successfully tested secret')
+
+    def create_random_password(self):
+        """Creates a random string to be set as password for a NPM user
+        """
+        # Get exclude characters from environment variable used to create new password
+        exclude_characters = os.environ[
+            'EXCLUDE_CHARACTERS'] if 'EXCLUDE_CHARACTERS' in os.environ else '/@"\'\\'
+        # Generate a random password
+        new_password = self.service_client.get_random_password(ExcludeCharacters=exclude_characters)[
+            'RandomPassword']
+        return new_password

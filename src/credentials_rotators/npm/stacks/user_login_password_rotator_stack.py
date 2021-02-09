@@ -1,13 +1,8 @@
-import logging
-
 from aws_cdk import core
 from aws_cdk.aws_lambda import *
 
 from lambda_functions.secrets_config_utils import get_secret_config
 from stacks.common_stack import CommonStack
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 class UserLoginPasswordRotatorStack(CommonStack):
     """
