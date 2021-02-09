@@ -28,19 +28,22 @@ class UserLoginPasswordRotator(NPMCredentialsRotator):
         # Now try to get the secret's pending version, if that fails, put a new secret
         try:
             self.service_client.get_secret_value(SecretId=self.arn, VersionId=self.token, VersionStage="AWSPENDING")
-            self.logger.info("createSecret: Successfully retrieved secret")
+            self.logger.warning("createSecret: Successfully retrieved pending secret version")
+            return
         except self.service_client.exceptions.ResourceNotFoundException:
-            new_password = self.create_random_password()
-            npm_login_password_secret_config = get_secret_config('npm_login_password_secret')
-            npm_login_password_secret_key = get_secret_key(npm_login_password_secret_config)
-            npm_login_password_secret = json.dumps({npm_login_password_secret_key: new_password})
+            self.logger.info("No pending secret versions exists, creating new secret")
 
-            # Put the secret
-            self.service_client.put_secret_value(SecretId=self.arn,
-                                                 ClientRequestToken=self.token,
-                                                 SecretString=npm_login_password_secret,
-                                                 VersionStages=['AWSPENDING'])
-            self.logger.info('createSecret: Successfully put secret')
+        new_password = self.create_random_password()
+        npm_login_password_secret_config = get_secret_config('npm_login_password_secret')
+        npm_login_password_secret_key = get_secret_key(npm_login_password_secret_config)
+        npm_login_password_secret = json.dumps({npm_login_password_secret_key: new_password})
+
+        # Put the secret
+        self.service_client.put_secret_value(SecretId=self.arn,
+                                             ClientRequestToken=self.token,
+                                             SecretString=npm_login_password_secret,
+                                             VersionStages=['AWSPENDING'])
+        self.logger.info('createSecret: Successfully put secret')
 
     def set_secret(self):
         """Set the secret
