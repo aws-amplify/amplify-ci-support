@@ -9,9 +9,10 @@ module Fastlane
   module Actions
     class CalculateNextReleaseVersionAction < Action
       def self.run(params)
-        tag = Git.last_release_tag
-        version = Version.from(tag)
-        messages = Git.log(tag)
+        release_tag_prefix = params[:release_tag_prefix]
+        last_tag = params[:from_tag] != nil ? params[:from_tag] : Git.last_release_tag
+        version = Version.from(last_tag, release_tag_prefix)
+        messages = Git.log(last_tag)
         commits = Commits.from(messages)
 
         if commits.empty?
@@ -44,7 +45,19 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(key: :release_tag_prefix,
+            description: "Release tag prefix. Default = v",
+            default_value: 'v'),
+          FastlaneCore::ConfigItem.new(
+            key: :from_tag,
+            env_name: 'FROM_TAG',
+            description: 'Use this tag value as the last release',
+            type: String,
+            optional: true,
+            default_value: nil
+          )
+        ]
       end
 
       def self.is_supported?(platform)

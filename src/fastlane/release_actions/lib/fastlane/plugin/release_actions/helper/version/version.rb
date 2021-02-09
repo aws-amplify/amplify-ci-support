@@ -13,9 +13,12 @@ class Version
 
   # iOS uses a convention where tags start with a 'v'. This will detect that and
   # return the semantic version.
-  def self.from(tag)
-    return new(tag[1..-1]) if tag.start_with?('v')
-    new(tag)
+  def self.from(tag, tag_prefix = 'v')
+    if tag.start_with?(tag_prefix)
+      new(tag[tag_prefix.length..-1]) 
+    else
+      new(tag)
+    end
   end
 
   def initialize(version)
