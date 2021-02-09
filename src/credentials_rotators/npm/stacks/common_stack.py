@@ -51,7 +51,7 @@ class CommonStack(core.Stack):
         service_principal = ServicePrincipal(service='secretsmanager.amazonaws.com')
         rotator_lambda.add_permission('invoke_access_to_secrets_manager', principal=service_principal)
 
-    def grant_lambda_access_to_rotation_secret(self, rotator_lambda, secret_config):
+    def grant_lambda_access_to_rotate_secret(self, rotator_lambda, secret_config):
         """
         Adds a custom policy to the lambda role which gives it access to the secret being rotated.
         Documentation can be found here: https://docs.aws.amazon.com/secretsmanager/latest/userguide/troubleshoot_rotation.html#tshoot-lambda-accessdeniedduringrotation

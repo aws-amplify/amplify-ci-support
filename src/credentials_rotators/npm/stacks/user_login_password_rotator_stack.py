@@ -30,7 +30,7 @@ class UserLoginPasswordRotatorStack(CommonStack):
 
         # Add required permissions
         self.grant_secrets_manager_access_to_lambda(rotator_lambda)
-        self.grant_lambda_access_to_rotation_secret(rotator_lambda, secret_config)
+        self.grant_lambda_access_to_rotate_secret(rotator_lambda, secret_config)
         self.grant_lambda_access_to_secrets(rotator_lambda, required_secret_configs)
         self.configure_secret_rotation(rotator_lambda, secret_config, core.Duration.days(7))
 
