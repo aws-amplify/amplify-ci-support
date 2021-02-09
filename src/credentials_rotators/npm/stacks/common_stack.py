@@ -1,4 +1,3 @@
-import logging
 import subprocess
 
 from aws_cdk import core
@@ -13,10 +12,6 @@ from lambda_functions.secrets_config_utils import (get_alarm_subscriptions,
                                                    get_secret_arn,
                                                    get_secret_key,
                                                    get_secrets_config)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 
 class CommonStack(core.Stack):
     """

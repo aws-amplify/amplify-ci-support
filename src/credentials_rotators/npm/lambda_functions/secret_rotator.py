@@ -63,19 +63,18 @@ class SecretRotator:
         """
         metadata = self.service_client.describe_secret(SecretId=self.arn)
         if not metadata['RotationEnabled']:
-            self.logger.error("Secret %s is not enabled for rotation" % self.arn)
-            raise ValueError("Secret %s is not enabled for rotation" % self.arn)
+            self.logger.error("Secret is not enabled for rotation")
+            raise ValueError("Secret is not enabled for rotation")
         versions = metadata['VersionIdsToStages']
-        print(f'versions: {versions}')
         if self.token not in versions:
-            self.logger.error("Secret version %s has no stage for rotation of secret %s." % (self.token, self.arn))
-            raise ValueError("Secret version %s has no stage for rotation of secret %s." % (self.token, self.arn))
+            self.logger.error("Secret has no stage for rotation of secret.")
+            raise ValueError("Secret has no stage for rotation of secret.")
         if "AWSCURRENT" in versions[self.token]:
-            self.logger.info("Secret version %s already set as AWSCURRENT for secret %s." % (self.token, self.arn))
+            self.logger.info("Secret version already set as AWSCURRENT.")
             return
         elif "AWSPENDING" not in versions[self.token]:
-            self.logger.error("Secret version %s not set as AWSPENDING for rotation of secret %s." % (self.token, self.arn))
-            raise ValueError("Secret version %s not set as AWSPENDING for rotation of secret %s." % (self.token, self.arn))
+            self.logger.error("Secret version not set as AWSPENDING.")
+            raise ValueError("Secret version not set as AWSPENDING")
 
 
     def check_secret_exists(self):
@@ -126,7 +125,7 @@ class SecretRotator:
             if "AWSCURRENT" in metadata["VersionIdsToStages"][version]:
                 if version == self.token:
                     # The correct version is already marked as current, return
-                    self.logger.info("finishSecret: Version %s already marked as AWSCURRENT for %s" % (version, self.arn))
+                    self.logger.info("finishSecret: Version already marked as AWSCURRENT")
                     return
                 current_version = version
                 break
@@ -136,4 +135,4 @@ class SecretRotator:
                                                         VersionStage="AWSCURRENT",
                                                         MoveToVersionId=self.token,
                                                         RemoveFromVersionId=current_version)
-        self.logger.info("finishSecret: Successfully set AWSCURRENT stage to version %s for secret %s." % (self.token, self.arn))
+        self.logger.info("finishSecret: Successfully set AWSCURRENT stage")

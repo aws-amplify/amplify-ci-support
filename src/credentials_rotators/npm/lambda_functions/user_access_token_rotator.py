@@ -28,7 +28,7 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
         # Now try to get the secret version, if that fails, put a new secret
         try:
             self.service_client.get_secret_value(SecretId=self.arn, VersionId=self.token, VersionStage="AWSPENDING")
-            self.logger.info("createSecret: Successfully retrieved secret for %s." % self.arn)
+            self.logger.info("createSecret: Successfully retrieved secret")
         except self.service_client.exceptions.ResourceNotFoundException:
             # create a new access token
             new_access_token = create_access_token(self.login_username, self.otp_seed, self.login_password)
@@ -40,8 +40,7 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
                                                  ClientRequestToken=self.token,
                                                  SecretString=npm_access_token_secret,
                                                  VersionStages=['AWSPENDING'])
-            self.logger.info(
-                'createSecret: Successfully put secret for ARN %s and version %s.' % (self.arn, self.token))
+            self.logger.info('createSecret: Successfully put secret')
 
     def set_secret(self):
         """
@@ -63,8 +62,7 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
                                         token=self.token)
 
         get_user_info_using_access_token(self.login_username, self.otp_seed, access_token)
-        self.logger.info(
-            'testSecret: Successfully tested secret for ARN %s and version %s.' % (self.arn, self.token))
+        self.logger.info('testSecret: Successfully tested secret')
 
     def finish_secret(self):
         """
@@ -79,8 +77,7 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
 
         # delete the old access token post rotation
         delete_access_token(self.login_username, self.otp_seed, self.login_password, access_token)
-        self.logger.info(
-            'finishSecret: Successfully finalized secret rotation for ARN %s and version %s.' % (self.arn, self.token))
+        self.logger.info('finishSecret: Successfully finalized secret rotation')
 
     def get_access_token_secret_config(self):
         """
@@ -98,9 +95,9 @@ class UserAccessTokenRotator(NPMCredentialsRotator):
                     return secret_config
                 else:
                     raise KeyError(
-                        f'The secret arn ({self.arn}) cannot be found in the list of access token secrets from config'
+                        'The secret arn cannot be found in the list of access token secrets from config'
                     )
         except KeyError as e:
-            self.logger.info(
-                f'The secret arn ({self.arn}) could not be matched with any known access token secrets from config')
+            self.logger.error(
+                'The secret arn could not be matched with any known access token secrets from config')
             raise e

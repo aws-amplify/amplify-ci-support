@@ -35,7 +35,7 @@ def get_secret_config(secret_id):
         secret_config = get_secrets_config()[secret_id]
         return secret_config
     except KeyError as e:
-        logger.info(f'Invalid configuration. Could not read config for secret {secret_id}')
+        logger.error(f'Invalid configuration. Could not read config for secret {secret_id}')
         raise e
 
 def get_secret_key(secret_config):
@@ -50,7 +50,7 @@ def get_secret_key(secret_config):
     try:
         return secret_config['secret_key']
     except KeyError as e:
-        logger.info(f'Invalid config object. Could not read secret_key of secret {secret_config}')
+        logger.error('Invalid config object. Could not read secret_key from secret configuration')
         raise e
 
 
@@ -66,7 +66,7 @@ def get_secret_arn(secret_config):
     try:
         return secret_config['arn']
     except KeyError as e:
-        logger.info(f'Invalid config object. Could not read arn from secret configuration {secret_config}')
+        logger.error('Invalid config object. Could not read arn from secret configuration')
         raise e
 
 def get_alarm_subscriptions(secret_id):
@@ -96,5 +96,5 @@ def get_access_token_secrets_configs(secret_id):
         access_token_secrets_configs = get_secret_config(secret_id)['secrets']
         return access_token_secrets_configs
     except KeyError as e:
-        logger.info(f'Invalid config object. Could not read configuration for access token secrets for secret: {secret_id}')
+        logger.error(f'Invalid config object. Could not read configuration for access token secrets for secret: {secret_id}')
         raise e
