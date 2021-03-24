@@ -1,8 +1,15 @@
 from typing import List, Optional
 
-from aws_cdk import (aws_cloudfront, aws_cloudfront_origins, aws_cognito, aws_iam, aws_lambda, aws_s3, core,
-                     custom_resources)
-
+from aws_cdk import (
+    aws_cloudfront,
+    aws_cloudfront_origins,
+    aws_cognito,
+    aws_iam,
+    aws_lambda,
+    aws_s3,
+    core,
+    custom_resources,
+)
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
@@ -63,7 +70,7 @@ class MobileClientStack(RegionAwareStack):
             default_user_pool_client_secret,
             None,
             "CustomEndpoint",
-            custom_endpoint=custom_endpoint
+            custom_endpoint=custom_endpoint,
         )
 
         self.create_custom_auth_user_pool(default_user_pool, default_user_pool_client)
@@ -133,9 +140,8 @@ class MobileClientStack(RegionAwareStack):
             self,
             f"cloudfront_userpool_{tag}",
             default_behavior=aws_cloudfront.BehaviorOptions(
-                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL,
-                origin=origin
-            )
+                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL, origin=origin
+            ),
         )
 
         return distribution.domain_name
@@ -178,7 +184,10 @@ class MobileClientStack(RegionAwareStack):
             ),
             schema=[
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
-                    attribute_data_type="String", mutable=False, name="email", required=True,
+                    attribute_data_type="String",
+                    mutable=False,
+                    name="email",
+                    required=True,
                 ),
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
@@ -238,7 +247,10 @@ class MobileClientStack(RegionAwareStack):
     ) -> aws_cognito.CfnUserPoolClient:
         if not federation_providers:
             user_pool_client = aws_cognito.CfnUserPoolClient(
-                self, f"userpool_client_{tag}", generate_secret=True, user_pool_id=user_pool.ref,
+                self,
+                f"userpool_client_{tag}",
+                generate_secret=True,
+                user_pool_id=user_pool.ref,
             )
             return user_pool_client
 
@@ -319,7 +331,10 @@ class MobileClientStack(RegionAwareStack):
     def create_user_pool_domain(self, user_pool: aws_cognito.CfnUserPool, tag: str):
         domain_prefix = self._secrets["hostedui.domain_prefix"]
         domain = aws_cognito.CfnUserPoolDomain(
-            self, f"user_pool_domain_{tag}", domain=domain_prefix, user_pool_id=user_pool.ref,
+            self,
+            f"user_pool_domain_{tag}",
+            domain=domain_prefix,
+            user_pool_id=user_pool.ref,
         )
         return domain
 

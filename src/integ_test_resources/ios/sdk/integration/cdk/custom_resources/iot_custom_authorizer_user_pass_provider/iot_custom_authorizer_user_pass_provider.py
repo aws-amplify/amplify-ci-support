@@ -1,6 +1,9 @@
-import boto3
 import os
+
+import boto3
+
 # Note: Make this dynamic if there is more than one custom authorizer in the stack
+
 
 def on_event(event, __):
     print(f"### on_event({event})")
@@ -26,7 +29,7 @@ def on_create_or_update(event):
     )
 
     # Creating a domain config is required for enhanced user auth
-    beta_endpoint_addr = create_or_update_domainConfig()
+    beta_endpoint_addr = create_or_update_domain_config()
     response = {
         "PhysicalResourceId": physical_id,
         "Data": {"BetaEndpointAddress": beta_endpoint_addr},
@@ -35,7 +38,7 @@ def on_create_or_update(event):
     return response
 
 
-def create_or_update_domainConfig():
+def create_or_update_domain_config():
     client = boto3.client("iot")
     default_authorizer_name = os.environ["custom_auth_user_pass_default_authorizer_name"]
     domain_configuration_name = os.environ["custom_auth_user_pass_domain_configuration_name"]
@@ -45,7 +48,7 @@ def create_or_update_domainConfig():
             domainConfigurationName=domain_configuration_name
         )
         print(f"### create_domain_configuration response: {create_domain_configuration_response}")
-    except client.exceptions.ResourceAlreadyExistsException as e:
+    except client.exceptions.ResourceAlreadyExistsException:
         print("Already defined, continuing")
 
     update_domain_configuration_response = client.update_domain_configuration(
@@ -103,9 +106,15 @@ def delete_authorizer(name):
     client.update_domain_configuration(
         domainConfigurationName=domain_configuration_name, domainConfigurationStatus="DISABLED"
     )
-    # It would be nice to clean this stuff up, but this will always fail because you will get an error of:
-    # Failed to delete resource. Error: An error occurred (InvalidRequestException) when calling the DeleteDomainConfiguration operation: AWS Managed Domain Configuration must be disabled for at least 7 days before it can be deleted
-    # delete_domain_configuration_response = client.delete_domain_configuration(domainConfigurationName="aws_test_iot_custom_authorizer_user_pass")
+
+    # It would be nice to clean this stuff up, but this will always fail because you will get an
+    # error of:
+    #     Failed to delete resource. Error: An error occurred (InvalidRequestException) when calling
+    #     the DeleteDomainConfiguration operation: AWS Managed Domain Configuration must be disabled
+    #     for at least 7 days before it can be deleted
+    # delete_domain_configuration_response = client.delete_domain_configuration(
+    #     domainConfigurationName="aws_test_iot_custom_authorizer_user_pass"
+    # )
 
     update_authorizer_response = client.update_authorizer(authorizerName=name, status="INACTIVE")
     print(f"### update_authorizer_response: {update_authorizer_response}")

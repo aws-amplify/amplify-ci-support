@@ -110,7 +110,10 @@ def sign(key_id, token_value):
     client = boto3.client("kms")
     token_bytes = bytes(token_value, "utf8")
     sign_response = client.sign(
-        KeyId=key_id, Message=token_bytes, MessageType="RAW", SigningAlgorithm=SIGNING_ALGORITHM,
+        KeyId=key_id,
+        Message=token_bytes,
+        MessageType="RAW",
+        SigningAlgorithm=SIGNING_ALGORITHM,
     )
     print(f"### sign_response: {sign_response}")
     data = sign_response["Signature"]

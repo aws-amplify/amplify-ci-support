@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from aws_cdk import core
-
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
 from cdk_integration_tests_ios.autoscaling_stack import AutoScalingStack
 from cdk_integration_tests_ios.cloudwatch_stack import CloudWatchStack

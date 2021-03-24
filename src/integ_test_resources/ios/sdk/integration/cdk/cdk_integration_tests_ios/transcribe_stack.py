@@ -1,5 +1,4 @@
 from aws_cdk import aws_iam, aws_s3, core
-
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack

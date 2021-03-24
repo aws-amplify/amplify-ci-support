@@ -1,6 +1,7 @@
-import json
 import base64
+import json
 import os
+
 
 def handler(event, __):
     print(f"### handler: {event}")
@@ -14,7 +15,11 @@ def handler(event, __):
     base64_decoded = base64.b64decode(password).decode("utf-8")
     passwordMatches = expected_password == base64_decoded
 
-    effect = "Allow" if token == "allow" and mqtt_user.startswith(expected_username) and passwordMatches else "Deny"
+    effect = (
+        "Allow"
+        if token == "allow" and mqtt_user.startswith(expected_username) and passwordMatches
+        else "Deny"
+    )
 
     response = make_auth_response(effect)
     response_string = json.dumps(response)
