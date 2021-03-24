@@ -1,5 +1,4 @@
 from aws_cdk import aws_iam, aws_kinesisfirehose, aws_logs, aws_s3, core
-
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
@@ -142,7 +141,9 @@ class FirehoseStack(RegionAwareStack):
 
     def create_test_policies(self, common_stack):
         all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["firehose:ListDeliveryStreams"], resources=["*"],
+            effect=aws_iam.Effect.ALLOW,
+            actions=["firehose:ListDeliveryStreams"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 

@@ -1,5 +1,4 @@
 from aws_cdk import aws_cognito, aws_iam, core
-
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform

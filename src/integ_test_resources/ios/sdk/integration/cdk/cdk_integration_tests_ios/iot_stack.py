@@ -2,10 +2,10 @@ import hashlib
 import json
 
 from aws_cdk import aws_iam, aws_iot, aws_lambda, core, custom_resources
-
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
+
 
 class IotStack(RegionAwareStack):
     custom_auth_user_pass_username = "aws-sdk-user"
@@ -33,7 +33,9 @@ class IotStack(RegionAwareStack):
 
     def setup_iot_endpoint_provider(self):
         describe_endpoint_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["iot:DescribeEndpoint"], resources=["*"],
+            effect=aws_iam.Effect.ALLOW,
+            actions=["iot:DescribeEndpoint"],
+            resources=["*"],
         )
 
         provider_lambda = aws_lambda.SingletonFunction(
@@ -102,7 +104,9 @@ class IotStack(RegionAwareStack):
         common_stack.add_to_common_role_policies(self, policy_to_add=topicfilter_policy)
 
         all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["iot:CreateCertificateFromCsr"], resources=["*"],
+            effect=aws_iam.Effect.ALLOW,
+            actions=["iot:CreateCertificateFromCsr"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
@@ -140,7 +144,10 @@ class IotStack(RegionAwareStack):
         policy_name = f"iot_integ_test_policy_{md5_hash}"
 
         aws_iot.CfnPolicy(
-            self, "iot_integ_test_policy", policy_document=policy_document, policy_name=policy_name,
+            self,
+            "iot_integ_test_policy",
+            policy_document=policy_document,
+            policy_name=policy_name,
         )
         self._parameters_to_save["policy_name"] = policy_name
 
@@ -232,12 +239,17 @@ class IotStack(RegionAwareStack):
         self._parameters_to_save["custom_authorizer_user_pass_token_key_name"] = token_key_name
         token_value = "allow"
         self._parameters_to_save["custom_authorizer_user_pass_token_value"] = token_value
-        self._parameters_to_save["custom_authorizer_user_pass_username"] = self.custom_auth_user_pass_username
-        self._parameters_to_save["custom_authorizer_user_pass_password"] = self.custom_auth_user_pass_password
+        self._parameters_to_save[
+            "custom_authorizer_user_pass_username"
+        ] = self.custom_auth_user_pass_username
+        self._parameters_to_save[
+            "custom_authorizer_user_pass_password"
+        ] = self.custom_auth_user_pass_password
 
         iot_custom_authorizer_key_resource = self.create_custom_authorizer_signing_key_generic(
             "2",
-            "Manages an asymmetric CMK and token signature for iot custom authorizer with username and password.",
+            "Manages an asymmetric CMK and token signature for iot custom authorizer with "
+            "username and password.",
             token_value,
         )
 
@@ -248,15 +260,17 @@ class IotStack(RegionAwareStack):
             "custom_authorizer_user_pass_token_signature"
         ] = custom_authorizer_token_signature
 
-        # TODO: remove forcing of us-east-1 when enhanced custom authorizers are available in all regions
-        # Force region to 'us-east-1' due to enhanced custom authorizers only available in this region
+        # Force region to 'us-east-1' due to enhanced custom authorizers only available there
+        # TODO: remove override when enhanced custom authorizers are available in all regions
         authorizer_function_arn = self.setup_custom_authorizer_function(
             "2",
             "custom_resources/iot_custom_authorizer_user_pass_function",
             "iot_custom_authorizer_user_pass.handler",
             "Sample custom authorizer that allows or denies based on username and password",
-            {"custom_auth_user_pass_username": self.custom_auth_user_pass_username,
-             "custom_auth_user_pass_password": self.custom_auth_user_pass_password},
+            {
+                "custom_auth_user_pass_username": self.custom_auth_user_pass_username,
+                "custom_auth_user_pass_password": self.custom_auth_user_pass_password,
+            },
             "us-east-1",
         )
         create_authorizer_policy = aws_iam.PolicyStatement(
@@ -279,10 +293,17 @@ class IotStack(RegionAwareStack):
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_user_pass_provider"),
             handler="iot_custom_authorizer_user_pass_provider.on_event",
-            description="Sets up an IoT custom authorizer for user password & required domain config due to beta status",
-            environment={"custom_auth_user_pass_uuid" : self.custom_auth_user_pass_uuid,
-                         "custom_auth_user_pass_default_authorizer_name" : self.custom_auth_user_pass_default_authorizer_name,
-                         "custom_auth_user_pass_domain_configuration_name" : self.custom_auth_user_pass_domain_configuration_name},
+            description="Sets up an IoT custom authorizer for user password & required domain "
+            "config due to beta status",
+            environment={
+                "custom_auth_user_pass_uuid": self.custom_auth_user_pass_uuid,
+                "custom_auth_user_pass_default_authorizer_name": (
+                    self.custom_auth_user_pass_default_authorizer_name
+                ),
+                "custom_auth_user_pass_domain_configuration_name": (
+                    self.custom_auth_user_pass_domain_configuration_name
+                ),
+            },
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
@@ -333,7 +354,7 @@ class IotStack(RegionAwareStack):
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY
             ),
-            environment=merged_environment_vars
+            environment=merged_environment_vars,
         )
 
         authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))

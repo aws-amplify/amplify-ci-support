@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from aws_cdk import aws_lambda, core
-
 from common.common_stack import CommonStack
 from common.file_utils import replace_in_file
 from common.platforms import Platform
