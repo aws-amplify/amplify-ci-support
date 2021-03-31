@@ -12,4 +12,5 @@ class S3Construct(core.Construct):
             "release_artifacts_ios_v2_sdk_release_bucket",
             bucket_name=bucket_name,
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=core.RemovalPolicy.RETAIN,
         )
