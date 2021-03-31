@@ -7,5 +7,5 @@ class DistributionStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        s3 = S3Construct(self, "distribution_s3_construct")
-        CloudFrontConstruct(self, "distribution_cloudfront_construct", s3)
+        self.s3 = S3Construct(self, "distribution_s3_construct")
+        self.cloudfront = CloudFrontConstruct(self, "distribution_cloudfront_construct", self.s3)

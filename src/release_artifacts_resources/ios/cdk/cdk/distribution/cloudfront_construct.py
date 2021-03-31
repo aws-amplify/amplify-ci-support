@@ -9,7 +9,7 @@ class CloudFrontConstruct(core.Construct):
 
         super().__init__(scope, construct_id, **kwargs)
 
-        cloudfront = aws_cloudfront.Distribution(
+        self.cloudfront = aws_cloudfront.Distribution(
             self,
             "release_artifacts_cloudfront",
             default_behavior=aws_cloudfront.BehaviorOptions(
@@ -23,4 +23,4 @@ class CloudFrontConstruct(core.Construct):
         # the removal policy to RETAIN so that deleting
         # the `cloudformation` stack does not remove the
         # CloudFront resource.
-        cloudfront.apply_removal_policy(core.RemovalPolicy.RETAIN)
+        self.cloudfront.apply_removal_policy(core.RemovalPolicy.RETAIN)
