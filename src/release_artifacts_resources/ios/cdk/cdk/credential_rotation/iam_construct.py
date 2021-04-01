@@ -13,11 +13,15 @@ class IAMConstruct(core.Construct):
 
         super().__init__(scope, construct_id, **kwargs)
         self.create_circleci_release_user()
-        self.create_circleci_release_proceess_role(bucket_arn=bucket_arn, cloudfront_arn=cloudfront_arn)
+        self.create_circleci_release_proceess_role(
+            bucket_arn=bucket_arn, cloudfront_arn=cloudfront_arn
+        )
         self.create_lambda_execution_role()
 
     def create_circleci_release_user(self) -> None:
-        self.circleci_user = aws_iam.User(self, "circleci_iam_user", user_name="CircleCIReleaseProcessIAMUser")
+        self.circleci_user = aws_iam.User(
+            self, "circleci_iam_user", user_name="CircleCIReleaseProcessIAMUser"
+        )
 
     def create_circleci_release_proceess_role(self, bucket_arn: str, cloudfront_arn: str) -> None:
         self.circleci_release_role = aws_iam.Role(
@@ -56,8 +60,8 @@ class IAMConstruct(core.Construct):
         )
 
         logs_policy = aws_iam.PolicyStatement(
-             effect=aws_iam.Effect.ALLOW, actions=["cloudwatch:*", "logs:*"], resources=["*"]
-         )
+            effect=aws_iam.Effect.ALLOW, actions=["cloudwatch:*", "logs:*"], resources=["*"]
+        )
         self.lambda_role.add_to_policy(logs_policy)
 
         lambda_role_rotate_keys_policy = aws_iam.PolicyStatement(

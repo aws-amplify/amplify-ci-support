@@ -40,4 +40,6 @@ class LambdaConstruct(core.Construct):
             lambda_constants.IAM_USERNAME_ENV, iam_construct.circleci_user.user_name
         )
 
-        self.credential_rotator.add_environment(lambda_constants.GITHUB_PROJECT_PATH_ENV, "aws-amplify/aws-sdk-ios")
+        self.credential_rotator.add_environment(
+            lambda_constants.GITHUB_PROJECT_PATH_ENV, "aws-amplify/aws-sdk-ios"
+        )
