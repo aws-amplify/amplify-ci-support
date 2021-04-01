@@ -7,6 +7,7 @@ Package contains the cdk logic required to create release artifacts for Amplify 
 
 1. AWS CDK - https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html
 2. Python3
+3. Docker - https://www.docker.com
 
 ## Setup
 
