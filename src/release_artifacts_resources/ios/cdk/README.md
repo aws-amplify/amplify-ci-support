@@ -1,6 +1,12 @@
 
 # Release artifacts CDK
 
+Package contains the cdk logic required to create release artifacts for Amplify resources.
+
+## Prerequisite
+
+1. AWS CDK - https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html
+2. Python3
 
 To manually create a virtualenv on MacOS and Linux:
 

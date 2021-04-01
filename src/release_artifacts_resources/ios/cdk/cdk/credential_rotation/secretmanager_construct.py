@@ -1,6 +1,6 @@
-from aws_cdk import aws_secretsmanager, aws_iam, core
-from cdk.credential_rotation.iam_construct import IAMConstruct
 import cdk.credential_rotation.utils.secretmanager_constants as constants
+from aws_cdk import aws_iam, aws_secretsmanager, core
+from cdk.credential_rotation.iam_construct import IAMConstruct
 
 
 class SecretManagerConstruct(core.Construct):
@@ -22,4 +22,3 @@ class SecretManagerConstruct(core.Construct):
             resources=[self.circleci_api_key.secret_full_arn],
         )
         iam_construct.lambda_role_add_to_policy(lambda_role_get_secret_policy)
-

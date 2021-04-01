@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from aws_cdk import aws_iam, core
 
 

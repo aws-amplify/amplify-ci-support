@@ -10,13 +10,13 @@ distribution_stack = DistributionStack(app, "DistributionStack")
 
 bucket_arn = distribution_stack.s3.bucket.bucket_arn
 distribution_id = distribution_stack.cloudfront.cloudfront.distribution_id
-arn_components = core.ArnComponents(resource="distribution/" + distribution_id, service="cloudfront")
+arn_components = core.ArnComponents(
+    resource="distribution/" + distribution_id, service="cloudfront"
+)
 cloudfront_arn = core.Arn.format(components=arn_components, stack=distribution_stack)
 
 credential_rotation_stack = CredentialRotationStack(
-    app, 
-    "CredentialRotationStack", 
-    bucket_arn=bucket_arn, 
-    cloudfront_arn=cloudfront_arn)
+    app, "CredentialRotationStack", bucket_arn=bucket_arn, cloudfront_arn=cloudfront_arn
+)
 
 app.synth()
