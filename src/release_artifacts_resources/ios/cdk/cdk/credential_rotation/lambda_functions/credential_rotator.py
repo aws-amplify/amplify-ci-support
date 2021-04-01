@@ -22,8 +22,8 @@ MAX_RETRY_WAIT = 10
 
 
 # Make sure this is at least 2 hours longer than the key rotation schedule set up in the CFn.
-# Currently, "2 hours" is an arbitrary value based on the fact that a few of our integration tests
-# take ~1 hour to run, so we want to leave sufficient time for executing the tests in cases where a
+# Currently, "2 hours" is an arbitrary value based on the fact that a few of our deployments
+# take ~2 hour to run, so we want to leave sufficient time for executing the tests in cases where a
 # test is invoked with session credentials created with access keys that are rotated immediately
 # thereafter.
 SESSION_DURATION_SECONDS = 14400  # 4 hours
