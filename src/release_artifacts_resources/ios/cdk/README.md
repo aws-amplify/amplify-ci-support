@@ -74,3 +74,12 @@ Release resources for distribution are declared in the stack named - `Distributi
 Resources required for credential rotation are declared in `CredentialRotationStack`. This stack uses `aws_cdk.aws_lambda_python` which requires `Docker` running in your local machine to execute `cdk` commands.
 
 
+## Lint
+
+```
+$ export SRC_ROOT=/path/to/your/workspace/amplify-ci-support
+$ export DIR=$SRC_ROOT/src/release_artifacts_resources/ios/cdk
+$ black --line-length=100 $DIR
+$ isort -sp $SRC_ROOT/.isort.cfg $DIR
+$ flake8 --config $SRC_ROOT/.flake8 $DIR
+```
