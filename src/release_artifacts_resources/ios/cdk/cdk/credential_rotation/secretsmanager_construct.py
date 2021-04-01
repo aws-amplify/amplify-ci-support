@@ -3,7 +3,7 @@ from aws_cdk import aws_iam, aws_secretsmanager, core
 from cdk.credential_rotation.iam_construct import IAMConstruct
 
 
-class SecretManagerConstruct(core.Construct):
+class SecretsManagerConstruct(core.Construct):
     def __init__(
         self, scope: core.Construct, construct_id: str, iam_construct: IAMConstruct, **kwargs
     ) -> None:
@@ -21,4 +21,4 @@ class SecretManagerConstruct(core.Construct):
             actions=["secretsmanager:GetSecretValue"],
             resources=[self.circleci_api_key.secret_full_arn],
         )
-        iam_construct.lambda_role_add_to_policy(lambda_role_get_secret_policy)
+        iam_construct.add_policy_to_lambda_role(lambda_role_get_secret_policy)

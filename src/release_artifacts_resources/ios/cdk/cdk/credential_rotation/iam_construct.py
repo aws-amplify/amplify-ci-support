@@ -12,14 +12,14 @@ class IAMConstruct(core.Construct):
     ) -> None:
 
         super().__init__(scope, construct_id, **kwargs)
-        self.circleci_release_user()
-        self.circleci_release_proceess_role(bucket_arn=bucket_arn, cloudfront_arn=cloudfront_arn)
-        self.lambda_execution_role()
+        self.create_circleci_release_user()
+        self.create_circleci_release_proceess_role(bucket_arn=bucket_arn, cloudfront_arn=cloudfront_arn)
+        self.create_lambda_execution_role()
 
-    def circleci_release_user(self) -> None:
-        self.circleci_user = aws_iam.User(self, "circleci_iam_user", user_name="CircleCIIAMUser")
+    def create_circleci_release_user(self) -> None:
+        self.circleci_user = aws_iam.User(self, "circleci_iam_user", user_name="CircleCIReleaseProcessIAMUser")
 
-    def circleci_release_proceess_role(self, bucket_arn: str, cloudfront_arn: str) -> None:
+    def create_circleci_release_proceess_role(self, bucket_arn: str, cloudfront_arn: str) -> None:
         self.circleci_release_role = aws_iam.Role(
             self,
             "circleci_release_role",
@@ -28,14 +28,9 @@ class IAMConstruct(core.Construct):
             max_session_duration=core.Duration.hours(4),
         )
 
-        s3_list_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["s3:ListAllMyBuckets"], resources=["*"]
-        )
-        self.circleci_release_role.add_to_policy(s3_list_policy)
-
         bucket_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
-            actions=["s3:GetObject", "s3:PutObject"],
+            actions=["s3:PutObject"],
             resources=[bucket_arn],
         )
         self.circleci_release_role.add_to_policy(bucket_policy)
@@ -47,10 +42,10 @@ class IAMConstruct(core.Construct):
         )
         self.circleci_release_role.add_to_policy(cloudfront_policy)
 
-    def lambda_execution_role(self) -> None:
+    def create_lambda_execution_role(self) -> None:
         self.lambda_role = aws_iam.Role(
             self,
-            "lambda_execution_role",
+            "lambda_key_rotation_execution_role",
             assumed_by=aws_iam.ServicePrincipal("lambda.amazonaws.com"),
             role_name="LambdaKeyRotationExecutionRole",
         )
@@ -61,8 +56,8 @@ class IAMConstruct(core.Construct):
         )
 
         logs_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["cloudwatch:*", "logs:*"], resources=["*"]
-        )
+             effect=aws_iam.Effect.ALLOW, actions=["cloudwatch:*", "logs:*"], resources=["*"]
+         )
         self.lambda_role.add_to_policy(logs_policy)
 
         lambda_role_rotate_keys_policy = aws_iam.PolicyStatement(
@@ -72,5 +67,5 @@ class IAMConstruct(core.Construct):
         )
         self.lambda_role.add_to_policy(lambda_role_rotate_keys_policy)
 
-    def lambda_role_add_to_policy(self, policy: aws_iam.PolicyStatement) -> None:
+    def add_policy_to_lambda_role(self, policy: aws_iam.PolicyStatement) -> None:
         self.lambda_role.add_to_policy(policy)

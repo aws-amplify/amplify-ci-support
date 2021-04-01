@@ -68,7 +68,7 @@ command.
 
 ### Distribution stack
 
-Release resources for distribution are declared in the stack named - `DistributionStack`. 
+Release resources for distribution are declared in the stack named - `DistributionStack`. This include resources like S3 and Cloudfront needed for hosting the release artifacts. This stack should be run only once.
 
 ### Credential rotation stack
 

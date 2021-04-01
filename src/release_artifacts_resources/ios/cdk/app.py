@@ -9,7 +9,7 @@ app = core.App()
 distribution_stack = DistributionStack(app, "DistributionStack")
 
 bucket_arn = distribution_stack.s3.bucket.bucket_arn
-distribution_id = distribution_stack.cloudfront.cloudfront.distribution_id
+distribution_id = distribution_stack.cloudfront.distribution.distribution_id
 arn_components = core.ArnComponents(
     resource="distribution/" + distribution_id, service="cloudfront"
 )
