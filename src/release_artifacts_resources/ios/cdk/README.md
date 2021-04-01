@@ -1,6 +1,19 @@
 
 # Release artifacts CDK
 
+Package contains the cdk logic required to create release artifacts for Amplify resources.
+
+## Prerequisite
+
+1. AWS CDK - https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html
+2. Python3
+3. Docker - https://www.docker.com
+
+## Setup
+
+```
+$ cd /path to workspace/amplify-ci-support
+```
 
 To manually create a virtualenv on MacOS and Linux:
 
@@ -27,14 +40,20 @@ Once the virtualenv is activated, you can install the required dependencies.
 $ pip install -r requirements.txt
 ```
 
-At this point you can now synthesize the CloudFormation template for this code.
+Move to the resources cdk folder 
 
 ```
-$ cdk synth
+$ cd src/release_artifacts_resources/ios/cdk
+```
+
+At this point you can list the stacks available
+
+```
+$ cdk ls
 ```
 
 To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
+them to your `requirements.txt` file and rerun the `pip install -r requirements.txt`
 command.
 
 ## Useful commands
@@ -45,4 +64,23 @@ command.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-Enjoy!
+## Stack information
+
+### Distribution stack
+
+Release resources for distribution are declared in the stack named - `DistributionStack`. This include resources like S3 and Cloudfront needed for hosting the release artifacts. This stack should be run only once.
+
+### Credential rotation stack
+
+Resources required for credential rotation are declared in `CredentialRotationStack`. This stack uses `aws_cdk.aws_lambda_python` which requires `Docker` running in your local machine to execute `cdk` commands.
+
+
+## Lint
+
+```
+$ export SRC_ROOT=/path/to/your/workspace/amplify-ci-support
+$ export DIR=$SRC_ROOT/src/release_artifacts_resources/ios/cdk
+$ black --line-length=100 $DIR
+$ isort -sp $SRC_ROOT/.isort.cfg $DIR
+$ flake8 --config $SRC_ROOT/.flake8 $DIR
+```
