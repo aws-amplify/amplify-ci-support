@@ -129,9 +129,9 @@ def get_session_credentials(credentials: Tuple[str, str], *, sts, now=None) -> D
     session_credentials: Dict[str, str] = response["Credentials"]
 
     return {
-        "AWS_ACCESS_KEY_ID": session_credentials["AccessKeyId"],
-        "AWS_SECRET_ACCESS_KEY": session_credentials["SecretAccessKey"],
-        "AWS_SESSION_TOKEN": session_credentials["SessionToken"],
+        "XCF_AWS_ACCESS_KEY_ID": session_credentials["AccessKeyId"],
+        "XCF_AWS_SECRET_ACCESS_KEY": session_credentials["SecretAccessKey"],
+        "XCF_AWS_SESSION_TOKEN": session_credentials["SessionToken"],
     }
 
 
