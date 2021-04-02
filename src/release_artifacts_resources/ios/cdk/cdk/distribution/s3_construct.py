@@ -5,7 +5,7 @@ class S3Construct(core.Construct):
     def __init__(self, scope: core.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        bucket_name = "aws-sdk-ios-release-prod"
+        bucket_name = "aws-sdk-ios-release"
 
         self.bucket = aws_s3.Bucket(
             self,

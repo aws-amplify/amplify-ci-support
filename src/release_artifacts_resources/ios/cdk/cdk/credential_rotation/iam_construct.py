@@ -59,11 +59,6 @@ class IAMConstruct(core.Construct):
             )
         )
 
-        logs_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["cloudwatch:*", "logs:*"], resources=["*"]
-        )
-        self.lambda_role.add_to_policy(logs_policy)
-
         lambda_role_rotate_keys_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["iam:CreateAccessKey", "iam:DeleteAccessKey"],
