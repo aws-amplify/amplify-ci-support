@@ -24,5 +24,5 @@ class S3Construct(core.Construct):
             removal_policy=core.RemovalPolicy.RETAIN,
             server_access_logs_bucket=access_log_bucket,
             versioned=True,
-            encryption=aws_s3.BucketEncryption.S3_MANAGED
+            encryption=aws_s3.BucketEncryption.S3_MANAGED,
         )
