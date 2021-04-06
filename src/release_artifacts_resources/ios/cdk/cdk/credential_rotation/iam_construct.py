@@ -31,11 +31,11 @@ class IAMConstruct(core.Construct):
             role_name="CircleCIReleaseProcessRole",
             max_session_duration=core.Duration.hours(4),
         )
-
+        bucket_resource = bucket_arn + "/aws-sdk-ios/*"
         bucket_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["s3:PutObject"],
-            resources=[bucket_arn],
+            resources=[bucket_resource],
         )
         self.circleci_release_role.add_to_policy(bucket_policy)
 
