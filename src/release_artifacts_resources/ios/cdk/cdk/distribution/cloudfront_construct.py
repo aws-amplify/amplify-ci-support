@@ -13,7 +13,8 @@ class CloudFrontConstruct(core.Construct):
             self,
             "release_artifacts_cloudfront",
             default_behavior=aws_cloudfront.BehaviorOptions(
-                origin=aws_cloudfront_origins.S3Origin(s3_construct.bucket)
+                origin=aws_cloudfront_origins.S3Origin(s3_construct.bucket),
+                viewer_protocol_policy=aws_cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
             ),
         )
 
