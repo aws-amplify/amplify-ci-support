@@ -24,7 +24,7 @@ class MavenPublisher(Project):
 
         build_environment = BuildEnvironment(build_image=self.BUILD_IMAGE, privileged = True, compute_type = ComputeType.LARGE)
 
-        trigger_on_pr_merged = FilterGroup.in_event_of(EventAction.PULL_REQUEST_MERGED).and_base_branch_is(base_branch).and_branch_is(release_branch).and_commit_message_is("chore(release).*")
+        trigger_on_pr_merged = FilterGroup.in_event_of(EventAction.PULL_REQUEST_MERGED).and_base_branch_is(base_branch).and_branch_is(release_branch).and_commit_message_is("release:.*")
             
         super().__init__(scope, id,
             project_name = project_name,
