@@ -20,7 +20,7 @@ class MavenPublisher(Project):
                     buildspec_path,
                     environment_variables = {},
                     base_branch: str = "main",
-                    release_branch: str = "release"):
+                    release_branch: str = "bump_version"):
 
         build_environment = BuildEnvironment(build_image=self.BUILD_IMAGE, privileged = True, compute_type = ComputeType.LARGE)
 
