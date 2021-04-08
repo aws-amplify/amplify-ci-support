@@ -51,7 +51,7 @@ Note that these steps do each take a _while_.
 ```console
 list=$(cdk list 2>/dev/null | xargs)
 cdk synth $list
-cdk boostrap $list
+cdk deploy $list
 ```
 
 ### Deploying a specific stack

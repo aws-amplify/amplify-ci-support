@@ -1,5 +1,4 @@
 from aws_cdk import aws_iam, core
-
 from common.common_stack import CommonStack
 from common.region_aware_stack import RegionAwareStack
 
@@ -14,7 +13,7 @@ class ElbStack(RegionAwareStack):
             effect=aws_iam.Effect.ALLOW,
             actions=[
                 "elasticloadbalancing:DescribeAccountLimits",
-                "elasticloadbalancing:DescribeLoadBalancers"
+                "elasticloadbalancing:DescribeLoadBalancers",
             ],
             resources=["*"],
         )

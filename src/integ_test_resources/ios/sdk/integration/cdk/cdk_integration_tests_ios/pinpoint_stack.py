@@ -1,5 +1,4 @@
 from aws_cdk import aws_iam, aws_pinpoint, core
-
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
@@ -17,7 +16,9 @@ class PinpointStack(RegionAwareStack):
         self._parameters_to_save["app_id"] = pinpoint_app.ref
 
         legacy_mobileanalytics_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["mobileanalytics:PutEvents"], resources=["*"],
+            effect=aws_iam.Effect.ALLOW,
+            actions=["mobileanalytics:PutEvents"],
+            resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=legacy_mobileanalytics_policy)
 

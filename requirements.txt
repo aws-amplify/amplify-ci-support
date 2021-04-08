@@ -1,4 +1,6 @@
 aws_cdk.aws_apigateway
+aws_cdk.aws_cloudfront
+aws_cdk.aws_cloudfront_origins
 aws_cdk.aws_cloudtrail
 aws_cdk.aws_cloudwatch
 aws_cdk.aws_codebuild
@@ -10,6 +12,7 @@ aws_cdk.aws_iot
 aws_cdk.aws_kinesis
 aws_cdk.aws_kinesisfirehose
 aws_cdk.aws_kms
+aws_cdk.aws_lambda_python
 aws_cdk.aws_logs
 aws_cdk.aws_pinpoint
 aws_cdk.aws_s3
