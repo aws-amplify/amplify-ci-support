@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 from time import sleep
 from typing import Dict, Tuple
-
+import cdk.credential_rotation.utils.lambda_constants as lambda_constants
 import boto3
 import requests
 
@@ -32,10 +32,14 @@ SESSION_DURATION_SECONDS = 14400  # 4 hours
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
 # Per-project configuration
-CIRCLECI_CONFIG_SECRET = os.environ.get("CIRCLECI_CONFIG_SECRET")
-CIRCLECI_EXECUTION_ROLE = os.environ.get("CIRCLECI_EXECUTION_ROLE")
-IAM_USERNAME = os.environ.get("IAM_USERNAME")
-GITHUB_PROJECT_PATH = os.environ.get("GITHUB_PROJECT_PATH")
+CIRCLECI_CONFIG_SECRET = os.environ.get(lambda_constants.CIRCLECI_CONFIG_SECRET_ENV)
+CIRCLECI_EXECUTION_ROLE = os.environ.get(lambda_constants.CIRCLECI_EXECUTION_ROLE_ENV)
+IAM_USERNAME = os.environ.get(lambda_constants.IAM_USERNAME_ENV)
+GITHUB_PROJECT_PATH = os.environ.get(lambda_constants.GITHUB_PROJECT_PATH_ENV)
+GITHUB_CREDENTIALS_SECRET = os.environ.get(lambda_constants.GITHUB_CREDENTIALS_SECRET_ENV)
+
+RELEASE_BUCKET_NAME = os.environ.get(lambda_constants.RELEASE_BUCKET_NAME_ENV)
+RELEASE_CLOUDFRONT_DISTRIBUTION_ID = os.environ.get(lambda_constants.RELEASE_CLOUDFRONT_DISTRIBUTION_ID_ENV)
 
 random.seed()
 
@@ -43,20 +47,33 @@ random.seed()
 def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     iam_client = iam or boto3.client("iam", region_name=REGION)
     secretsmanager_client = secretsmanager or boto3.client("secretsmanager", region_name=REGION)
-
+    circleci_api_token = get_secret_value(
+            CIRCLECI_CONFIG_SECRET, secretsmanager=secretsmanager_client
+        )
     user_credentials: Tuple[str, str] = ()
     try:
         user_credentials = create_user_credentials(IAM_USERNAME, iam=iam_client)
         wait_for_user_credentials()
         session_credentials = get_session_credentials(user_credentials, sts=sts)
-        circleci_api_token = get_secret_value(
-            CIRCLECI_CONFIG_SECRET, secretsmanager=secretsmanager_client
-        )
         update_env_vars(session_credentials, circleci_api_token, GITHUB_PROJECT_PATH)
     finally:
         if user_credentials:
             iam_client.delete_access_key(UserName=IAM_USERNAME, AccessKeyId=user_credentials[0])
+    update_bucket_cloudfront_info(circleci_api_token)
+    update_github_credentials(secretsmanager, circleci_api_token)
 
+def update_github_credentials(secretsmanager, circleci_api_token):
+    github_credentials = get_secret_value(
+        GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager
+        )
+    github_user = github_credentials["GITHUB_SPM_RELEASE_USER"]
+    github_token = github_credentials["GITHUB_SPM_RELEASE_TOKEN"]
+    update("GITHUB_SPM_RELEASE_USER", github_user)
+    update("GITHUB_SPM_RELEASE_TOKEN", github_token)
+
+def update_bucket_cloudfront_info(circleci_api_token):
+    update("XCF_RELEASE_BUCKET", RELEASE_BUCKET_NAME)
+    update("XCF_RELEASE_DISTRIBUTION_ID", RELEASE_CLOUDFRONT_DISTRIBUTION_ID)
 
 def create_user_credentials(username: str, *, iam) -> Tuple[str, str]:
     response = iam.create_access_key(UserName=username)
@@ -153,23 +170,22 @@ def update_env_vars(
     url = CIRCLECI_URL_TEMPLATE.format(project_path=project_path)
     headers = {"Circle-Token": token}
 
-    @retry(max_attempts=max_attempts, max_wait=max_wait, log=log)
-    def update(env_var_name: str, env_var_value: str) -> None:
-        payload = {"name": env_var_name, "value": env_var_value}
-        response = requests.post(url, json=payload, headers=headers)
-        if not is_successful_response(response):
-            safe_content = response.text.replace(env_var_value, "*" * len(env_var_value))
-
-            raise RuntimeError(
-                "Could not update env var "
-                + f"key={env_var_name} "
-                + f"status_code={response.status_code} "
-                + f"body={safe_content}"
-            )
-
     for key, value in temporary_credentials.items():
         update(key, value)
 
+@retry(max_attempts=max_attempts, max_wait=max_wait, log=log)
+def update(env_var_name: str, env_var_value: str) -> None:
+    payload = {"name": env_var_name, "value": env_var_value}
+    response = requests.post(url, json=payload, headers=headers)
+    if not is_successful_response(response):
+        safe_content = response.text.replace(env_var_value, "*" * len(env_var_value))
+
+        raise RuntimeError(
+            "Could not update env var "
+            + f"key={env_var_name} "
+            + f"status_code={response.status_code} "
+            + f"body={safe_content}"
+        )
 
 def is_successful_response(response):
     return response.status_code == 200 or response.status_code == 201

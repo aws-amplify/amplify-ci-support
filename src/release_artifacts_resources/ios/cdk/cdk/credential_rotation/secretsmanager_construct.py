@@ -15,10 +15,18 @@ class SecretsManagerConstruct(core.Construct):
             description="CircleCI API key used by credential rotator lambda",
             secret_name=constants.CIRCLECI_API_KEY,
         )
+        self.github_release_api_key = aws_secretsmanager.Secret(
+            self,
+            "github_release_api_key",
+            description="GitHub username and API token for CircleCI to access the aws-sdk-ios-spm repo to post PRs, merge from release to main",
+            secret_name=constants.GITHUB_SPM_RELEASE_API_TOKEN,
+        )
 
         lambda_role_get_secret_policy = aws_iam.PolicyStatement(
             effect=aws_iam.Effect.ALLOW,
             actions=["secretsmanager:GetSecretValue"],
-            resources=[self.circleci_api_key.secret_full_arn],
+            resources=[
+                self.circleci_api_key.secret_full_arn, 
+                self.github_release_api_key.secret_full_arn],
         )
         iam_construct.add_policy_to_lambda_role(lambda_role_get_secret_policy)

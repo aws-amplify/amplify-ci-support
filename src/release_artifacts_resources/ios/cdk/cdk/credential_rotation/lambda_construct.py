@@ -1,6 +1,7 @@
 import cdk.credential_rotation.utils.lambda_constants as lambda_constants
 from aws_cdk import aws_lambda, aws_lambda_python, core
 from cdk.credential_rotation.iam_construct import IAMConstruct
+from cdk.credential_rotation.secretsmanager_construct import SecretsManagerConstruct
 
 
 class LambdaConstruct(core.Construct):
@@ -8,8 +9,10 @@ class LambdaConstruct(core.Construct):
         self,
         scope: core.Construct,
         construct_id: str,
+        bucket_name: str,
+        cloudfront_distribution_id: str,
         iam_construct: IAMConstruct,
-        secret_arn: str,
+        secretsmanager_construct: SecretsManagerConstruct,
         **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -28,7 +31,13 @@ class LambdaConstruct(core.Construct):
             ),
         )
         self.credential_rotator.add_environment(
-            lambda_constants.CIRCLECI_CONFIG_SECRET_ENV, secret_arn
+            lambda_constants.CIRCLECI_CONFIG_SECRET_ENV, 
+            secretsmanager_construct.circleci_api_key.secret_full_arn
+        )
+
+        self.credential_rotator.add_environment(
+            lambda_constants.GITHUB_CREDENTIALS_SECRET_ENV, 
+            secretsmanager_construct.github_release_api_key.secret_full_arn
         )
 
         self.credential_rotator.add_environment(
@@ -42,4 +51,12 @@ class LambdaConstruct(core.Construct):
 
         self.credential_rotator.add_environment(
             lambda_constants.GITHUB_PROJECT_PATH_ENV, "aws-amplify/aws-sdk-ios"
+        )
+
+        self.credential_rotator.add_environment(
+            lambda_constants.RELEASE_BUCKET_NAME_ENV, bucket_name
+        )
+
+        self.credential_rotator.add_environment(
+            lambda_constants.RELEASE_CLOUDFRONT_DISTRIBUTION_ID_ENV, cloudfront_distribution_id
         )
