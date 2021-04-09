@@ -5,8 +5,6 @@ platform :android do |options|
   gradle_properties_path = File.expand_path("#{Dir.pwd()}/../../gradle.properties")
   gradle_project_root = File.dirname(gradle_properties_path)
   change_log_path = "#{gradle_project_root}/CHANGELOG.md"
-  main_readme_path = "#{gradle_project_root}/README.md"
-  rx_readme_path = "#{gradle_project_root}/rxbindings/README.md"
   version_regex = /(\d*)\.(\d*)\.(\d*)(?:-unstable\.)?(\d*)?/
   pr_body = %Q(
 ## Release PR review checklist
@@ -25,10 +23,35 @@ platform :android do |options|
     sh('git', 'config', 'user.name', options[:git_user_name])
   end
 
+  # This lane is used to perform tasks necessary to create a PR for a release
+  # of an Android-based library. To execute from your project, add the following to your
+  # Fastfile:
+  # 
+  # ```
+  # import_from_git(
+  #     url: 'git@github.com:aws-amplify/amplify-ci-support.git',
+  #     branch: 'android/fastlane-actions',
+  #     path: './src/fastlane/release_actions/fastlane/AndroidAppsFastfile'
+  # )
+  # ```
+  # 
+  # To execute, run the following command from the directory where your Gemfile is located:
+  # `bundle exec fastlane android create_next_release_pr repo:myrepos/myandroidlib product_name:"My awesome library" docfiles_to_update:"README.md" dryrun:`
+  # Options:
+  #   repo: Github repo in the owner/repo_name format.
+  #   product_name: Friendly name of the library you're releasing. This will be used in PRs and release notes 
+  #   docfiles_to_update: any text files containing code blocks that show users how to add gradle dependencies on your libraries.
+  #                       A regex replacement will be applied that will replace anything matching `implementation 'package_name:module_name:current_version'`
+  #                       with `implementation 'package_name:module_name:new_version'`.
+  #   dryrun: useful for testing localy. It runs the different steps but does not commit changes or creates the PR. Be sure to 
+  #           pass this parameter with a colon at the end (without a value afterwards). See sample above.
   lane :create_next_release_pr do |options|
     # This will be used in the commit and PR title
     product_name = options[:product_name]
     maven_group_name = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
+    docfiles_to_update = options.has_key?(:docfiles_to_update) ? options[:docfiles_to_update].split(' ') : []
+    files_to_commit = [gradle_properties_path, change_log_path]
+    
     # Find the tag for the last release
     last_release_tag = last_git_tag(pattern: "#{RELEASE_TAG_PREFIX}*")
     last_version = last_release_tag.dup
@@ -51,13 +74,17 @@ platform :android do |options|
     # Update gradle.properties with the new version
     update_gradle_properties(version: next_version)
     # Update the version in the README.md file
-    update_docs(file_path:main_readme_path, version: next_version, maven_group_name:maven_group_name)
-    update_docs(file_path:rx_readme_path, version: next_version, maven_group_name:maven_group_name)
-
+    docfiles_to_update.each { |file_path| 
+      UI.message("Updating doc file #{file_path}")
+      full_path = "#{gradle_project_root}/#{file_path}"
+      update_docs(file_path:full_path, version: next_version, maven_group_name:maven_group_name)
+      files_to_commit << full_path
+    }
+    
     if !options.has_key?(:dryrun)
       # Commit and push those changes to the branch we're using to do the version bump.
-      git_add(path: [gradle_properties_path, change_log_path, main_readme_path, rx_readme_path])
-      git_commit(path: [gradle_properties_path, change_log_path, main_readme_path, rx_readme_path], message: "release: #{product_name} - #{next_version}")
+      git_add(path: files_to_commit)
+      git_commit(path: files_to_commit, message: "release: #{product_name} - #{next_version}")
       push_to_git_remote(force: true)
 
       # Create the PR for the new release
