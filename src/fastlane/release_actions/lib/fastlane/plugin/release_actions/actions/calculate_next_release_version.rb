@@ -10,7 +10,7 @@ module Fastlane
     class CalculateNextReleaseVersionAction < Action
       def self.run(params)
         release_tag_prefix = params[:release_tag_prefix]
-        last_tag = params[:from_tag] != nil ? params[:from_tag] : Git.last_release_tag
+        last_tag = params[:from_tag].nil? ? params[:from_tag] : Git.last_release_tag
         version = Version.from(last_tag, release_tag_prefix)
         messages = Git.log(last_tag)
         commits = Commits.from(messages)

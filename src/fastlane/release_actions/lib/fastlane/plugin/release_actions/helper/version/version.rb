@@ -15,7 +15,7 @@ class Version
   # return the semantic version.
   def self.from(tag, tag_prefix = 'v')
     if tag.start_with?(tag_prefix)
-      new(tag[tag_prefix.length..-1]) 
+      new(tag[tag_prefix.length..-1])
     else
       new(tag)
     end
