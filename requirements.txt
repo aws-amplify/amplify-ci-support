@@ -21,3 +21,4 @@ aws_cdk.core
 black
 boto3
 isort
+flake8

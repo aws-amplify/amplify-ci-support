@@ -17,12 +17,12 @@ arn_components = core.ArnComponents(
 cloudfront_arn = core.Arn.format(components=arn_components, stack=distribution_stack)
 
 credential_rotation_stack = CredentialRotationStack(
-    app, 
+    app,
     "CredentialRotationStack",
-    bucket_name=bucket_name, 
-    bucket_arn=bucket_arn, 
-    cloudfront_distribution_id = cloudfront_distribution_id,
-    cloudfront_arn=cloudfront_arn
+    bucket_name=bucket_name,
+    bucket_arn=bucket_arn,
+    cloudfront_distribution_id=cloudfront_distribution_id,
+    cloudfront_arn=cloudfront_arn,
 )
 
 app.synth()

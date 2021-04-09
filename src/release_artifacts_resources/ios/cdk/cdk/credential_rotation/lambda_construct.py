@@ -31,13 +31,13 @@ class LambdaConstruct(core.Construct):
             ),
         )
         self.credential_rotator.add_environment(
-            lambda_constants.CIRCLECI_CONFIG_SECRET_ENV, 
-            secretsmanager_construct.circleci_api_key.secret_full_arn
+            lambda_constants.CIRCLECI_CONFIG_SECRET_ENV,
+            secretsmanager_construct.circleci_api_key.secret_full_arn,
         )
 
         self.credential_rotator.add_environment(
-            lambda_constants.GITHUB_CREDENTIALS_SECRET_ENV, 
-            secretsmanager_construct.github_release_api_key.secret_full_arn
+            lambda_constants.GITHUB_CREDENTIALS_SECRET_ENV,
+            secretsmanager_construct.github_release_api_key.secret_full_arn,
         )
 
         self.credential_rotator.add_environment(
