@@ -8,7 +8,7 @@ module Fastlane
       def self.run(params)
         release_tag_prefix = params[:release_tag_prefix]
         prerelease_identifier = params[:prerelease_identifier]
-        last_tag = params[:from_tag].nil? ? params[:from_tag] : Git.last_tag
+        last_tag = params[:from_tag].nil? ? Git.last_tag : params[:from_tag]
         version = Version.from(last_tag, release_tag_prefix)
         if version.prerelease?
           version = version.bump_prerelease
