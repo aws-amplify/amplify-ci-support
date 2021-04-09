@@ -62,7 +62,7 @@ platform :android do |options|
     # Build the tag name for the new release
     release_tag_name = "#{RELEASE_TAG_PREFIX}#{next_version}"
 
-    UI.message("Version change #{last_release_tag} => #{next_version}")
+    UI.message("Version change #{last_version} => #{next_version}")
 
     # Get the changelog body and append to the change log.
     changelog_body = generate_changelog(last_release_tag: last_release_tag)
