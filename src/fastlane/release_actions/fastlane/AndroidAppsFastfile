@@ -118,7 +118,6 @@ platform :android do |options|
          Commit message: #{commit_slug}
                PR title: #{pr_title}
                 PR body: #{pr_body}
-        Github releases: #{github_releases}
       )
       UI.message(dryrun_warning)
     else
@@ -158,7 +157,7 @@ platform :android do |options|
     # Build the tag name for the new release
     release_tag_name = "#{release_tag_prefix}#{next_version}"
 
-    UI.message("Version change #{last_release_tag} => #{next_version}")
+    UI.message("Version change #{last_version} => #{next_version}")
 
     # Get the changelog body and append to the change log.
     changelog_body = generate_changelog(last_release_tag: last_release_tag)
