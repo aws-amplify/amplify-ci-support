@@ -1,12 +1,8 @@
-RELEASE_TAG_PREFIX = 'release_v'
 default_platform(:android)
 
 platform :android do |options|
-  gradle_properties_path = File.expand_path("#{Dir.pwd()}/../../gradle.properties")
-  gradle_project_root = File.dirname(gradle_properties_path)
-  change_log_path = "#{gradle_project_root}/CHANGELOG.md"
   version_regex = /(\d*)\.(\d*)\.(\d*)(?:-unstable\.)?(\d*)?/
-  pr_body = %Q(
+  pr_body_checklist = %Q(
 ## Release PR review checklist
 - [ ] Verify version name in gradle.properties
 - [ ] Verify CHANGELOG.md
@@ -16,6 +12,34 @@ platform :android do |options|
   before_all do 
     sh('git', 'fetch', '--tags')
     sh('git', 'fetch')
+  end
+
+  # Overridable lane that that allows for mapping of tag prefixes to gradle.properties files
+  # Intended for multi-project setups where certain subprojects may be versioned
+  # differently. Each consuming app should return a hash with the following data:
+  # {
+  #   repo: 'repo_owner/repo_name',
+  #   product_name: 'My awesome library',
+  #   releases: [
+  #     {
+  #       release_tag_prefix: 'release_v',
+  #       gradle_properties_path: "#{project_root}/gradle.properties",
+  #       doc_files_to_update: ["#{project_root}/README.md", "#{project_root}/rxbindings/README.md"],
+  #       release_title: 'My main library',
+  #       changelog_path: "#{project_root}/CHANGELOG.md",
+  #     },
+  #     {
+  #       release_tag_prefix: 'release-somethingelse_v',
+  #       gradle_properties_path: "#{project_root}/somethingelse/gradle.properties",
+  #       doc_files_to_update: [],
+  #       release_title: 'Amplify Android Kotlin Facade',
+  #       changelog_path: "#{project_root}/somethingelse/CHANGELOG.md",
+  #     }
+  #   ]
+  # }
+  #   
+  lane :build_parameters do
+    raise ":build_parameters lane must be overridden in the consuming app's Fastfile."
   end
 
   lane :configure_git_options do |options|
@@ -36,75 +60,131 @@ platform :android do |options|
   # ```
   # 
   # To execute, run the following command from the directory where your Gemfile is located:
-  # `bundle exec fastlane android create_next_release_pr repo:myrepos/myandroidlib product_name:"My awesome library" docfiles_to_update:"README.md" dryrun:`
-  # Options:
-  #   repo: Github repo in the owner/repo_name format.
-  #   product_name: Friendly name of the library you're releasing. This will be used in PRs and release notes 
-  #   docfiles_to_update: any text files containing code blocks that show users how to add gradle dependencies on your libraries.
-  #                       A regex replacement will be applied that will replace anything matching `implementation 'package_name:module_name:current_version'`
-  #                       with `implementation 'package_name:module_name:new_version'`.
-  #   dryrun: useful for testing localy. It runs the different steps but does not commit changes or creates the PR. Be sure to 
+  # `bundle exec fastlane android create_next_release_pr dryrun:`
+  #     dryrun: useful for testing localy. It runs the different steps but does not commit changes or creates the PR. Be sure to 
   #           pass this parameter with a colon at the end (without a value afterwards). See sample above.
+  # files_to_commit = []
+  github_releases = []
   lane :create_next_release_pr do |options|
-    # This will be used in the commit and PR title
-    product_name = options[:product_name]
+    is_dryrun = options.has_key?(:dryrun)
+
+    product_name = build_parameters[:product_name]
+    repo = build_parameters[:repo]
+
+    pr_title = nil
+    commit_slug = nil
+    pr_body_details = []
+    files_to_commit = []
+    build_parameters[:releases].each do |params| 
+      release_title = params[:release_title]
+
+      result = execute_changes_locally(params)
+      next_version = result[:next_version]
+      release_tag_name = result[:release_tag_name]
+      changelog_body = result[:changelog_body]
+      files_to_commit += result[:files_to_commit]
+
+      # We have to create separate Github releases for different products.
+      # They can share one commit and the same PR, but if they have 
+      # different versions, they should have different releases.
+      github_releases << {
+        repository_name: repo,
+        api_token: ENV["RELEASE_MANAGER_TOKEN"],
+        name: "#{release_title} #{next_version}",
+        tag_name: release_tag_name,
+        description: changelog_body,
+        is_draft: true
+      }
+
+      pr_title = "#{product_name} #{next_version}" unless !pr_title.nil?
+      commit_slug = "release: #{product_name} #{next_version}" unless !commit_slug.nil?
+      pr_body_details << "#{product_name} #{next_version}"
+    end
+
+    pr_body = %Q(
+      #{pr_body_checklist}
+
+      ## Module versions
+
+      #{pr_body_details.join('\\n')}
+    )
+
+    if is_dryrun
+      dryrun_warning = %Q(
+        RUNNING IN DRYRUN MODE - NOT PUSHING CHANGES OR CREATING PRs and RELEASES.
+
+        The following would have happened:
+        Files committed: #{files_to_commit}
+         Commit message: #{commit_slug}
+               PR title: #{pr_title}
+                PR body: #{pr_body}
+        Github releases: #{github_releases}
+      )
+      UI.message(dryrun_warning)
+    else
+      git_add(path: files_to_commit)
+      git_commit(path: files_to_commit, message: commit_slug)
+      push_to_git_remote(force: true)
+      # Create the PR for the new release
+      create_pull_request(base: 'main', 
+        title: pr_title,
+        body: pr_body,
+        repo: repo, 
+        api_token: ENV["RELEASE_MANAGER_TOKEN"]
+      )
+      # Create the new Github releases in draft status. This will be updated manually after the binaries get pushed to Maven.
+      github_releases.each do |github_release|
+        set_github_release(github_release)
+      end
+    end
+  end
+
+  private_lane :execute_changes_locally do |options|
     maven_group_name = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
-    docfiles_to_update = options.has_key?(:docfiles_to_update) ? options[:docfiles_to_update].split(' ') : []
-    files_to_commit = [gradle_properties_path, change_log_path]
+    doc_files_to_update = options.has_key?(:doc_files_to_update) ? options[:doc_files_to_update] : []
+    product_name = options[:product_name]
+    release_tag_prefix = options[:release_tag_prefix]
+    gradle_properties_path = options[:gradle_properties_path]
+    changelog_path = options[:changelog_path]
+    files_to_commit = [gradle_properties_path] 
     
     # Find the tag for the last release
-    last_release_tag = last_git_tag(pattern: "#{RELEASE_TAG_PREFIX}*")
+    last_release_tag = last_git_tag(pattern: "#{release_tag_prefix}*")
     last_version = last_release_tag.dup
-    last_version.slice! "#{RELEASE_TAG_PREFIX}"
+    last_version.slice! "#{release_tag_prefix}"
 
     # Calculate the next version
-    next_version, commits = calculate_next_release_version(release_tag_prefix: RELEASE_TAG_PREFIX, from_tag: last_release_tag)
+    next_version, commits = calculate_next_release_version(release_tag_prefix: release_tag_prefix, from_tag: last_release_tag)
     # Build the tag name for the new release
-    release_tag_name = "#{RELEASE_TAG_PREFIX}#{next_version}"
+    release_tag_name = "#{release_tag_prefix}#{next_version}"
 
     UI.message("Version change #{last_release_tag} => #{next_version}")
 
     # Get the changelog body and append to the change log.
     changelog_body = generate_changelog(last_release_tag: last_release_tag)
-    update_change_log(
+    update_changelog(
+      changelog_path: changelog_path,
       changelog_body: changelog_body,
+      release_tag_prefix: release_tag_prefix,
       last_version: last_version,
       next_version: next_version,
       repo: options[:repo])
+    files_to_commit << changelog_path
     # Update gradle.properties with the new version
-    update_gradle_properties(version: next_version)
+    update_gradle_properties(version: next_version, gradle_properties_path: gradle_properties_path)
     # Update the version in the README.md file
-    docfiles_to_update.each { |file_path| 
+    doc_files_to_update.each { |file_path| 
       UI.message("Updating doc file #{file_path}")
-      full_path = "#{gradle_project_root}/#{file_path}"
-      update_docs(file_path:full_path, version: next_version, maven_group_name:maven_group_name)
-      files_to_commit << full_path
+      update_docs(file_path:file_path, version: next_version, maven_group_name:maven_group_name)
+      files_to_commit << file_path
     }
-    
-    if !options.has_key?(:dryrun)
-      # Commit and push those changes to the branch we're using to do the version bump.
-      git_add(path: files_to_commit)
-      git_commit(path: files_to_commit, message: "release: #{product_name} - #{next_version}")
-      push_to_git_remote(force: true)
-
-      # Create the PR for the new release
-      create_pull_request(base: 'main', 
-                          title: "release: #{next_version}",
-                          body:pr_body, 
-                          repo: options[:repo], 
-                          api_token: ENV["RELEASE_MANAGER_TOKEN"])
-
-      # Create the new Github release in draft status. This will be updated manually after the binaries get pushed to Maven.
-      set_github_release(
-        repository_name: options[:repo],
-        api_token: ENV["RELEASE_MANAGER_TOKEN"],
-        name: "#{product_name} #{next_version}",
-        tag_name: release_tag_name,
-        description: changelog_body,
-        is_draft: true)
-    else
-      UI.message("RUNNING IN DRYRUN MODE - NOT COMMITING OR CREATING PR")
-    end
+    # Return these values to the main lane.
+    {
+      files_to_commit: files_to_commit,
+      release_tag_name: release_tag_name,
+      next_version: next_version,
+      changelog_body: changelog_body
+    }
   end
 
   # Updates the version numbers in the README.md
@@ -139,7 +219,7 @@ platform :android do |options|
     # next release, the version calculated by analyze_commit would be 1.1.7. We'll just use the version number we
     # get from calculate_next_release_version. We'll use semantic_release for generating the change log since it has
     # a richer feature set.
-    isReleasable = analyze_commits(match: "#{options[:last_release_tag]}", codepush_friendly:[], releases: releases)
+    analyze_commits(match: "#{options[:last_release_tag]}", codepush_friendly:[], releases: releases)
     
     # We won't display the title generated by conventional_changelog because it will have the 
     # incorrect version.
@@ -155,12 +235,12 @@ platform :android do |options|
   end
   
   desc "Append the changes to the CHANGELOG file."
-  private_lane :update_change_log do |options|
-    open(change_log_path, 'a') { |f|
+  private_lane :update_changelog do |options|
+    open(options[:changelog_path], 'a') { |f|
       f.puts "# Release #{options[:next_version]}\n\n"
       f.puts "#{options[:changelog_body]}\n\n"
-      last_version_tag = "#{RELEASE_TAG_PREFIX}#{options[:last_version]}"
-      next_version_tag = "#{RELEASE_TAG_PREFIX}#{options[:next_version]}"
+      last_version_tag = "#{options[:release_tag_prefix]}#{options[:last_version]}"
+      next_version_tag = "#{options[:release_tag_prefix]}#{options[:next_version]}"
       compare_tags = "#{last_version_tag}...#{next_version_tag}"
       diff_text = "See all changes between #{options[:last_version]} and #{options[:next_version]}"
       diff_link = "https://github.com/#{options[:repo]}/compare/#{compare_tags}"
@@ -173,6 +253,6 @@ platform :android do |options|
     version = options[:version].to_s
     segments = version.match(version_regex).captures # version.split('.')
     UI.message("Updating versionName in gradle.properties")
-    set_key_value(file: gradle_properties_path, key: 'VERSION_NAME', value: version)
+    set_key_value(file: options[:gradle_properties_path], key: 'VERSION_NAME', value: version)
   end
 end
