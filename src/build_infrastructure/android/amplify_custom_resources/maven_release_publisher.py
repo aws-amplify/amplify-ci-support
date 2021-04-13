@@ -20,20 +20,28 @@ class MavenPublisher(Project):
                     buildspec_path,
                     environment_variables = {},
                     base_branch: str = "main",
-                    release_branch: str = "bump_version"):
+                    release_branch: str = "bump_version",
+                    create_webhooks = False):
 
         build_environment = BuildEnvironment(build_image=self.BUILD_IMAGE, privileged = True, compute_type = ComputeType.LARGE)
 
         trigger_on_pr_merged = FilterGroup.in_event_of(EventAction.PULL_REQUEST_MERGED).and_base_branch_is(base_branch).and_branch_is(release_branch).and_commit_message_is("release:.*")
+
+        if create_webhooks:
+            github_source = Source.git_hub(owner = github_owner,
+                                            report_build_status = True,
+                                            repo = github_repo,
+                                            webhook = True,
+                                            webhook_filters = [trigger_on_pr_merged])
+        else:
+            github_source = Source.git_hub(owner = github_owner,
+                                            report_build_status = True,
+                                            repo = github_repo)
             
         super().__init__(scope, id,
             project_name = project_name,
             environment_variables = environment_variables,
             build_spec=BuildSpec.from_source_filename(buildspec_path),
             badge = True,
-            source = Source.git_hub(owner = github_owner,
-                                    report_build_status = True,
-                                    repo = github_repo, 
-                                    webhook = True,
-                                    webhook_filters = [trigger_on_pr_merged]),
+            source = github_source,
             environment = build_environment)

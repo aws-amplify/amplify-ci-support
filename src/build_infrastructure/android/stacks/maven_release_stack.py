@@ -19,10 +19,13 @@ class MavenReleaseStack(core.Stack):
         owner = github_source['owner']
         repo = github_source['repo']
         base_branch = github_source['base_branch']
+        buildspec_path = props['buildspec_path'] if 'buildspec_path' in props else "scripts/maven-release-publisher.yml"
+        create_webhooks = props['create_webhooks']
 
 
         MavenPublisher(self, "ReleasePublisher", project_name=f"{codebuild_project_name_prefix}-ReleasePublisher",
                                                    github_owner=owner, 
                                                    github_repo=repo, 
                                                    base_branch=base_branch,
-                                                   buildspec_path="scripts/maven-release-publisher.yml")
+                                                   buildspec_path=buildspec_path,
+                                                   create_webhooks=create_webhooks)
