@@ -100,14 +100,13 @@ platform :android do |options|
       commit_slug = "release: #{product_name} #{next_version}" unless !commit_slug.nil?
       pr_body_details << "#{product_name} #{next_version}"
     end
-
-    pr_body = %Q(
+    pr_body = <<~END
       #{pr_body_checklist}
 
       ## Module versions
 
       #{pr_body_details.join('\\n')}
-    )
+    END
 
     if is_dryrun
       dryrun_warning = %Q(
