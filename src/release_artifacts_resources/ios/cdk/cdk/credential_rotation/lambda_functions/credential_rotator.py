@@ -5,7 +5,7 @@ from time import sleep
 from typing import Dict, Tuple
 
 import boto3
-import cdk.credential_rotation.utils.lambda_constants as lambda_constants
+import json
 import requests
 
 # Common configurations for all projects
@@ -33,16 +33,14 @@ SESSION_DURATION_SECONDS = 14400  # 4 hours
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
 # Per-project configuration
-CIRCLECI_CONFIG_SECRET = os.environ.get(lambda_constants.CIRCLECI_CONFIG_SECRET_ENV)
-CIRCLECI_EXECUTION_ROLE = os.environ.get(lambda_constants.CIRCLECI_EXECUTION_ROLE_ENV)
-IAM_USERNAME = os.environ.get(lambda_constants.IAM_USERNAME_ENV)
-GITHUB_PROJECT_PATH = os.environ.get(lambda_constants.GITHUB_PROJECT_PATH_ENV)
-GITHUB_CREDENTIALS_SECRET = os.environ.get(lambda_constants.GITHUB_CREDENTIALS_SECRET_ENV)
+CIRCLECI_CONFIG_SECRET = os.environ.get("CIRCLECI_CONFIG_SECRET")
+CIRCLECI_EXECUTION_ROLE = os.environ.get("CIRCLECI_EXECUTION_ROLE")
+IAM_USERNAME = os.environ.get("IAM_USERNAME")
+GITHUB_PROJECT_PATH = os.environ.get("GITHUB_PROJECT_PATH")
+GITHUB_CREDENTIALS_SECRET = os.environ.get("GITHUB_CREDENTIALS_SECRET")
 
-RELEASE_BUCKET_NAME = os.environ.get(lambda_constants.RELEASE_BUCKET_NAME_ENV)
-RELEASE_CLOUDFRONT_DISTRIBUTION_ID = os.environ.get(
-    lambda_constants.RELEASE_CLOUDFRONT_DISTRIBUTION_ID_ENV
-)
+RELEASE_BUCKET_NAME = os.environ.get("RELEASE_BUCKET_NAME")
+RELEASE_CLOUDFRONT_DISTRIBUTION_ID = os.environ.get("RELEASE_CLOUDFRONT_DISTRIBUTION_ID")
 
 random.seed()
 
@@ -63,11 +61,12 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         if user_credentials:
             iam_client.delete_access_key(UserName=IAM_USERNAME, AccessKeyId=user_credentials[0])
     update_bucket_cloudfront_info(circleci_api_token)
-    update_github_credentials(secretsmanager, circleci_api_token)
+    update_github_credentials(secretsmanager_client, circleci_api_token)
 
 
 def update_github_credentials(secretsmanager, circleci_api_token):
-    github_credentials = get_secret_value(GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager)
+    github_credentials_json = get_secret_value(GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager)
+    github_credentials = json.loads(github_credentials_json)
     github_user = github_credentials["GITHUB_SPM_RELEASE_USER"]
     github_token = github_credentials["GITHUB_SPM_RELEASE_TOKEN"]
     update(
