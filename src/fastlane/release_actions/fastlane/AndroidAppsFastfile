@@ -76,6 +76,7 @@ platform :android do |options|
     pr_body_details = []
     files_to_commit = []
     build_parameters[:releases].each do |params| 
+      params[:repo] = repo
       release_title = params[:release_title]
 
       result = execute_changes_locally(params)
