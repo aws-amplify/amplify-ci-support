@@ -85,7 +85,7 @@ platform :android do |options|
       changelog_body = result[:changelog_body]
       files_to_commit += result[:files_to_commit]
       
-      puts("Token length = #{ENV["RELEASE_MANAGER_TOKEN"].length")
+      puts("Token length = #{ENV["RELEASE_MANAGER_TOKEN"].length}")
       # We have to create separate Github releases for different products.
       # They can share one commit and the same PR, but if they have 
       # different versions, they should have different releases.
