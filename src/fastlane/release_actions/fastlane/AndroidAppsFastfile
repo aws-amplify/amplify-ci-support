@@ -90,7 +90,7 @@ platform :android do |options|
       # different versions, they should have different releases.
       github_releases << {
         repository_name: repo,
-        api_token: ENV["RELEASE_MANAGER_TOKEN"],
+        api_token: ENV["GITHUB_TOKEN"],
         name: "#{release_title} #{next_version}",
         tag_name: release_tag_name,
         description: changelog_body,
@@ -129,7 +129,7 @@ platform :android do |options|
         title: pr_title,
         body: pr_body,
         repo: repo, 
-        api_token: ENV["RELEASE_MANAGER_TOKEN"]
+        api_token: ENV["GITHUB_TOKEN"]
       )
       # Create the new Github releases in draft status. This will be updated manually after the binaries get pushed to Maven.
       github_releases.each do |github_release|
