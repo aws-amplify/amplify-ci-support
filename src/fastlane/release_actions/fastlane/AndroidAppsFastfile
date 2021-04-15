@@ -226,6 +226,7 @@ platform :android do |options|
     conventional_changelog(
       display_title: false,
       display_links: false,
+      order: ["feat", "fix", "no_type"],
       sections: {
          feat: 'Features',
          fix: 'Bug Fixes',
@@ -236,7 +237,8 @@ platform :android do |options|
   
   desc "Append the changes to the CHANGELOG file."
   private_lane :update_changelog do |options|
-    open(options[:changelog_path], 'a') { |f|
+    current_changelog = open(options[:changelog_path],'r').read unless !File.exists?(options[:changelog_path])
+    open(options[:changelog_path], 'w') { |f|
       f.puts "# Release #{options[:next_version]}\n\n"
       f.puts "#{options[:changelog_body]}\n\n"
       last_version_tag = "#{options[:release_tag_prefix]}#{options[:last_version]}"
@@ -245,6 +247,8 @@ platform :android do |options|
       diff_text = "See all changes between #{options[:last_version]} and #{options[:next_version]}"
       diff_link = "https://github.com/#{options[:repo]}/compare/#{compare_tags}"
       f.puts "[#{diff_text}](#{diff_link})"
+      f.puts "\n"
+      f.puts(current_changelog)
     }
   end
 
