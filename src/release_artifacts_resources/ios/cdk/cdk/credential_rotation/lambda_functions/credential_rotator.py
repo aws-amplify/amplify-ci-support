@@ -1,3 +1,4 @@
+import json
 import os
 import random
 from datetime import datetime
@@ -5,7 +6,6 @@ from time import sleep
 from typing import Dict, Tuple
 
 import boto3
-import json
 import requests
 
 # Common configurations for all projects
@@ -51,6 +51,12 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     circleci_api_token = get_secret_value(
         CIRCLECI_CONFIG_SECRET, secretsmanager=secretsmanager_client
     )
+    update_session_credentials(iam_client, sts, circleci_api_token)
+    update_bucket_cloudfront_info(circleci_api_token)
+    update_github_credentials(secretsmanager_client, circleci_api_token)
+
+
+def update_session_credentials(iam_client, sts, circleci_api_token):
     user_credentials: Tuple[str, str] = ()
     try:
         user_credentials = create_user_credentials(IAM_USERNAME, iam=iam_client)
@@ -60,42 +66,27 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     finally:
         if user_credentials:
             iam_client.delete_access_key(UserName=IAM_USERNAME, AccessKeyId=user_credentials[0])
-    update_bucket_cloudfront_info(circleci_api_token)
-    update_github_credentials(secretsmanager_client, circleci_api_token)
 
 
 def update_github_credentials(secretsmanager, circleci_api_token):
-    github_credentials_json = get_secret_value(GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager)
+    github_credentials_json = get_secret_value(
+        GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager
+    )
     github_credentials = json.loads(github_credentials_json)
     github_user = github_credentials["GITHUB_SPM_RELEASE_USER"]
     github_token = github_credentials["GITHUB_SPM_RELEASE_TOKEN"]
-    update(
-        "GITHUB_SPM_RELEASE_USER",
-        github_user,
-        circleci_api_token,
-        GITHUB_PROJECT_PATH
-        )
-    update(
-        "GITHUB_SPM_RELEASE_TOKEN",
-        github_token,
-        circleci_api_token,
-        GITHUB_PROJECT_PATH
-        )
+    update("GITHUB_SPM_RELEASE_USER", github_user, circleci_api_token, GITHUB_PROJECT_PATH)
+    update("GITHUB_SPM_RELEASE_TOKEN", github_token, circleci_api_token, GITHUB_PROJECT_PATH)
 
 
 def update_bucket_cloudfront_info(circleci_api_token):
-    update(
-        "XCF_RELEASE_BUCKET",
-        RELEASE_BUCKET_NAME,
-        circleci_api_token,
-        GITHUB_PROJECT_PATH
-        )
+    update("XCF_RELEASE_BUCKET", RELEASE_BUCKET_NAME, circleci_api_token, GITHUB_PROJECT_PATH)
     update(
         "XCF_RELEASE_DISTRIBUTION_ID",
         RELEASE_CLOUDFRONT_DISTRIBUTION_ID,
         circleci_api_token,
-        GITHUB_PROJECT_PATH
-        )
+        GITHUB_PROJECT_PATH,
+    )
 
 
 def create_user_credentials(username: str, *, iam) -> Tuple[str, str]:
@@ -192,7 +183,7 @@ def update_env_vars(
 
 
 @retry()
-def update(env_var_name: str, env_var_value: str, token: str, project_path):
+def update(env_var_name: str, env_var_value: str, token: str, project_path: str):
     url = CIRCLECI_URL_TEMPLATE.format(project_path=project_path)
     headers = {"Circle-Token": token}
     payload = {"name": env_var_name, "value": env_var_value}
