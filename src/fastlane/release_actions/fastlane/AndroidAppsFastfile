@@ -237,9 +237,10 @@ platform :android do |options|
   
   desc "Append the changes to the CHANGELOG file."
   private_lane :update_changelog do |options|
+    title = "## [Release #{options[:next_version]}](https://github.com/#{options[:repo]}/releases/tag/#{options[:release_tag_prefix]}#{options[:next_version]})"
     current_changelog = open(options[:changelog_path],'r').read unless !File.exists?(options[:changelog_path])
     open(options[:changelog_path], 'w') { |f|
-      f.puts "# Release #{options[:next_version]}\n\n"
+      f.puts "#{title}\n\n"
       f.puts "#{options[:changelog_body]}\n\n"
       last_version_tag = "#{options[:release_tag_prefix]}#{options[:last_version]}"
       next_version_tag = "#{options[:release_tag_prefix]}#{options[:next_version]}"
