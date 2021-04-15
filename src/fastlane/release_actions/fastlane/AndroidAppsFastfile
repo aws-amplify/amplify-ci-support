@@ -84,13 +84,14 @@ platform :android do |options|
       release_tag_name = result[:release_tag_name]
       changelog_body = result[:changelog_body]
       files_to_commit += result[:files_to_commit]
-
+      
+      puts("Token length = #{ENV["RELEASE_MANAGER_TOKEN"].length")
       # We have to create separate Github releases for different products.
       # They can share one commit and the same PR, but if they have 
       # different versions, they should have different releases.
       github_releases << {
         repository_name: repo,
-        api_token: ENV["RELEASE_MANAGER_TOKEN"],
+        api_bearer: ENV["RELEASE_MANAGER_TOKEN"],
         name: "#{release_title} #{next_version}",
         tag_name: release_tag_name,
         description: changelog_body,
@@ -129,7 +130,7 @@ platform :android do |options|
         title: pr_title,
         body: pr_body,
         repo: repo, 
-        api_token: ENV["RELEASE_MANAGER_TOKEN"]
+        api_bearer: ENV["RELEASE_MANAGER_TOKEN"]
       )
       # Create the new Github releases in draft status. This will be updated manually after the binaries get pushed to Maven.
       github_releases.each do |github_release|
