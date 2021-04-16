@@ -10,7 +10,9 @@ class CredentialRotationStack(cdk.Stack):
         self,
         scope: cdk.Construct,
         construct_id: str,
+        bucket_name: str,
         bucket_arn: str,
+        cloudfront_distribution_id: str,
         cloudfront_arn: str,
         **kwargs
     ) -> None:
@@ -24,8 +26,10 @@ class CredentialRotationStack(cdk.Stack):
         lambda_construct = LambdaConstruct(
             self,
             "credential_rotation_lambda",
+            bucket_name=bucket_name,
+            cloudfront_distribution_id=cloudfront_distribution_id,
             iam_construct=iam_construct,
-            secret_arn=secretsmanager_construct.circleci_api_key.secret_full_arn,
+            secretsmanager_construct=secretsmanager_construct,
         )
 
         EventsConstruct(self, "credential_rotation_event", lambda_construct=lambda_construct)

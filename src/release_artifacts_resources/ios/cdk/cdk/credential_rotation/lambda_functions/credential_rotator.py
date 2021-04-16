@@ -1,3 +1,4 @@
+import json
 import os
 import random
 from datetime import datetime
@@ -36,6 +37,10 @@ CIRCLECI_CONFIG_SECRET = os.environ.get("CIRCLECI_CONFIG_SECRET")
 CIRCLECI_EXECUTION_ROLE = os.environ.get("CIRCLECI_EXECUTION_ROLE")
 IAM_USERNAME = os.environ.get("IAM_USERNAME")
 GITHUB_PROJECT_PATH = os.environ.get("GITHUB_PROJECT_PATH")
+GITHUB_CREDENTIALS_SECRET = os.environ.get("GITHUB_CREDENTIALS_SECRET")
+
+RELEASE_BUCKET_NAME = os.environ.get("RELEASE_BUCKET_NAME")
+RELEASE_CLOUDFRONT_DISTRIBUTION_ID = os.environ.get("RELEASE_CLOUDFRONT_DISTRIBUTION_ID")
 
 random.seed()
 
@@ -43,19 +48,45 @@ random.seed()
 def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     iam_client = iam or boto3.client("iam", region_name=REGION)
     secretsmanager_client = secretsmanager or boto3.client("secretsmanager", region_name=REGION)
+    circleci_api_token = get_secret_value(
+        CIRCLECI_CONFIG_SECRET, secretsmanager=secretsmanager_client
+    )
+    update_session_credentials(iam_client, sts, circleci_api_token)
+    update_bucket_cloudfront_info(circleci_api_token)
+    update_github_credentials(secretsmanager_client, circleci_api_token)
 
+
+def update_session_credentials(iam_client, sts, circleci_api_token):
     user_credentials: Tuple[str, str] = ()
     try:
         user_credentials = create_user_credentials(IAM_USERNAME, iam=iam_client)
         wait_for_user_credentials()
         session_credentials = get_session_credentials(user_credentials, sts=sts)
-        circleci_api_token = get_secret_value(
-            CIRCLECI_CONFIG_SECRET, secretsmanager=secretsmanager_client
-        )
         update_env_vars(session_credentials, circleci_api_token, GITHUB_PROJECT_PATH)
     finally:
         if user_credentials:
             iam_client.delete_access_key(UserName=IAM_USERNAME, AccessKeyId=user_credentials[0])
+
+
+def update_github_credentials(secretsmanager, circleci_api_token):
+    github_credentials_json = get_secret_value(
+        GITHUB_CREDENTIALS_SECRET, secretsmanager=secretsmanager
+    )
+    github_credentials = json.loads(github_credentials_json)
+    github_user = github_credentials["GITHUB_SPM_RELEASE_USER"]
+    github_token = github_credentials["GITHUB_SPM_RELEASE_TOKEN"]
+    update("GITHUB_SPM_RELEASE_USER", github_user, circleci_api_token, GITHUB_PROJECT_PATH)
+    update("GITHUB_SPM_RELEASE_TOKEN", github_token, circleci_api_token, GITHUB_PROJECT_PATH)
+
+
+def update_bucket_cloudfront_info(circleci_api_token):
+    update("XCF_RELEASE_BUCKET", RELEASE_BUCKET_NAME, circleci_api_token, GITHUB_PROJECT_PATH)
+    update(
+        "XCF_RELEASE_DISTRIBUTION_ID",
+        RELEASE_CLOUDFRONT_DISTRIBUTION_ID,
+        circleci_api_token,
+        GITHUB_PROJECT_PATH,
+    )
 
 
 def create_user_credentials(username: str, *, iam) -> Tuple[str, str]:
@@ -145,30 +176,27 @@ def update_env_vars(
     temporary_credentials: Dict[str, str],
     token: str,
     project_path: str,
-    *,
-    max_attempts=MAX_RETRY_ATTEMPTS,
-    max_wait=MAX_RETRY_WAIT,
-    log=True,
 ) -> None:
-    url = CIRCLECI_URL_TEMPLATE.format(project_path=project_path)
-    headers = {"Circle-Token": token}
-
-    @retry(max_attempts=max_attempts, max_wait=max_wait, log=log)
-    def update(env_var_name: str, env_var_value: str) -> None:
-        payload = {"name": env_var_name, "value": env_var_value}
-        response = requests.post(url, json=payload, headers=headers)
-        if not is_successful_response(response):
-            safe_content = response.text.replace(env_var_value, "*" * len(env_var_value))
-
-            raise RuntimeError(
-                "Could not update env var "
-                + f"key={env_var_name} "
-                + f"status_code={response.status_code} "
-                + f"body={safe_content}"
-            )
 
     for key, value in temporary_credentials.items():
-        update(key, value)
+        update(key, value, token, project_path)
+
+
+@retry()
+def update(env_var_name: str, env_var_value: str, token: str, project_path: str):
+    url = CIRCLECI_URL_TEMPLATE.format(project_path=project_path)
+    headers = {"Circle-Token": token}
+    payload = {"name": env_var_name, "value": env_var_value}
+    response = requests.post(url, json=payload, headers=headers)
+    if not is_successful_response(response):
+        safe_content = response.text.replace(env_var_value, "*" * len(env_var_value))
+
+        raise RuntimeError(
+            "Could not update env var "
+            + f"key={env_var_name} "
+            + f"status_code={response.status_code} "
+            + f"body={safe_content}"
+        )
 
 
 def is_successful_response(response):
