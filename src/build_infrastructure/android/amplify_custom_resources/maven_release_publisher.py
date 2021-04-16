@@ -74,7 +74,7 @@ class MavenPublisher(Project):
         super().__init__(scope, id,
             project_name = project_name,
             environment_variables = environment_variables,
-            build_spec=BuildSpec.from_object(BUILD_SPEC) if buildspec_path is None else BuildSpec.from_source_filename(buildspec_path),
+            build_spec=BuildSpec.from_object_to_yaml(BUILD_SPEC) if buildspec_path is None else BuildSpec.from_source_filename(buildspec_path),
             badge = True,
             source = github_source,
             environment = build_environment)
