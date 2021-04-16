@@ -20,7 +20,7 @@ class MavenReleaseStack(core.Stack):
         owner = github_source['owner']
         repo = github_source['repo']
         base_branch = github_source['base_branch']
-        buildspec_path = props['buildspec_path'] if 'buildspec_path' in props else "scripts/maven-release-publisher.yml"
+        buildspec_path = props['buildspec_path'] if 'buildspec_path' in props else None
         create_webhooks = props['create_webhooks']
 
         policy = aws_iam.ManagedPolicy(self,    

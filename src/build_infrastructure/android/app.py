@@ -29,7 +29,6 @@ SUPPORTED_LIBRARIES = {
         'release_pr_branch': 'bump_version',
         'codebuild_project_name_prefix': 'AndroidSDK',
         'stack_name_prefix': 'AndroidSDK-',
-        'maven_deployer_buildspec': 'build-support/maven-release-publisher.yml',
         'create_webhooks': False
     },
     'appsync-sdk': {
@@ -39,7 +38,6 @@ SUPPORTED_LIBRARIES = {
         'release_pr_branch': 'bump_version',
         'codebuild_project_name_prefix': 'AndroidAppSyncSDK',
         'stack_name_prefix': 'AndroidAppSyncSDK-',
-        'maven_deployer_buildspec': 'build-support/maven-release-publisher.yml',
         'create_webhooks': False
     }
 }
@@ -63,7 +61,7 @@ branch = app.node.try_get_context("branch") if app.node.try_get_context("branch"
 release_pr_branch = app.node.try_get_context("release_pr_branch") if app.node.try_get_context("release_pr_branch") is not None else SETTINGS['release_pr_branch']
 
 create_webhooks = SETTINGS['create_webhooks']
-maven_deployer_buildspec = SETTINGS['maven_deployer_buildspec']
+maven_deployer_buildspec = SETTINGS['maven_deployer_buildspec'] if 'maven_deployer_buildspec' in SETTINGS else None
 
 codebuild_project_name_prefix = SETTINGS['codebuild_project_name_prefix']
 stack_name_prefix = SETTINGS['stack_name_prefix']
@@ -109,6 +107,9 @@ maven_publisher_stack_props = {
     'create_webhooks': create_webhooks,
     'buildspec_path': maven_deployer_buildspec
 }
+
+if maven_deployer_buildspec is not None:
+    maven_publisher_stack_props['buildspec_path'] = maven_deployer_buildspec
 
 MavenReleaseStack(app, f'{stack_name_prefix}MavenPublisher', maven_publisher_stack_props, description=f'Assets used for publishing {github_repo} to maven.', env=TARGET_ENV)
 
