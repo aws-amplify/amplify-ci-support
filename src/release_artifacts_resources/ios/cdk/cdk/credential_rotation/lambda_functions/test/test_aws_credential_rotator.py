@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import Mock, call, patch
+from unittest.mock import patch
 
 import os
 import botocore.session

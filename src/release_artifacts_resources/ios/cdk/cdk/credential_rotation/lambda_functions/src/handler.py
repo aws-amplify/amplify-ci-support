@@ -109,5 +109,5 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         destination_type = destination_configuration["type"]
         mapped_result = destination_values_map[name]
 
-        if destination_type = DestinationType.CIRCLECI_ENVIRONMENT_VARIABLE:
+        if destination_type == DestinationType.CIRCLECI_ENVIRONMENT_VARIABLE:
             circleci.update_environment_variables(mapped_result, destination_configuration)

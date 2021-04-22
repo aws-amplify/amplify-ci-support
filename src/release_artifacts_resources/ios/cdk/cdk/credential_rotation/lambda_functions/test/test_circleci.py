@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, call, patch
 import botocore.session
-from botocore.stub import ANY, Stubber
+from botocore.stub import Stubber
 import os
 from src.destination import circleci
 
@@ -43,7 +43,6 @@ class TestCircleCIDestination(unittest.TestCase):
         request = {"SecretId": "arn:::xxx"}
         response = {"SecretString": "SEKRET!"}
         secretsmanager_stubber.add_response("get_secret_value", response, request)
-        stubbers = [secretsmanager_stubber]
         
         post.return_value = Mock()
         post.return_value.status_code = 200
