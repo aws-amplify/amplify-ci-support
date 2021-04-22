@@ -3,7 +3,11 @@ import json
 from destination import circleci
 from models.destination_type import DestinationType
 from models.source_type import SourceType
-from source_data_generator import aws_session_credential_source
+from source_data_generator import (
+    aws_session_credential_source,
+    secrets_data_source,
+    static_data_source,
+)
 
 
 def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
@@ -78,7 +82,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
           "type": "cci_env_variable",
           "description": "Circle CI environment variable for AWS SDK iOS repo",
           "github_path": "aws-amplify/aws-sdk-ios",
-          "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN"
+          "circleci_api_token_secret_id_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN"
         }
       }
     }
@@ -96,19 +100,21 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         destination_mapping = source["destination"]["mapping_to_destination"]
         configuration = source["configuration"]
 
+        source_map = {}
         if source_type == SourceType.AWS_SESSION_CREDENTIALS:
-            credentials = aws_session_credential_source.generate_session_credentials(configuration)
-            mapped_result = {}
-            for item in destination_mapping:
-                destination_key_name = item["destination_key_name"]
-                result_value_key = item["result_value_key"]
-                mapped_result[destination_key_name] = credentials[result_value_key]
+            source_map = aws_session_credential_source.generate_session_credentials(configuration)
 
         elif source_type == SourceType.SECRETS_MANAGER:
-            mapped_result = {}
+            source_map = secrets_data_source.retrieve_secrets(configuration)
 
         elif source_type == SourceType.LAMBDA_ENVIRONMENT_VARIABLE:
-            mapped_result = {}
+            source_map = static_data_source.retrieve_static_data(configuration)
+
+        mapped_result = {}
+        for item in destination_mapping:
+            destination_key_name = item["destination_key_name"]
+            result_value_key = item["result_value_key"]
+            mapped_result[destination_key_name] = source_map[result_value_key]
 
         destination_values_map.setdefault(destination_specifier, []).append(mapped_result)
 

@@ -46,7 +46,6 @@ def generate_session_credentials(configuration: map, iam=None, sts=None) -> Dict
     finally:
         if user_credentials:
             iam_client.delete_access_key(UserName=iam_username, AccessKeyId=user_credentials[0])
-
     return session_credentials
 
 
