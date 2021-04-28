@@ -43,7 +43,7 @@ def update_environment_variables(variables: map, configuration: map, secretsmana
     :raises ValueError: if `configuration` is `None`, or if any required Lambda environment variables are missing.
     """
     if not configuration:
-        raise RuntimeError("Configuration is required to update circleci environment")
+        raise RuntimeError("Configuration is required to update CircleCI environment variables")
 
     github_path = configuration["github_path"]
     secret_arn_env_variable_key = configuration["secret_arn_env_variable"]
