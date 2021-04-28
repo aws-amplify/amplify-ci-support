@@ -1,5 +1,4 @@
 import json
-import os
 from models.source_type import SourceType
 from models.destination_type import DestinationType
 from source_data_generator import aws_session_credential_source
@@ -86,7 +85,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
 
     event_object = json.loads(event)
     sources = event_object["sources"]
-    destination = event_object["destinations"]
+    destinations = event_object["destinations"]
 
     destination_values_map = {}
     for source in sources:
@@ -101,7 +100,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
             for item in destination_mapping:
               destination_key_name = item["destination_key_name"]
               result_value_key = item["result_value_key"]
-              mapped_result[destination_key_name] = temp_credentials[result_value_key]
+              mapped_result[destination_key_name] = session_credentials[result_value_key]
             
         elif source_type ==  SourceType.SECRETS_MANAGER:
             mapped_result = {}
