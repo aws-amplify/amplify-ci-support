@@ -1,3 +1,6 @@
+"""Creates static credentials, uses them to adopt the specified role and get temporary session credentials, and deletes the static credentials.
+"""
+
 import boto3
 import os
 from typing import Dict, Tuple
@@ -18,8 +21,7 @@ SESSION_DURATION_SECONDS = 14400  # 4 hours
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
 def generate_session_credentials(
-    configuration: map, 
-    destination_mapping: list, 
+    configuration: map,
     iam=None, 
     sts=None
     ) -> Dict[str, str]:
@@ -27,9 +29,6 @@ def generate_session_credentials(
     if not configuration:
         raise RuntimeError("Configuration is required to generate session credentials")
 
-    if not destination_mapping:
-        raise RuntimeError("Destination mapping is required to generate session credentials")
-    
     iam_user_key = configuration["user_env_variable"]
     iam_role_key = configuration["iam_role_env_variable"]
     iam_username = os.environ.get(iam_user_key)
@@ -43,12 +42,7 @@ def generate_session_credentials(
         iam_client = iam or boto3.client("iam", region_name=REGION)
         user_credentials = create_user_credentials(iam_username, iam=iam_client)
         wait_for_user_credentials()
-        temp_credentials = get_session_credentials(user_credentials, role_arn=iam_role, sts=sts)
-        
-        for item in destination_mapping:
-            destination_key_name = item["destination_key_name"]
-            result_value_key = item["result_value_key"]
-            session_credentials[destination_key_name] = temp_credentials[result_value_key]
+        session_credentials = get_session_credentials(user_credentials, role_arn=iam_role, sts=sts)
     
     finally:
         if user_credentials:

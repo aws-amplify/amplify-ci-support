@@ -2,7 +2,7 @@ import json
 import os
 from models.source_type import SourceType
 from models.destination_type import DestinationType
-from source_data_generator import aws_credential_rotator
+from source_data_generator import aws_session_credential_source
 from destination import circleci
 
 def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
@@ -77,7 +77,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
           "type": "cci_env_variable",
           "description": "Circle CI environment variable for AWS SDK iOS repo",
           "github_path": "aws-amplify/aws-sdk-ios",
-          "secret_arn_env_variable": "CIRCLE_CI_IOS_SDK_API_TOKEN"
+          "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN"
         }
       }
     }
@@ -96,10 +96,12 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         configuration = source["configuration"]
         
         if source_type == SourceType.AWS_SESSION_CREDENTIALS:
-            mapped_result = aws_credential_rotator.generate_session_credentials(
-                configuration,
-                destination_mapping=destination_mapping
-            )
+            session_credentials = aws_session_credential_source.generate_session_credentials(configuration)
+            mapped_result = {}
+            for item in destination_mapping:
+              destination_key_name = item["destination_key_name"]
+              result_value_key = item["result_value_key"]
+              mapped_result[destination_key_name] = temp_credentials[result_value_key]
             
         elif source_type ==  SourceType.SECRETS_MANAGER:
             mapped_result = {}

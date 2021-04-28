@@ -46,12 +46,15 @@ def update_environment_variables(variables: map, configuration: map, secretsmana
         raise RuntimeError("Configuration is required to update CircleCI environment variables")
 
     github_path = configuration["github_path"]
-    secret_arn_env_variable_key = configuration["secret_arn_env_variable"]
-    secret_key = os.environ.get(secret_arn_env_variable_key)
+    circleci_api_token_secret_arn_lambda_env_var_key = configuration["circleci_api_token_secret_arn_lambda_env_var_key"]
+    secret_id = os.environ.get(circleci_api_token_secret_arn_lambda_env_var_key)
+
+    if secret_id is None:
+        raise ValueError(f"Lambda env var {circleci_api_token_secret_arn_lambda_env_var_key} is not set") 
 
     secretsmanager_client = secretsmanager or boto3.client("secretsmanager", region_name=REGION)
     circleci_api_token = get_secret_value(
-        secret_key, 
+        secret_id, 
         secretsmanager=secretsmanager_client
         )
 
@@ -64,8 +67,8 @@ def update_environment_variables(variables: map, configuration: map, secretsmana
             )
 
 
-def get_secret_value(key: str, *, secretsmanager) -> str:
-    response = secretsmanager.get_secret_value(SecretId=key)
+def get_secret_value(secret_id: str, *, secretsmanager) -> str:
+    response = secretsmanager.get_secret_value(SecretId=secret_id)
     api_key = response["SecretString"]
     return api_key
 

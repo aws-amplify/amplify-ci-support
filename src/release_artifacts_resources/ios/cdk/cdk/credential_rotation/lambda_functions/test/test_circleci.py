@@ -79,7 +79,7 @@ class TestCircleCIDestination(unittest.TestCase):
               "type": "cci_env_variable",
               "description": "Circle CI environment variable for AWS SDK iOS repo",
               "github_path": "aws-amplify/aws-sdk-ios",
-              "secret_arn_env_variable": "CIRCLE_CI_IOS_SDK_API_TOKEN"            
+              "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN"            
            }
 
 if __name__ == '__main__':

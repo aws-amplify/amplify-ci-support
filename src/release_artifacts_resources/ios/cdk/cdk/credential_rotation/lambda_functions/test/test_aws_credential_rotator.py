@@ -6,8 +6,8 @@ import botocore.session
 
 from botocore.stub import ANY, Stubber
 from datetime import datetime
-from src.source_data_generator.aws_credential_rotator import generate_session_credentials
-from src.source_data_generator import aws_credential_rotator as rotator
+from src.source_data_generator.aws_session_credential_source import generate_session_credentials
+from src.source_data_generator import aws_session_credential_source as rotator
 
 # IAM materials for stubs. These are not real credentials, rather they are
 # conventional examples used in AWS documentation. See https://bit.ly/2XsAkBq.
@@ -74,7 +74,6 @@ class TestAWSCredentialRotator(unittest.TestCase):
 
         result = generate_session_credentials(
             configuration=self.mock_configuration(),
-            destination_mapping=self.mock_destination_mapping(),
             iam=iam,
             sts=sts
         )
@@ -82,20 +81,13 @@ class TestAWSCredentialRotator(unittest.TestCase):
         for stubber in stubbers:
             stubber.assert_no_pending_responses()
         
-        self.assertIn("XCF_ACCESS_KEY_ID", result)
-        self.assertIn("XCF_SECRET_ACCESS_KEY", result)
-        self.assertIn("XCF_SESSION_TOKEN", result)
+        self.assertIn("AccessKeyId", result)
+        self.assertIn("SecretAccessKey", result)
+        self.assertIn("SessionToken", result)
         
     def test_generate_credential_with_null_configuration(self):
         with self.assertRaises(RuntimeError):
-            generate_session_credentials(configuration=None, destination_mapping=None)
-
-    def test_generate_credential_with_null_destination(self):
-        with self.assertRaises(RuntimeError):
-            generate_session_credentials(
-                configuration=self.mock_configuration(),
-                destination_mapping={}
-            )
+            generate_session_credentials(configuration=None)
 
     def mock_configuration(self):
         return {
