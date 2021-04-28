@@ -23,6 +23,7 @@ The actual process is quite simple
    environment variables, authenticating with the **CircleCI API token**
 """
 import os
+
 import boto3
 import requests
 from src.utils.retry import retry
@@ -33,38 +34,48 @@ DEFAULT_REGION = "us-west-2"
 # Provided by Lambda
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
+
 def update_environment_variables(variables: map, configuration: map, secretsmanager=None):
     """Updates CircleCI environment variables
-    
-    :param variables: <list expected keys & values>
-    :param configuration: <list expected keys & values>
-    :param secretsmanager: (optional) reference to an AWS SecretsManager client. Defaults to the default client for the region
-    :raises KeyError: if `configuration` does not contain the expected keys
-    :raises ValueError: if `configuration` is `None`, or if any required Lambda environment variables are missing.
+
+    Args:
+        variables: 
+            <list expected keys & values>
+        configuration: 
+            <list expected keys & values>
+        secretsmanager: 
+            (optional) reference to an AWS SecretsManager client.
+            Defaults to the default client for the region
+
+    Raises
+        KeyError: if `configuration` does not contain the expected keys
+        ValueError: if `configuration` is `None`, or if any required Lambda environment
+        variables are missing.
     """
     if not configuration:
         raise RuntimeError("Configuration is required to update CircleCI environment variables")
 
     github_path = configuration["github_path"]
-    circleci_api_token_secret_arn_lambda_env_var_key = configuration["circleci_api_token_secret_arn_lambda_env_var_key"]
+    circleci_api_token_secret_arn_lambda_env_var_key = configuration[
+        "circleci_api_token_secret_arn_lambda_env_var_key"
+    ]
     secret_id = os.environ.get(circleci_api_token_secret_arn_lambda_env_var_key)
 
     if secret_id is None:
-        raise ValueError(f"Lambda env var {circleci_api_token_secret_arn_lambda_env_var_key} is not set") 
+        raise ValueError(
+            f"Lambda env var {circleci_api_token_secret_arn_lambda_env_var_key} is not set"
+        )
 
     secretsmanager_client = secretsmanager or boto3.client("secretsmanager", region_name=REGION)
-    circleci_api_token = get_secret_value(
-        secret_id, 
-        secretsmanager=secretsmanager_client
-        )
+    circleci_api_token = get_secret_value(secret_id, secretsmanager=secretsmanager_client)
 
     for key, value in variables.items():
         update_env_vars(
-            env_var_name=key, 
-            env_var_value=value, 
-            token=circleci_api_token, 
-            project_path=github_path
-            )
+            env_var_name=key,
+            env_var_value=value,
+            token=circleci_api_token,
+            project_path=github_path,
+        )
 
 
 def get_secret_value(secret_id: str, *, secretsmanager) -> str:

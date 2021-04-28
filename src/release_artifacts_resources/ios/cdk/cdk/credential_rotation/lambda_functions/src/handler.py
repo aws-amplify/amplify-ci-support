@@ -1,8 +1,10 @@
 import json
-from models.source_type import SourceType
-from models.destination_type import DestinationType
-from source_data_generator import aws_session_credential_source
+
 from destination import circleci
+from models.destination_type import DestinationType
+from models.source_type import SourceType
+from source_data_generator import aws_session_credential_source
+
 
 def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     """
@@ -12,7 +14,8 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
       "sources": [
         {
           "type": "aws_session_cred",
-          "description": "Temporary AWS Credentials to upload the release artifacts to S3 and invalidate Cloudfront",
+          "description": "Temporary AWS Credentials to upload the release
+                          artifacts to S3 and invalidate Cloudfront",
           "configuration": {
             "user_env_variable": "IAM_USERNAME",
             "iam_role_env_variable": "IAM_ROLE"
@@ -93,23 +96,25 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         destination_specifier = source["destination"]["specifier"]
         destination_mapping = source["destination"]["mapping_to_destination"]
         configuration = source["configuration"]
-        
+
         if source_type == SourceType.AWS_SESSION_CREDENTIALS:
-            session_credentials = aws_session_credential_source.generate_session_credentials(configuration)
+            credentials = aws_session_credential_source.generate_session_credentials(
+                configuration
+            )
             mapped_result = {}
             for item in destination_mapping:
-              destination_key_name = item["destination_key_name"]
-              result_value_key = item["result_value_key"]
-              mapped_result[destination_key_name] = session_credentials[result_value_key]
-            
-        elif source_type ==  SourceType.SECRETS_MANAGER:
+                destination_key_name = item["destination_key_name"]
+                result_value_key = item["result_value_key"]
+                mapped_result[destination_key_name] = credentials[result_value_key]
+
+        elif source_type == SourceType.SECRETS_MANAGER:
             mapped_result = {}
 
-        elif source_type ==  SourceType.LAMBDA_ENVIRONMENT_VARIABLE:
+        elif source_type == SourceType.LAMBDA_ENVIRONMENT_VARIABLE:
             mapped_result = {}
-        
-        destination_values_map.setdefault(destination_specifier,[]).append(mapped_result)
-    
+
+        destination_values_map.setdefault(destination_specifier, []).append(mapped_result)
+
     for name, destination_configuration in destinations.items():
 
         destination_type = destination_configuration["type"]

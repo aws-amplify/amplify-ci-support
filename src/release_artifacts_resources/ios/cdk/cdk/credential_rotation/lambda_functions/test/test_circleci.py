@@ -1,8 +1,9 @@
+import os
 import unittest
 from unittest.mock import Mock, call, patch
+
 import botocore.session
 from botocore.stub import Stubber
-import os
 from src.destination import circleci
 
 session = botocore.session.get_session()
@@ -20,22 +21,18 @@ session_token = (
     + "4rvx3iSIlTJabIQwj2ICCR/oLxBA=="
 )
 
-class TestCircleCIDestination(unittest.TestCase):
 
+class TestCircleCIDestination(unittest.TestCase):
     def test_generate_credential_with_null_variables(self):
         with self.assertRaises(RuntimeError):
-            circleci.update_environment_variables(
-                variables=None,
-                configuration=None
-            )
+            circleci.update_environment_variables(variables=None, configuration=None)
 
     def test_generate_credential_with_null_configuration(self):
         with self.assertRaises(RuntimeError):
             circleci.update_environment_variables(
-                variables=self.mock_variables(),
-                configuration=None
+                variables=self.mock_variables(), configuration=None
             )
-    
+
     @patch.dict(os.environ, {"CIRCLE_CI_IOS_SDK_API_TOKEN": "arn:::xxx"})
     @patch("src.destination.circleci.requests.post")
     def test_updates_variables(self, post):
@@ -43,16 +40,16 @@ class TestCircleCIDestination(unittest.TestCase):
         request = {"SecretId": "arn:::xxx"}
         response = {"SecretString": "SEKRET!"}
         secretsmanager_stubber.add_response("get_secret_value", response, request)
-        
+
         post.return_value = Mock()
         post.return_value.status_code = 200
 
         secretsmanager_stubber.activate()
         circleci.update_environment_variables(
-                variables=self.mock_variables(),
-                configuration=self.mock_configuration(),
-                secretsmanager=secretsmanager
-            )
+            variables=self.mock_variables(),
+            configuration=self.mock_configuration(),
+            secretsmanager=secretsmanager,
+        )
         secretsmanager_stubber.assert_no_pending_responses()
 
         url = "https://circleci.com/api/v2/project/gh/aws-amplify/aws-sdk-ios/envvar"
@@ -71,16 +68,17 @@ class TestCircleCIDestination(unittest.TestCase):
         return {
             "XCF_ACCESS_KEY_ID": access_key_id,
             "XCF_SECRET_ACCESS_KEY": secret_access_key,
-            "XCF_SESSION_TOKEN": session_token
+            "XCF_SESSION_TOKEN": session_token,
         }
 
     def mock_configuration(self):
         return {
-              "type": "cci_env_variable",
-              "description": "Circle CI environment variable for AWS SDK iOS repo",
-              "github_path": "aws-amplify/aws-sdk-ios",
-              "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN"            
-           }
+            "type": "cci_env_variable",
+            "description": "Circle CI environment variable for AWS SDK iOS repo",
+            "github_path": "aws-amplify/aws-sdk-ios",
+            "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN",
+        }
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

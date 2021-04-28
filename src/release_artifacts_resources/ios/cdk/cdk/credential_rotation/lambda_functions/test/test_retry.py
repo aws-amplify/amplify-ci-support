@@ -2,8 +2,8 @@ import unittest
 
 from src.utils.retry import retry
 
-class TestRetry(unittest.TestCase):
 
+class TestRetry(unittest.TestCase):
     def test_retry_retries(self):
         self.retries = 0
 
@@ -30,5 +30,6 @@ class TestRetry(unittest.TestCase):
 
         self.assertEqual(self.retries, 3)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

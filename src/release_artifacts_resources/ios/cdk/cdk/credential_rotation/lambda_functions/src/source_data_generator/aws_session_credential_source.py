@@ -1,12 +1,14 @@
-"""Creates static credentials, uses them to adopt the specified role and get temporary session credentials, and deletes the static credentials.
+"""Creates static credentials, uses them to adopt the specified role and get temporary
+session credentials, and deletes the static credentials.
 """
 
-import boto3
 import os
-from typing import Dict, Tuple
-from src.utils.retry import retry
-from time import sleep
 from datetime import datetime
+from time import sleep
+from typing import Dict, Tuple
+
+import boto3
+from src.utils.retry import retry
 
 DEFAULT_REGION = "us-west-2"
 
@@ -20,11 +22,8 @@ SESSION_DURATION_SECONDS = 14400  # 4 hours
 # Provided by Lambda
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
-def generate_session_credentials(
-    configuration: map,
-    iam=None, 
-    sts=None
-    ) -> Dict[str, str]:
+
+def generate_session_credentials(configuration: map, iam=None, sts=None) -> Dict[str, str]:
 
     if not configuration:
         raise RuntimeError("Configuration is required to generate session credentials")
@@ -33,21 +32,22 @@ def generate_session_credentials(
     iam_role_key = configuration["iam_role_env_variable"]
     iam_username = os.environ.get(iam_user_key)
     iam_role = os.environ.get(iam_role_key)
-    
+
     user_credentials: Tuple[str, str] = ()
     session_credentials: Dict[str, str] = {}
-    
+
     try:
-        
+
         iam_client = iam or boto3.client("iam", region_name=REGION)
         user_credentials = create_user_credentials(iam_username, iam=iam_client)
         wait_for_user_credentials()
         session_credentials = get_session_credentials(user_credentials, role_arn=iam_role, sts=sts)
-    
+
     finally:
         if user_credentials:
             iam_client.delete_access_key(UserName=iam_username, AccessKeyId=user_credentials[0])
     return session_credentials
+
 
 def create_user_credentials(username: str, *, iam) -> Tuple[str, str]:
     response = iam.create_access_key(UserName=username)
@@ -71,7 +71,9 @@ def wait_for_user_credentials():
 
 
 @retry()
-def get_session_credentials(credentials: Tuple[str, str], *, role_arn, sts, now=None) -> Dict[str, str]:
+def get_session_credentials(
+    credentials: Tuple[str, str], *, role_arn, sts, now=None
+) -> Dict[str, str]:
     if not sts:
         sts = boto3.client(
             "sts",

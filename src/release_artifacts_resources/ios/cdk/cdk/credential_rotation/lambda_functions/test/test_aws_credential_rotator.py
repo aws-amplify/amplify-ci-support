@@ -1,13 +1,12 @@
+import os
 import unittest
+from datetime import datetime
 from unittest.mock import patch
 
-import os
 import botocore.session
-
 from botocore.stub import ANY, Stubber
-from datetime import datetime
-from src.source_data_generator.aws_session_credential_source import generate_session_credentials
 from src.source_data_generator import aws_session_credential_source as rotator
+from src.source_data_generator.aws_session_credential_source import generate_session_credentials
 
 # IAM materials for stubs. These are not real credentials, rather they are
 # conventional examples used in AWS documentation. See https://bit.ly/2XsAkBq.
@@ -31,8 +30,9 @@ sts = session.create_client("sts", region_name=rotator.REGION)
 
 
 class TestAWSCredentialRotator(unittest.TestCase):
-
-    @patch.dict(os.environ, {"IAM_USERNAME": "username", "IAM_ROLE": "arn:::CIRCLECI_EXECUTION_ROLE"})
+    @patch.dict(
+        os.environ, {"IAM_USERNAME": "username", "IAM_ROLE": "arn:::CIRCLECI_EXECUTION_ROLE"}
+    )
     def test_handler_rotates_credentials(self):
         # Initializer stubbers
         iam_stubber = Stubber(iam)
@@ -73,42 +73,33 @@ class TestAWSCredentialRotator(unittest.TestCase):
             stubber.activate()
 
         result = generate_session_credentials(
-            configuration=self.mock_configuration(),
-            iam=iam,
-            sts=sts
+            configuration=self.mock_configuration(), iam=iam, sts=sts
         )
 
         for stubber in stubbers:
             stubber.assert_no_pending_responses()
-        
+
         self.assertIn("AccessKeyId", result)
         self.assertIn("SecretAccessKey", result)
         self.assertIn("SessionToken", result)
-        
+
     def test_generate_credential_with_null_configuration(self):
         with self.assertRaises(RuntimeError):
             generate_session_credentials(configuration=None)
 
     def mock_configuration(self):
-        return {
-            "user_env_variable": "IAM_USERNAME",
-            "iam_role_env_variable": "IAM_ROLE"
-        }
+        return {"user_env_variable": "IAM_USERNAME", "iam_role_env_variable": "IAM_ROLE"}
 
     def mock_destination_mapping(self):
         return [
+            {"destination_key_name": "XCF_ACCESS_KEY_ID", "result_value_key": "AccessKeyId"},
             {
-                "destination_key_name": "XCF_ACCESS_KEY_ID",
-                "result_value_key": "AccessKeyId"
-            }, {
                 "destination_key_name": "XCF_SECRET_ACCESS_KEY",
-                "result_value_key": "SecretAccessKey"
-            }, {
-                "destination_key_name": "XCF_SESSION_TOKEN",
-                "result_value_key": "SessionToken"
-            }
+                "result_value_key": "SecretAccessKey",
+            },
+            {"destination_key_name": "XCF_SESSION_TOKEN", "result_value_key": "SessionToken"},
         ]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

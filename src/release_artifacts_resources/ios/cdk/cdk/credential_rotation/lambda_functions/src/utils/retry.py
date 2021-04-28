@@ -6,6 +6,7 @@ MAX_RETRY_WAIT = 10
 
 random.seed()
 
+
 def retry(max_attempts=MAX_RETRY_ATTEMPTS, max_wait=MAX_RETRY_WAIT, log=True):
     def logger(*msgs):
         if log:
