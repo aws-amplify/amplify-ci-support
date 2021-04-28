@@ -1,4 +1,27 @@
+"""Utilities to update CircleCI environment variables
 
+This module propagates values to CircleCI environment variables. In the CircleCI V2 API
+
+This module propagates values to CircleCI environment variables. In the
+CircleCI V2 API, permissions are managed via API tokens tied to a specific
+user, and environment variables are stored per project.
+
+**Prerequisites for storing environment variables in CircleCI**
+- A **GitHub User** with `Write` permissions to a **GitHub Repo**. This should
+  be a repo-specific "bot" user--that is, the user should have permissions to
+  only the repo being updated.
+- A **CircleCI API token** with `Admin` permissions, created by authenticating
+  in CircleCI as that GitHub User
+
+**Flow**
+
+The actual process is quite simple
+
+1. This Lambda function retrieves the **CircleCI API token** from AWS Secrets
+   Manager
+2. The Lambda function invokes the CircleCI V2 API endpoint to update
+   environment variables, authenticating with the **CircleCI API token**
+"""
 import os
 import boto3
 import requests
