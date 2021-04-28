@@ -34,7 +34,14 @@ DEFAULT_REGION = "us-west-2"
 REGION = os.environ.get("AWS_REGION", DEFAULT_REGION)
 
 def update_environment_variables(variables: map, configuration: map, secretsmanager=None):
+    """Updates CircleCI environment variables
     
+    :param variables: <list expected keys & values>
+    :param configuration: <list expected keys & values>
+    :param secretsmanager: (optional) reference to an AWS SecretsManager client. Defaults to the default client for the region
+    :raises KeyError: if `configuration` does not contain the expected keys
+    :raises ValueError: if `configuration` is `None`, or if any required Lambda environment variables are missing.
+    """
     if not configuration:
         raise RuntimeError("Configuration is required to update circleci environment")
 
