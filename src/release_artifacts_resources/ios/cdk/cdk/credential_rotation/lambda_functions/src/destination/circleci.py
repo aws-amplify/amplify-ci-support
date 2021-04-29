@@ -37,11 +37,11 @@ def update_environment_variables(variables: map, configuration: map, secretsmana
     """Updates CircleCI environment variables
 
     Args:
-        variables: 
+        variables:
             <list expected keys & values>
-        configuration: 
+        configuration:
             <list expected keys & values>
-        secretsmanager: 
+        secretsmanager:
             (optional) reference to an AWS SecretsManager client.
             Defaults to the default client for the region
 

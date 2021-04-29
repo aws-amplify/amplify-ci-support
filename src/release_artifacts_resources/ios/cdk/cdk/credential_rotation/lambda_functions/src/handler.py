@@ -14,8 +14,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
       "sources": [
         {
           "type": "aws_session_cred",
-          "description": "Temporary AWS Credentials to upload the release
-                          artifacts to S3 and invalidate Cloudfront",
+          "description": "Temporary AWS Credentials to upload the release artifacts to S3 and invalidate Cloudfront",
           "configuration": {
             "user_env_variable": "IAM_USERNAME",
             "iam_role_env_variable": "IAM_ROLE"
@@ -98,9 +97,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         configuration = source["configuration"]
 
         if source_type == SourceType.AWS_SESSION_CREDENTIALS:
-            credentials = aws_session_credential_source.generate_session_credentials(
-                configuration
-            )
+            credentials = aws_session_credential_source.generate_session_credentials(configuration)
             mapped_result = {}
             for item in destination_mapping:
                 destination_key_name = item["destination_key_name"]
