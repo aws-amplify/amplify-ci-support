@@ -1,7 +1,5 @@
 """Utilities to update CircleCI environment variables
 
-This module propagates values to CircleCI environment variables. In the CircleCI V2 API
-
 This module propagates values to CircleCI environment variables. In the
 CircleCI V2 API, permissions are managed via API tokens tied to a specific
 user, and environment variables are stored per project.
