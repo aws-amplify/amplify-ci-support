@@ -1,0 +1,4 @@
+[flake8]
+exclude = cdk.out
+extend-ignore = E203, W503
+max-line-length = 100

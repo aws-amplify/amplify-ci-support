@@ -14,6 +14,7 @@ setuptools.setup(
         "aws-cdk.aws-lambda",
         "aws-cdk.aws-apigateway",
         "aws-cdk.aws-cloudformation",
+        "aws-cdk.aws-cloudfront",
         "aws-cdk.aws-cognito",
         "aws-cdk.aws-iam",
         "aws-cdk.aws-ssm",

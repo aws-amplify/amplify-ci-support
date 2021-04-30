@@ -1,8 +1,15 @@
 from typing import List, Optional
 
-from aws_cdk import (aws_cognito, aws_iam, aws_lambda, aws_s3, core,
-                     custom_resources)
-
+from aws_cdk import (
+    aws_cloudfront,
+    aws_cloudfront_origins,
+    aws_cognito,
+    aws_iam,
+    aws_lambda,
+    aws_s3,
+    core,
+    custom_resources,
+)
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
@@ -53,6 +60,26 @@ class MobileClientStack(RegionAwareStack):
             default_user_pool_domain,
             "Default",
         )
+
+        # Duplicate the standard config, but with a custom "Endpoint" value, to test SDK ability
+        # to specify custom endpoints
+        custom_endpoint = self.create_cloudfront_for_user_pool("custom_endpoint")
+        self.update_parameters_for_userpool(
+            default_user_pool,
+            default_user_pool_client,
+            default_user_pool_client_secret,
+            None,
+            "CustomEndpoint",
+            custom_endpoint=custom_endpoint,
+        )
+
+        self.create_custom_auth_user_pool(default_user_pool, default_user_pool_client)
+
+        self.save_parameters_in_parameter_store(platform=Platform.IOS)
+
+    def create_custom_auth_user_pool(
+        self, user_pool: aws_cognito.CfnUserPool, user_pool_client: aws_cognito.CfnUserPoolClient
+    ):
         # This is a special case parameter for custom auth tests
         self._parameters_to_save[
             "awsconfiguration/Auth/DefaultCustomAuth/authenticationFlowType"
@@ -63,8 +90,8 @@ class MobileClientStack(RegionAwareStack):
             resource_id_prefix="mobileclient",
             cognito_identity_providers=[
                 {
-                    "clientId": default_user_pool_client.ref,
-                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{default_user_pool.ref}",  # noqa: E501
+                    "clientId": user_pool_client.ref,
+                    "providerName": f"cognito-idp.{self.region}.amazonaws.com/{user_pool.ref}",
                 }
             ],
             developer_provider_name=MobileClientStack.DEVELOPER_PROVIDER_NAME,
@@ -92,7 +119,32 @@ class MobileClientStack(RegionAwareStack):
             "DefaultCustomAuth",
         )
 
-        self.save_parameters_in_parameter_store(platform=Platform.IOS)
+    def create_cloudfront_for_user_pool(self, tag: str) -> str:
+        """
+        Creates a CloudFront distribution to sit in front of the Cognito User Pool, to test the
+        SDK's ability to specify custom endpoints for a User Pool. Customers may specify custom
+        endpoints to (for example) protect unauthorized calls from DDOS attacks that cause accounts
+        to be throttled. While that would generally be done by adding a Web Application Firewall in
+        front of a CloudFront distribution, we will simply set up a straight-up proxy endpoint to
+        ensure that calls are passed through as expected.
+
+        In the future, we may extend this stack and the associated integ tests with an Edge Lambda
+        function to inject AppClientSecret after passing through the CloudFront distribution, but
+        that is not strictly germane to the simple ability to specify a custom endpoint.
+
+        :return: the CloudFront Origin to be used for the value of the `Endpoint` in the custom
+        config
+        """
+        origin = aws_cloudfront_origins.HttpOrigin(f"cognito-idp.{self.region}.amazonaws.com")
+        distribution = aws_cloudfront.Distribution(
+            self,
+            f"cloudfront_userpool_{tag}",
+            default_behavior=aws_cloudfront.BehaviorOptions(
+                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL, origin=origin
+            ),
+        )
+
+        return distribution.domain_name
 
     def create_s3_bucket_and_policies(
         self, auth_role: aws_iam.Role, unauth_role: aws_iam.Role
@@ -132,7 +184,10 @@ class MobileClientStack(RegionAwareStack):
             ),
             schema=[
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
-                    attribute_data_type="String", mutable=False, name="email", required=True,
+                    attribute_data_type="String",
+                    mutable=False,
+                    name="email",
+                    required=True,
                 ),
                 aws_cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
@@ -192,7 +247,10 @@ class MobileClientStack(RegionAwareStack):
     ) -> aws_cognito.CfnUserPoolClient:
         if not federation_providers:
             user_pool_client = aws_cognito.CfnUserPoolClient(
-                self, f"userpool_client_{tag}", generate_secret=True, user_pool_id=user_pool.ref,
+                self,
+                f"userpool_client_{tag}",
+                generate_secret=True,
+                user_pool_id=user_pool.ref,
             )
             return user_pool_client
 
@@ -273,7 +331,10 @@ class MobileClientStack(RegionAwareStack):
     def create_user_pool_domain(self, user_pool: aws_cognito.CfnUserPool, tag: str):
         domain_prefix = self._secrets["hostedui.domain_prefix"]
         domain = aws_cognito.CfnUserPoolDomain(
-            self, f"user_pool_domain_{tag}", domain=domain_prefix, user_pool_id=user_pool.ref,
+            self,
+            f"user_pool_domain_{tag}",
+            domain=domain_prefix,
+            user_pool_id=user_pool.ref,
         )
         return domain
 
@@ -372,6 +433,7 @@ class MobileClientStack(RegionAwareStack):
         user_pool_client_secret: custom_resources.AwsCustomResource,
         user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
         tag: str,
+        custom_endpoint: Optional[str] = None,
     ):
         pool_id = user_pool.ref
         app_client_id = user_pool_client.ref
@@ -386,6 +448,13 @@ class MobileClientStack(RegionAwareStack):
                 f"awsconfiguration/CognitoUserPool/{tag}/Region": self.region,
             }
         )
+
+        if custom_endpoint:
+            self._parameters_to_save.update(
+                {
+                    f"awsconfiguration/CognitoUserPool/{tag}/Endpoint": custom_endpoint,
+                }
+            )
 
         if user_pool_domain:
             url = f"https://{user_pool_domain.domain}.auth.{self.region}.amazoncognito.com"
