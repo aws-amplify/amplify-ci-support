@@ -2,7 +2,7 @@ import os
 from typing import Dict
 
 
-def retrieve_static_data(configuration: map) -> Dict[str, str]:
+def retrieve_lambda_env_var_value(configuration: map) -> Dict[str, str]:
 
     if not configuration:
         raise RuntimeError("Configuration is required to retrieve static data")

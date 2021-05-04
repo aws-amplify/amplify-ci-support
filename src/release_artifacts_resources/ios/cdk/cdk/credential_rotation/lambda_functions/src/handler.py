@@ -6,7 +6,7 @@ from models.source_type import SourceType
 from source_data_generator import (
     aws_session_credential_source,
     secrets_data_source,
-    static_data_source,
+    lambda_env_var_data_source,
 )
 
 
@@ -108,7 +108,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
             source_map = secrets_data_source.retrieve_secrets(configuration)
 
         elif source_type == SourceType.LAMBDA_ENVIRONMENT_VARIABLE:
-            source_map = static_data_source.retrieve_static_data(configuration)
+            source_map = lambda_env_var_data_source.retrieve_lambda_env_var_value(configuration)
 
         mapped_result = {}
         for item in destination_mapping:
