@@ -1,13 +1,7 @@
-import os
 import unittest
 from unittest.mock import Mock, call, patch
 
-import botocore.session
-from botocore.stub import Stubber
 from src.destination import circleci
-
-session = botocore.session.get_session()
-secretsmanager = session.create_client("secretsmanager", region_name=circleci.REGION)
 
 access_key_id = "AKIAIOSFODNN7EXAMPLE"
 secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
@@ -33,24 +27,17 @@ class TestCircleCIDestination(unittest.TestCase):
                 variables=self.mock_variables(), configuration=None
             )
 
-    @patch.dict(os.environ, {"CIRCLE_CI_IOS_SDK_API_TOKEN": "arn:::xxx"})
     @patch("src.destination.circleci.requests.post")
-    def test_updates_variables(self, post):
-        secretsmanager_stubber = Stubber(secretsmanager)
-        request = {"SecretId": "arn:::xxx"}
-        response = {"SecretString": "SEKRET!"}
-        secretsmanager_stubber.add_response("get_secret_value", response, request)
+    @patch("src.destination.circleci.retrieve_secret")
+    def test_updates_variables(self, mock_retrieve_secret, post):
 
         post.return_value = Mock()
         post.return_value.status_code = 200
 
-        secretsmanager_stubber.activate()
+        mock_retrieve_secret.return_value = "SEKRET!"
         circleci.update_environment_variables(
-            variables=self.mock_variables(),
-            configuration=self.mock_configuration(),
-            secretsmanager=secretsmanager,
+            variables=self.mock_variables(), configuration=self.mock_configuration()
         )
-        secretsmanager_stubber.assert_no_pending_responses()
 
         url = "https://circleci.com/api/v2/project/gh/aws-amplify/aws-sdk-ios/envvar"
         header = {"Circle-Token": "SEKRET!"}
@@ -76,7 +63,7 @@ class TestCircleCIDestination(unittest.TestCase):
             "type": "cci_env_variable",
             "description": "Circle CI environment variable for AWS SDK iOS repo",
             "github_path": "aws-amplify/aws-sdk-ios",
-            "circleci_api_token_secret_arn_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN",
+            "circleci_api_token_secret_id_lambda_env_var_key": "CIRCLE_CI_IOS_SDK_API_TOKEN",
         }
 
 
