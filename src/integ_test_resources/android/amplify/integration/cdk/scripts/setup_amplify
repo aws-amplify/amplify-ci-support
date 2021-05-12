@@ -55,11 +55,13 @@ amplify_app.push()
 
 api_key_config = ApiAuthModeFactory.create_api_key_config()
 user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=f"auth{auth_resource_name}")
+oidc_config = ApiAuthModeFactory.create_oidc_config(client_id='dummy', issuer_url="https://localhost/", provider_name="Dummy provider")
+iam_config = ApiAuthModeFactory.create_iam_config()
 api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api", 
                                         op_type=api_op_type, 
                                         schema_dir=f"{SCRIPTS_DIR}/../schemas/{schema_dir}", 
                                         default_auth_mode=api_key_config,
-                                        additional_auth_modes= { "user_pools_config": user_pools_config},
+                                        additional_auth_modes= { "user_pools_config": user_pools_config, "oidc": oidc_config, "iam": iam_config },
                                         conflict_resolution=conflict_resolution)
 
 api_cmd_result = amplify_app.config_api(api_config, api_op_type)

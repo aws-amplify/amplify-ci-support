@@ -37,7 +37,6 @@ BASE_PATH = os.getenv('HOME') if CODEBUILD_SRC_DIR is None else CODEBUILD_SRC_DI
 LOGGER.info(f"BASE_PATH = {BASE_PATH}")
 
 def run_command(cmd, work_dir:str, input: str = None):
-    LOGGER.debug(msg=" ".join(cmd))
     result = subprocess.run(cmd, 
                         text=True,
                         input = input if input is not None else '',

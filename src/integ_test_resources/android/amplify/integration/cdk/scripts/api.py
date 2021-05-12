@@ -30,6 +30,7 @@ class ApiAuthModeFactory:
     @classmethod
     def create_oidc_config(cls, client_id: str, issuer_url: str, provider_name: str, is_default: bool = False):
         return { 
+            'mode': 'OPENID_CONNECT',
             'openIDClientID': client_id,
             'openIDIssuerURL': issuer_url,
             'openIDProviderName': provider_name 
