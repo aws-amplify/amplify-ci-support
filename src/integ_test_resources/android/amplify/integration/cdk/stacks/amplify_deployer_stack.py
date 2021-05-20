@@ -108,14 +108,12 @@ class AmplifyDeployer(core.Stack):
                 "install": {
                     "commands":[
                         "echo 'Install phase starting'",
-                        "npm install -g @aws-amplify/cli"
+                        "npm install -g @aws-amplify/cli@4.40.1"
                     ]
                 },
                 "build": {
                     "commands": [
                         "echo 'Build phase starting'",
-                        "pwd",
-                        "ls -al",
                         deployer_command
                     ]
                 }
