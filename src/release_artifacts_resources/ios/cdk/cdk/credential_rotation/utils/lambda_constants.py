@@ -1,10 +1,14 @@
 # Lambda environment variable key, whose value is the
 # SecretsManager secret name of the CIrcleCI API key
-CIRCLECI_CONFIG_SECRET_ENV = "CIRCLECI_CONFIG_SECRET"
+CIRCLE_CI_IOS_SDK_API_TOKEN_ENV = "CIRCLE_CI_IOS_SDK_API_TOKEN"
+
+# Lambda environment variable key, whose value is the
+# SecretsManager secret name of the CIrcleCI API key
+CIRCLE_CI_IOS_SDK_SPM_API_TOKEN_ENV = "CIRCLE_CI_IOS_SDK_SPM_API_TOKEN"
 
 # Lambda environment variable key, whose value is the
 # ARN of the Lambda execution IAM role
-CIRCLECI_EXECUTION_ROLE_ENV = "CIRCLECI_EXECUTION_ROLE"
+IAM_ROLE_ENV = "IAM_ROLE"
 
 # Lambda environment variable key, whose value is the
 # IAM user for whom the rotator will generate static
@@ -24,9 +28,9 @@ GITHUB_CREDENTIALS_SECRET_ENV = "GITHUB_CREDENTIALS_SECRET"
 
 # Lambda environment variable key, whose value is the
 # bucket name where release artifacts are uploaded
-RELEASE_BUCKET_NAME_ENV = "RELEASE_BUCKET_NAME"
+RELEASE_BUCKET_NAME_ENV = "SPM_S3_BUCKET_NAME"
 
 # Lambda environment variable key, whose value is the
 # CloudFront distribution id that gets invalidated during
 # binary artifact releases.
-RELEASE_CLOUDFRONT_DISTRIBUTION_ID_ENV = "RELEASE_CLOUDFRONT_DISTRIBUTION_ID"
+RELEASE_CLOUDFRONT_DISTRIBUTION_ID_ENV = "SPM_RELEASE_CLOUDFRONT_DISTRIBUTION_ID"

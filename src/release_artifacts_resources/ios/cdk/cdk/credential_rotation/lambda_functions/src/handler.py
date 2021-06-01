@@ -1,12 +1,10 @@
-import json
-
 from destination import circleci
 from models.destination_type import DestinationType
 from models.source_type import SourceType
 from source_data_generator import (
     aws_session_credential_source,
-    secrets_data_source,
     lambda_env_var_data_source,
+    secrets_data_source,
 )
 
 
@@ -89,9 +87,8 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
     ```
     """
 
-    event_object = json.loads(event)
-    sources = event_object["sources"]
-    destinations = event_object["destinations"]
+    sources = event["sources"]
+    destinations = event["destinations"]
 
     destination_values_map = {}
     for source in sources:
@@ -101,6 +98,7 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         configuration = source["configuration"]
 
         source_map = {}
+
         if source_type == SourceType.AWS_SESSION_CREDENTIALS:
             source_map = aws_session_credential_source.generate_session_credentials(configuration)
 
@@ -113,10 +111,11 @@ def handler(event, context, *, iam=None, sts=None, secretsmanager=None):
         mapped_result = {}
         for item in destination_mapping:
             destination_key_name = item["destination_key_name"]
-            result_value_key = item["result_value_key"]
-            mapped_result[destination_key_name] = source_map[result_value_key]
+            result_value_key = item.get("result_value_key", "result")
+            if result_value_key in source_map:
+                mapped_result[destination_key_name] = source_map[result_value_key]
 
-        destination_values_map.setdefault(destination_specifier, []).append(mapped_result)
+        destination_values_map.setdefault(destination_specifier, {}).update(mapped_result)
 
     for name, destination_configuration in destinations.items():
 

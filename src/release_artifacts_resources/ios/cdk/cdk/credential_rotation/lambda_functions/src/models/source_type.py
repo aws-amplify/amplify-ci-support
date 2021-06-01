@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SourceType(Enum):
+class SourceType(str, Enum):
     """The source of a value to push to a destination"""
 
     AWS_SESSION_CREDENTIALS = "aws_session_credentials"

@@ -1,7 +1,7 @@
 import json
 from typing import Dict
 
-from src.utils.secrets_manager_helper import retrieve_secret
+from utils.secrets_manager_helper import retrieve_secret
 
 
 def retrieve_secrets(configuration: map) -> Dict[str, str]:
