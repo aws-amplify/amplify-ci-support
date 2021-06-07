@@ -8,7 +8,7 @@ from time import sleep
 from typing import Dict, Tuple
 
 import boto3
-from src.utils.retry import retry
+from utils.retry import retry
 
 DEFAULT_REGION = "us-west-2"
 
@@ -77,6 +77,7 @@ def get_session_credentials(
     if not sts:
         sts = boto3.client(
             "sts",
+            region_name=REGION,
             aws_access_key_id=credentials[0],
             aws_secret_access_key=credentials[1],
         )

@@ -31,8 +31,13 @@ class LambdaConstruct(core.Construct):
             ),
         )
         self.credential_rotator.add_environment(
-            lambda_constants.CIRCLECI_CONFIG_SECRET_ENV,
-            secretsmanager_construct.circleci_api_key.secret_full_arn,
+            lambda_constants.CIRCLE_CI_IOS_SDK_API_TOKEN_ENV,
+            secretsmanager_construct.circleci_aws_ios_sdk_api_key.secret_full_arn,
+        )
+
+        self.credential_rotator.add_environment(
+            lambda_constants.CIRCLE_CI_IOS_SDK_SPM_API_TOKEN_ENV,
+            secretsmanager_construct.circleci_aws_ios_sdk_spm_api_key.secret_full_arn,
         )
 
         self.credential_rotator.add_environment(
@@ -41,7 +46,7 @@ class LambdaConstruct(core.Construct):
         )
 
         self.credential_rotator.add_environment(
-            lambda_constants.CIRCLECI_EXECUTION_ROLE_ENV,
+            lambda_constants.IAM_ROLE_ENV,
             iam_construct.circleci_release_role.role_arn,
         )
 

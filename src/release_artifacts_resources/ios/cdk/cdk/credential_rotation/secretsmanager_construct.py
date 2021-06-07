@@ -9,11 +9,17 @@ class SecretsManagerConstruct(core.Construct):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        self.circleci_api_key = aws_secretsmanager.Secret(
+        self.circleci_aws_ios_sdk_api_key = aws_secretsmanager.Secret(
             self,
-            "circleCI_API_key",
-            description="CircleCI API key used by credential rotator lambda",
-            secret_name=constants.CIRCLECI_API_KEY,
+            "circleCI_AWS_iOS_SDK_API_key",
+            description="CircleCI API key used by credential rotator lambda for AWS iOS SDK",
+            secret_name=constants.CIRCLECI_AWS_IOS_SDK_API_KEY,
+        )
+        self.circleci_aws_ios_sdk_spm_api_key = aws_secretsmanager.Secret(
+            self,
+            "circleCI_AWS_iOS_SDK_SPM_API_key",
+            description="CircleCI API key used by credential rotator lambda for AWS iOS SDK SPM",
+            secret_name=constants.CIRCLECI_AWS_IOS_SDK_SPM_API_KEY,
         )
         self.github_release_api_key = aws_secretsmanager.Secret(
             self,
@@ -28,7 +34,8 @@ class SecretsManagerConstruct(core.Construct):
             effect=aws_iam.Effect.ALLOW,
             actions=["secretsmanager:GetSecretValue"],
             resources=[
-                self.circleci_api_key.secret_full_arn,
+                self.circleci_aws_ios_sdk_api_key.secret_full_arn,
+                self.circleci_aws_ios_sdk_spm_api_key.secret_full_arn,
                 self.github_release_api_key.secret_full_arn,
             ],
         )

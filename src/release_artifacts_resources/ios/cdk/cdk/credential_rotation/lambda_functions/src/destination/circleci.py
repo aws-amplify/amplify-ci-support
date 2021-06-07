@@ -21,8 +21,8 @@ The actual process is quite simple
    environment variables, authenticating with the **CircleCI API token**
 """
 import requests
-from src.utils.retry import retry
-from src.utils.secrets_manager_helper import retrieve_secret
+from utils.retry import retry
+from utils.secrets_manager_helper import retrieve_secret
 
 CIRCLECI_URL_TEMPLATE = "https://circleci.com/api/v2/project/gh/{project_path}/envvar"
 
