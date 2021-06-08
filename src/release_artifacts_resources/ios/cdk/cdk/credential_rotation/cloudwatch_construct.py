@@ -9,14 +9,14 @@ class CloudWatchConstruct(core.Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         lambda_error_metrics = lambda_construct.credential_rotator.metric_errors(
-            period=core.Duration.minutes(5)
+            period=core.Duration.hours(2)
         )
         aws_cloudwatch.Alarm(
             self,
             "credential_rotator_error_metrics",
             metric=lambda_error_metrics,
             evaluation_periods=1,
-            threshold=2,
+            threshold=1,
             alarm_description="""
             Alarm if the number of errors in credential rotator increase to a threshold
             """
