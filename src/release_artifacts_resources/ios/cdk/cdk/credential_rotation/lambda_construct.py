@@ -25,6 +25,7 @@ class LambdaConstruct(core.Construct):
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             role=iam_construct.lambda_role,
             timeout=core.Duration.minutes(5),
+            retry_attempts=1,
             description="Credential rotation script for the AWS iOS SDK CircleCI pipeline",
             current_version_options=aws_lambda.VersionOptions(
                 removal_policy=core.RemovalPolicy.DESTROY

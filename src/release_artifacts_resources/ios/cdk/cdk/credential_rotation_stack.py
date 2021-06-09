@@ -3,6 +3,7 @@ from cdk.credential_rotation.events_construct import EventsConstruct
 from cdk.credential_rotation.iam_construct import IAMConstruct
 from cdk.credential_rotation.lambda_construct import LambdaConstruct
 from cdk.credential_rotation.secretsmanager_construct import SecretsManagerConstruct
+from cdk.credential_rotation.cloudwatch_construct import CloudWatchConstruct
 
 
 class CredentialRotationStack(cdk.Stack):
@@ -33,3 +34,6 @@ class CredentialRotationStack(cdk.Stack):
         )
 
         EventsConstruct(self, "credential_rotation_event", lambda_construct=lambda_construct)
+        CloudWatchConstruct(
+            self, "credential_rotation_cloudwatch", lambda_construct=lambda_construct
+        )
