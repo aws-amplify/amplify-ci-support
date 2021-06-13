@@ -78,6 +78,7 @@ def get_session_credentials(
         sts = boto3.client(
             "sts",
             region_name=REGION,
+            endpoint_url=f'https://sts.{REGION}.amazonaws.com',
             aws_access_key_id=credentials[0],
             aws_secret_access_key=credentials[1],
         )
