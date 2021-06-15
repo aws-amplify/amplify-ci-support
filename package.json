@@ -1,0 +1,48 @@
+{
+  "name": "@johnpc/circleci-aws-token-rotation",
+  "version": "1.0.0",
+  "description": "Scheduled job to rotate AWS tokens in CircleCI",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "preinstall": "(command -v git && git config --local commit.template \".commit-msg\") || true"
+  },
+  "author": {
+    "name": "John Corser",
+    "url": "https://jpc.io",
+    "organization": false
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^12.7.8",
+    "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-events": "^1.65.0",
+    "@aws-cdk/aws-events-targets": "^1.65.0",
+    "@aws-cdk/aws-lambda": "^1.65.0",
+    "@aws-cdk/aws-s3-assets": "^1.65.0",
+    "@aws-cdk/core": "^1.65.0",
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@types/dotenv": "^6.1.1",
+    "aws-cdk": "*",
+    "dotenv": "^8.1.0",
+    "husky": "^3.0.5",
+    "lint-staged": "^9.2.5",
+    "prettier": "1.13.7",
+    "typescript": "^3.5.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,json,md,scss,html}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+type(scope): description
+
+body
+
+# Example:
+### feat(alert): Add flag to make alert component persistent
+###
+### This allows customers to remove the "dismiss" icon from the alert component.
+
+# Conventional commit syntax:
+# type: classfication of the change encapsulated by this commit
+### feat - A new feature
+### fix - A bug fix
+### test - A change to the tests
+### improvement - An improvement to an existing feature
+### docs - Documentation only changes
+### style - Changes that do not affect the meaning of the code (whitespace, formatting, etc)
+### refactor - A code change that neither fixes a bug nor adds a feature
+### perf - A code change that improves performance
+### build - Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+### ci - Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
+### chore - Other changes that don't modify src or test files
+### revert - Reverts a previous commit
+
+# scope (optional): For example, the name of a component
+# description: Short description of the commit
+# body: Room for more in depth explanation of the commit, link to a ticket, etc.
