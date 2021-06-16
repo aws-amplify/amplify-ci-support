@@ -1,0 +1,44 @@
+export type SecretDetail = {
+  arn: string;
+  secretKey: string;
+};
+
+export type TokenPublishCircleCIContextConfig = {
+  type: "Context";
+  contextName: string;
+  slug: string;
+  variableName: string;
+  circleCiToken: SecretDetail;
+};
+
+export type TokenPublishCircleCIEnvironmentConfig = {
+  type: "Environment";
+  slug: string;
+  projectName: string;
+  variableName: string;
+  circleCiToken: SecretDetail;
+};
+
+export type AccessTokenItem = SecretDetail & {
+  publishConfig:
+    | TokenPublishCircleCIContextConfig
+    | TokenPublishCircleCIEnvironmentConfig;
+  slackWebHookConfig: SecretDetail;
+};
+
+export type AccessTokenRotationConfig = {
+  secrets: AccessTokenItem[];
+  alarmSubscriptions: string[];
+};
+
+export type NPMTokenRotationConfig = {
+  npmLoginUsernameSecret: SecretDetail;
+  npmLoginPasswordSecret: SecretDetail;
+  npmOtpSeedSecret: SecretDetail;
+  npmAccessTokenSecrets: AccessTokenRotationConfig;
+};
+
+export type TokenRotationStepFnEvent = {
+  tokenEvent: string;
+  secretArn: string;
+};
