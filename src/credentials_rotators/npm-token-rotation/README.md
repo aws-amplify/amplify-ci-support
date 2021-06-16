@@ -8,7 +8,7 @@ The `secret_config.json` configuration file should be populated with the
 information about **accessing** secret values from AWS Secrets Manager. **It must not be
 used to store the secret values themselves.**
 
-## Sample `secrets_config.json`
+## Sample `secret_config.json`
 
 ```json
 {
@@ -99,7 +99,7 @@ Paste the `ARN` returned from above operation under `npmLoginUsernameSecret`.The
 ## Architecture
 ![](./docs/arch.svg)
 
-The CDK stack adds a secret rotation lambda function which would trigger automatic rotation of Configured NPM Token. When the automatic rotation [lambda function](src/lambda/create-new-token/index.ts) is triggered which requests creation of new NPM token using the credentials provided in the `secrets_config.json` and triggers Step Function to which [pushes the credentials to CircleCI](src/lambda/step-01-publish-token/index.ts) and after 15 minutes of wait it [deletes the old tokens](src/lambda/step-02-delete-old-token/index.ts).
+The CDK stack adds a secret rotation lambda function which would trigger automatic rotation of Configured NPM Token. When the automatic rotation [lambda function](src/lambda/create-new-token/index.ts) is triggered which requests creation of new NPM token using the credentials provided in the `secret_config.json` and triggers Step Function to which [pushes the credentials to CircleCI](src/lambda/step-01-publish-token/index.ts) and after 15 minutes of wait it [deletes the old tokens](src/lambda/step-02-delete-old-token/index.ts).
 
 ## Useful commands
 
