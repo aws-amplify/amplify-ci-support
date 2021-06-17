@@ -96,11 +96,12 @@ Paste the `ARN` returned from above operation under `npmLoginUsernameSecret`.The
 | npmAccessTokenSecrets.secrets[].publishConfig.circleCIToken      | CircleCI Token secret `arn` and `secretKey`                                                          |
 | npmAccessTokenSecrets.secrets[].publishConfig.slackWebHookConfig | [Optional] `Arn` and `secretKey` for slackWebhookUrl used for notification                           |
 
-## Architecture
+## High Level Architecture
 ![](./docs/arch.svg)
 
 The CDK stack adds a secret rotation lambda function which would trigger automatic rotation of Configured NPM Token. When the automatic rotation [lambda function](src/lambda/create-new-token/index.ts) is triggered which requests creation of new NPM token using the credentials provided in the `secret_config.json` and triggers Step Function to which [pushes the credentials to CircleCI](src/lambda/step-01-publish-token/index.ts) and after 15 minutes of wait it [deletes the old tokens](src/lambda/step-02-delete-old-token/index.ts).
 
+![](docs/seq-diag.svg)
 ## Useful commands
 
 - `npm run build` compile typescript to js
