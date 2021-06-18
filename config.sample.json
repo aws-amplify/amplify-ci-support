@@ -1,0 +1,14 @@
+{
+  "circleCiToken": {
+    "arn": "arn:aws:secretsmanager:us-east-2:111111111:secret:amplify_cli_circleci_token-cawIBB",
+    "secretKey": "circleci-key-secret"
+  },
+  "circleCiConfig": {
+    "type": "Context",
+    "contextName": "some-context",
+    "slug": "gh/someuser",
+    "secretKeyIdVariableName": "AWS_ACCESS_KEY_ID",
+    "secretKeyVariableName": "AWS_SECRET_ACCESS_KEY"
+  },
+  "alarmSubscriptions": ["user@domain.com"]
+}

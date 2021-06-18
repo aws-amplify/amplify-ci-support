@@ -1,6 +1,9 @@
 cdk.out
+coverage
 .DS_STORE
 cdk.context.json
 *.js
 !commitlint.config.js
+config.json
+!jest.config.js
 node_modules
