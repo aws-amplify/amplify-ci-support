@@ -91,8 +91,20 @@ class AmplifyDeployer(core.Stack):
                 aws_iam.PolicyStatement(actions=individual_actions, effect=aws_iam.Effect.ALLOW, resources=["*"]),
             ]
         )
-
         policy.attach_to_role(project.role)
+
+        policy = aws_iam.ManagedPolicy(self,
+            "AmplifyCodeBuildScriptRunnerSecretReaderPolicy",
+            managed_policy_name=f"AmplifyCodeBuildScriptRunnerSecretReaderPolicy-{cb_project_name}",
+            description="Policy used by the CodeBuild role that manages the creation of backend resources using the Amplify CLI",
+            statements=[
+                aws_iam.PolicyStatement(actions=["secretsmanager:GetSecretValue"], 
+                                        effect=aws_iam.Effect.ALLOW, 
+                                        resources=[f"arn:aws:secretsmanager:us-east-1:{self.account}:secret:awsmobilesdk/android/*"]),
+            ]
+        )
+        policy.attach_to_role(project.role)
+
 
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))

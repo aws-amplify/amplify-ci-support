@@ -46,16 +46,20 @@ auth_config = AuthConfigFactory.create(auth_resource_name=auth_resource_name,
 
 auth_cmd_result = amplify_app.config_auth(auth_config=auth_config, op_type=auth_op_type)
 if auth_cmd_result == 0:
-    LOGGER.info("Auth category configured.")
+    LOGGER.info("Auth category configured. Pushing changes.")
+    push_cmd_result = amplify_app.push()
+    if push_cmd_result == 0:
+        LOGGER.info("Auth category changed pushed.")
+    else:
+        LOGGER.error("Failed to push Auth category changes.")
+        exit(-1)
 else:
     LOGGER.error("Failed to configure Auth category.")
     exit(-1)
 
-amplify_app.push()
-
 api_key_config = ApiAuthModeFactory.create_api_key_config()
 user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=f"auth{auth_resource_name}")
-oidc_config = ApiAuthModeFactory.create_oidc_config(client_id='dummy', issuer_url="https://localhost/", provider_name="Dummy provider")
+oidc_config = ApiAuthModeFactory.create_oidc_config(client_id='dummy', issuer_url="https://accounts.google.com/", provider_name='GoogleIntegTestOIDC')
 iam_config = ApiAuthModeFactory.create_iam_config()
 api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api", 
                                         op_type=api_op_type, 

@@ -3,6 +3,7 @@ import os
 from common import (
     LOGGER,
     AMPLIFY_AWSSDK_CLIENT,
+    SECRETS_MANAGER_CLIENT,
     BASE_PATH,
     run_command,
     OperationType
@@ -87,6 +88,10 @@ class AmplifyApp:
         result = run_command(push_cmd, self.project_dir)
         self._load_metadata()
         return result.returncode
+
+    def retrieve_secret(self, secret_name: str):
+        get_secret_result = SECRETS_MANAGER_CLIENT.get_secret_value(SecretId=secret_name)
+        return json.loads(get_secret_result["SecretString"])
 
     def _get_existing_app_id(self):
         try:

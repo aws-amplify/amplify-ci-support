@@ -9,6 +9,7 @@ class AuthConfigFactory:
                         allow_unauth = True,
                         signin_method = 'USERNAME',
                         group_names = [],
+                        oauth_config = None,
                         refresh_token_period_in_days = 365,
                         required_signup_attributes = ['EMAIL', 'NAME', 'NICKNAME'],
                         write_attributes = ['EMAIL', 'NAME', 'NICKNAME'],
@@ -36,6 +37,9 @@ class AuthConfigFactory:
             'readAttributes': read_attributes,
             'refreshTokenPeriod': refresh_token_period_in_days
         }
+
+        if oauth_config is not None:
+            user_pool_config['oAuth'] = oauth_config 
 
         id_pool_config = {
             'unauthenticatedLogin': allow_unauth,

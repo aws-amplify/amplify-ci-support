@@ -13,6 +13,7 @@ class OperationType(Enum):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Utility that runs the Amplify CLI in headless mode to provision backend resources for integration tests.")
     parser.add_argument("--backend_name", help="The name of the Amplify app.", required=True)
+    parser.add_argument("--oidc_provider", help="Name of the oidc provider.")
     parser.add_argument("--schema_dir", help="Name of the subdirectory under the schemas folder that contains the GraphQL schemas for the backend API.", required=True)
     parser.add_argument("--group_names", help="Comma-separated list of group names to be created.", default="")
     parser.add_argument("--conflict_resolution", help="Conflict resolution mode.")
@@ -26,6 +27,7 @@ LOGGER = logging.getLogger("AmplifyDeployerUtil")
 LOGGER.addHandler(CONSOLE_HANDLER)
 
 AMPLIFY_AWSSDK_CLIENT = boto3.client('amplify')
+SECRETS_MANAGER_CLIENT = boto3.client('secretsmanager')
 REGION = 'us-east-1'
 SCRIPTS_DIR = os.path.dirname(__file__)
 LOGGER.info(f"SCRIPTS_DIR = {SCRIPTS_DIR}")
