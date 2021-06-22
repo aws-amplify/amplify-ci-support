@@ -9,7 +9,7 @@ import {
   getTokenConfigForArn,
 } from "../utils/utils";
 
-import config from "../../../secret_config.json";
+import config from "../../../config.json";
 import { NPMTokenRotationConfig, AccessTokenItem } from "../../stacks/types";
 
 export type SecretRotationEvent = {
@@ -34,10 +34,15 @@ const testSecret = async (
   console.info(
     `start:testSecret(${event.SecretId}, ${event.ClientRequestToken})`
   );
-  const stagedToken = await getSecret(event.SecretId, tokenConfig.secretKey, {
-    ClientRequestToken: event.ClientRequestToken,
-    stage: "AWSPENDING",
-  });
+  const stagedToken = await getSecret(
+    event.SecretId,
+    tokenConfig.secretKey,
+    undefined,
+    {
+      ClientRequestToken: event.ClientRequestToken,
+      stage: "AWSPENDING",
+    }
+  );
   await validateAccessToken(credential.username, stagedToken);
   console.info("testSecret: Successfully tested secret");
   console.info(
@@ -54,7 +59,7 @@ const finishSecret = async (
     `start:finishSecret(${event.SecretId}, ${event.ClientRequestToken})`
   );
 
-  const secretsManagerClient = getSecretsManagerClient();
+  const secretsManagerClient = await getSecretsManagerClient();
   const metadata = await secretsManagerClient
     .describeSecret({ SecretId: event.SecretId })
     .promise();
@@ -81,7 +86,7 @@ const finishSecret = async (
     tokenEvent: currentVersion,
     secretArn: event.SecretId,
   };
-  
+
   await stepFnClient
     .startExecution({
       stateMachineArn: stepFnArn,
@@ -113,14 +118,19 @@ const createSecret = async (
   );
   // check if there is already a credential that is pending
   try {
-    await getSecret(event.SecretId, tokenConfig.secretKey, {
-      ClientRequestToken: event.ClientRequestToken,
-      stage: "AWSPENDING",
-    });
+    await getSecret(
+      event.SecretId,
+      tokenConfig.secretKey,
+      undefined,
+      {
+        ClientRequestToken: event.ClientRequestToken,
+        stage: "AWSPENDING",
+      }
+    );
     console.info(`Secret already is in AWSPENDING. Not creating a new one`);
   } catch (e) {
     if ((e as aws.AWSError).code === "ResourceNotFoundException") {
-      const secretsManagerClient = getSecretsManagerClient();
+      const secretsManagerClient = await getSecretsManagerClient();
       console.info("Requesting a new npm access token");
 
       const newToken = await createAccessToken(
@@ -158,7 +168,7 @@ const assertRotationStatus = async (
   console.info(
     `start:assertRotationStatus(${secretArn}, ${clientRequestToken})`
   );
-  const secretsMetadata = await getSecretsManagerClient()
+  const secretsMetadata = await (await getSecretsManagerClient())
     .describeSecret({ SecretId: secretArn })
     .promise();
   if (!secretsMetadata.RotationEnabled) {

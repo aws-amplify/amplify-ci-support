@@ -5,7 +5,7 @@ import {
   getTokenConfigForArn,
   sendSlackMessage,
 } from "../utils/utils";
-import config from "../../../secret_config.json";
+import config from "../../../config.json";
 import {
   NPMTokenRotationConfig,
   TokenRotationStepFnEvent,
@@ -24,6 +24,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
   const tokenToDelete = await getSecret(
     event.secretArn,
     tokenConfig.secretKey,
+    tokenConfig.roleArn,
     {
       ClientRequestToken: event.tokenEvent,
     }
@@ -36,7 +37,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
   const webhookUrl = tokenDetails.slackWebHookConfig
     ? await getSecret(
         tokenDetails.slackWebHookConfig.arn,
-        tokenDetails.slackWebHookConfig.secretKey
+        tokenDetails.slackWebHookConfig.secretKey,
+        tokenDetails.slackWebHookConfig.roleArn
       )
     : undefined;
 

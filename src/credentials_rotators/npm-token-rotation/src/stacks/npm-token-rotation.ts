@@ -81,26 +81,26 @@ export class NpmTokenRotationStack extends BaseStack {
     );
 
     this.grantLambdaAccessToSecrets(rotatorFn, [
-      this.secreteConfig.npmLoginUsernameSecret.arn,
-      this.secreteConfig.npmLoginPasswordSecret.arn,
-      this.secreteConfig.npmOtpSeedSecret.arn,
+      this.secreteConfig.npmLoginUsernameSecret,
+      this.secreteConfig.npmLoginPasswordSecret,
+      this.secreteConfig.npmOtpSeedSecret,
     ]);
     this.grantLambdaAccessToSecrets(tokenRemovalFn, [
-      this.secreteConfig.npmLoginUsernameSecret.arn,
-      this.secreteConfig.npmLoginPasswordSecret.arn,
-      this.secreteConfig.npmOtpSeedSecret.arn,
+      this.secreteConfig.npmLoginUsernameSecret,
+      this.secreteConfig.npmLoginPasswordSecret,
+      this.secreteConfig.npmOtpSeedSecret,
     ]);
 
     for (const token of this.secreteConfig.npmAccessTokenSecrets.secrets) {
       this.grantLambdaAccessToRotateSecrets(rotatorFn, token);
       this.grantLambdaAccessToSecrets(tokenRemovalFn, [
-        token.arn,
-        ...(token.slackWebHookConfig ? [token.slackWebHookConfig.arn] : []),
+        token,
+        ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
       this.grantLambdaAccessToSecrets(tokenPublisherFn, [
-        token.arn,
-        token.publishConfig.circleCiToken.arn,
-        ...(token.slackWebHookConfig ? [token.slackWebHookConfig.arn] : []),
+        token,
+        token.publishConfig.circleCiToken,
+        ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
       this.configureSecretRotation(rotatorFn, token, Duration.days(7));
     }

@@ -1,4 +1,4 @@
-import config from "../../../secret_config.json";
+import config from "../../../config.json";
 import assert from "assert";
 import {
   ContextVariables,
@@ -20,7 +20,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
   const webhookUrl = tokenDetails.slackWebHookConfig
     ? await utils.getSecret(
         tokenDetails.slackWebHookConfig.arn,
-        tokenDetails.slackWebHookConfig.secretKey
+        tokenDetails.slackWebHookConfig.secretKey,
+        tokenDetails.slackWebHookConfig.roleArn
       )
     : undefined;
   if (tokenDetails) {
@@ -35,14 +36,16 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       }
       const circleCIToken = await utils.getSecret(
         tokenConfig.arn,
-        tokenConfig.secretKey
+        tokenConfig.secretKey,
+        tokenConfig.roleArn
       );
       if (!circleCIToken) {
         throw new Error("Could not get the CircleCI token");
       }
       const newNPMToken = await utils.getSecret(
         event.secretArn,
-        tokenDetails.secretKey
+        tokenDetails.secretKey,
+        tokenDetails.roleArn
       );
       assert(newNPMToken, "Secret manager should have newNPMToken");
 

@@ -32,7 +32,11 @@ export const schema = {
     },
     SecretDetail: {
       type: "object",
+      additionalProperties: false,
       properties: {
+        roleArn: {
+          type: "string",
+        },
         arn: {
           type: "string",
         },
@@ -41,7 +45,6 @@ export const schema = {
         },
       },
       required: ["arn", "secretKey"],
-      additionalProperties: false,
     },
     AccessTokenRotationConfig: {
       type: "object",

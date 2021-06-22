@@ -19,24 +19,32 @@ export class BaseStack extends core.Stack {
     fn.addPermission("invoke_access_to_secretsmanager", { principal });
   };
 
-  protected grantLambdaFunctionToAccessStepFunctions = (fn: lambda.IFunction, machine: StateMachine) => {
+  protected grantLambdaFunctionToAccessStepFunctions = (
+    fn: lambda.IFunction,
+    machine: StateMachine
+  ) => {
     machine.grantStartExecution(fn);
-  }
+  };
 
   protected grantLambdaAccessToRotateSecrets = (
     fn: lambda.IFunction,
     secret: SecretDetail
   ) => {
-    fn.addToRolePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: [secret.arn],
-        actions: [
+    const actions = secret.roleArn
+      ? ["sts:AssumeRole"]
+      : [
           "secretsmanager:DescribeSecret",
           "secretsmanager:GetSecretValue",
           "secretsmanager:PutSecretValue",
           "secretsmanager:UpdateSecretVersionStage",
-        ],
+        ];
+    const resources = secret.roleArn ? [secret.roleArn] : [secret.arn];
+
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources,
+        actions,
       })
     );
 
@@ -51,14 +59,21 @@ export class BaseStack extends core.Stack {
 
   protected grantLambdaAccessToSecrets = (
     fn: lambda.IFunction,
-    secreteArns: Readonly<string[]>
+    secretDetails: Readonly<SecretDetail[]>
   ) => {
-    for (const secreteArn of secreteArns) {
+    // Todo: de-dupe the duplicate entires if the same roleArn or secret arns are used
+    for (const secretDetail of secretDetails) {
+      const actions = secretDetail.roleArn
+        ? ["sts:AssumeRole"]
+        : ["secretsmanager:GetSecretValue"];
+      const resources = secretDetail.roleArn
+        ? [secretDetail.roleArn]
+        : [secretDetail.arn];
       fn.addToRolePolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
-          resources: [secreteArn],
-          actions: ["secretsmanager:GetSecretValue"],
+          resources,
+          actions,
         })
       );
     }
@@ -74,13 +89,10 @@ export class BaseStack extends core.Stack {
       `${config.arn}-${config.secretKey}`,
       config.arn
     );
-    secret.addRotationSchedule(
-      `${config.arn}-${config.secretKey}-rotator`,
-      {
-        automaticallyAfter: duration,
-        rotationLambda: fn,
-      }
-    );
+    secret.addRotationSchedule(`${config.arn}-${config.secretKey}-rotator`, {
+      automaticallyAfter: duration,
+      rotationLambda: fn,
+    });
   };
 
   protected enableCloudWatchAlarmNotification = (

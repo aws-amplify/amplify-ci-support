@@ -1,6 +1,10 @@
-export type SecretDetail = {
+export type RotatableSecrets = {
   arn: string;
   secretKey: string;
+};
+
+export type SecretDetail = RotatableSecrets & {
+  roleArn?: string;
 };
 
 export type TokenPublishCircleCIContextConfig = {
@@ -19,7 +23,7 @@ export type TokenPublishCircleCIEnvironmentConfig = {
   circleCiToken: SecretDetail;
 };
 
-export type AccessTokenItem = SecretDetail & {
+export type AccessTokenItem = RotatableSecrets & {
   publishConfig:
     | TokenPublishCircleCIContextConfig
     | TokenPublishCircleCIEnvironmentConfig;
