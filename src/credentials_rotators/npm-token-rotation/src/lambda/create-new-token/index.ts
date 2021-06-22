@@ -32,7 +32,7 @@ const testSecret = async (
   tokenConfig: AccessTokenItem
 ) => {
   console.info(
-    `start:testSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `start:testSecret()`
   );
   const stagedToken = await getSecret(
     event.SecretId,
@@ -46,7 +46,7 @@ const testSecret = async (
   await validateAccessToken(credential.username, stagedToken);
   console.info("testSecret: Successfully tested secret");
   console.info(
-    `end:testSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `end:testSecret()`
   );
 };
 
