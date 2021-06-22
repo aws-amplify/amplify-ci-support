@@ -59,7 +59,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
             [tokenDetails.publishConfig.variableName]: newNPMToken,
           },
         };
-      } else {
+      } else if (tokenDetails.publishConfig.type === "Environment") {
         assert(
           (tokenDetails.publishConfig as TokenPublishCircleCIEnvironmentConfig)
             .projectName,
@@ -75,6 +75,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
             tokenDetails.publishConfig as TokenPublishCircleCIEnvironmentConfig
           ).projectName,
         };
+      } else {
+        throw new Error('Invalid publishConfig');
       }
 
       await updateCircleCIEnvironmentVariables(circleCIToken, updateConfig);
