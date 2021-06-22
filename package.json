@@ -21,6 +21,7 @@
     "@types/fs-extra": "^9.0.11",
     "@types/jest": "^26.0.23",
     "@types/node": "^12.7.8",
+    "esbuild": "^0.12.9",
     "husky": "^3.0.5",
     "jest": "^26.0.23",
     "lint-staged": "^9.2.5",

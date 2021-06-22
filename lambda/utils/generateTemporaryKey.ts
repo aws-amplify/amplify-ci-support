@@ -1,18 +1,18 @@
 const AWS = require("aws-sdk");
-const generateTemporaryKey = async () => {
+const generateTemporaryKey = async (roleName: string) => {
   const {
     E2E_USERNAME,
     CREATE_ACCESS_KEY_TIMEOUT,
-    E2E_ROLE_ARN,
-    TOKEN_TTL_HOURS
+    TOKEN_TTL_HOURS,
+    ROLE_PREFIX
   } = process.env;
 
   console.assert(E2E_USERNAME, "E2E_USERNAME environment variable must be set");
+  console.assert(ROLE_PREFIX, "ROLE_PREFIX environment variable must be set");
   console.assert(
     CREATE_ACCESS_KEY_TIMEOUT,
     "CREATE_ACCESS_KEY_TIMEOUT environment variable must be set"
   );
-  console.assert(E2E_ROLE_ARN, "E2E_ROLE_ARN environment variable must be set");
   console.assert(
     TOKEN_TTL_HOURS,
     "TOKEN_TTL_HOURS environment variable must be set"
@@ -38,9 +38,12 @@ const generateTemporaryKey = async () => {
   });
   const date = new Date();
   const identifier = `CredentialRotationLambda-${date.getFullYear()}${date.getMonth()}${date.getDay()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}`;
+  const role = await iam
+    .getRole({ RoleName: `${ROLE_PREFIX}${roleName}` })
+    .promise();
   const creds = await sts
     .assumeRole({
-      RoleArn: E2E_ROLE_ARN,
+      RoleArn: role.Role.Arn,
       DurationSeconds: +TOKEN_TTL_HOURS! * 60 * 60,
       RoleSessionName: identifier
     })

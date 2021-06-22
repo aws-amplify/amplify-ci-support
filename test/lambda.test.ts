@@ -12,10 +12,18 @@ const createAccessKeyMock = jest.fn(() => ({
 const deleteAccessKeyMock = jest.fn(() => {
   return { promise: () => true };
 });
+const getRoleMock = jest.fn(() => {
+  return {
+    promise: () => ({
+      Arn: "arn::role"
+    })
+  };
+});
 
 AWS.IAM = jest.fn(() => ({
   createAccessKey: createAccessKeyMock,
-  deleteAccessKey: deleteAccessKeyMock
+  deleteAccessKey: deleteAccessKeyMock,
+  getRole: getRoleMock
 }));
 AWS.STS = jest.fn(() => ({
   assumeRole: () => {
@@ -45,7 +53,7 @@ const data = {
     items: [
       {
         id: 123,
-        name: "test"
+        name: "some-context"
       }
     ]
   }
@@ -57,15 +65,8 @@ describe("Lambda", () => {
   beforeAll(async () => {
     process.env.CREATE_ACCESS_KEY_TIMEOUT = "500";
     process.env.TOKEN_TTL_HOURS = "5";
-    process.env.E2E_ROLE_ARN = "E2E_ROLE_ARN";
+    process.env.ROLE_PREFIX = "test-";
     process.env.E2E_USERNAME = "E2E_USERNAME";
-    process.env.CIRCLECI_SLUG = "CIRCLECI_SLUG";
-    process.env.CIRCLECI_CONTEXT_NAME = "test";
-    process.env.CIRCLECI_SECRET_KEY_ID_VARIABLE =
-      "CIRCLECI_SECRET_KEY_ID_VARIABLE";
-    process.env.CIRCLECI_SECRET_KEY_VARIABLE = "CIRCLECI_SECRET_KEY_VARIABLE";
-    process.env.SECRET_ARN = "SECRET_ARN";
-    process.env.SECRET_KEY = "SECRET_KEY";
     await handler();
   });
 

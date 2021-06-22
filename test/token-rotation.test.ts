@@ -9,13 +9,21 @@ jest.mock("fs-extra", () => {
           "arn:aws:secretsmanager:us-east-2:111111111:secret:amplify_cli_circleci_token-cawIBB",
         secretKey: "circleci-key-secret"
       },
-      circleCiConfig: {
-        type: "Context",
-        contextName: "some-context",
-        slug: "gh/someuser",
-        secretKeyIdVariableName: "AWS_ACCESS_KEY_ID",
-        secretKeyVariableName: "AWS_SECRET_ACCESS_KEY"
-      },
+      circleCiConfigs: [
+        {
+          type: "Context",
+          name: "some-context",
+          slug: "gh/someuser",
+          secretKeyIdVariableName: "AWS_ACCESS_KEY_ID",
+          secretKeyVariableName: "AWS_SECRET_ACCESS_KEY",
+          roleName: "someRole",
+          permissions: {
+            resources: ["*"],
+            actions: ["sts:*"],
+            effect: "allow"
+          }
+        }
+      ],
       alarmSubscriptions: ["user@domain.com"]
     })
   };
@@ -84,7 +92,16 @@ describe("LambdaCronStack", () => {
     expect(stack).toHaveResourceLike("AWS::Lambda::Function", {
       Handler: "index.handler",
       Runtime: "nodejs14.x",
-      Timeout: 300
+      Environment: {
+        Variables: {
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
+          TOKEN_TTL_HOURS: "5",
+          E2E_USERNAME: {
+            Ref: "mockIdUser938E0758"
+          },
+          CREATE_ACCESS_KEY_TIMEOUT: "10000"
+        }
+      }
     });
     expect(stack).toHaveResourceLike("AWS::Events::Rule", {
       ScheduleExpression: "rate(1 hour)",

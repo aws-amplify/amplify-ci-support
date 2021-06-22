@@ -1,16 +1,11 @@
-const axios = require("axios");
+import { CircleCiConfig } from "./updateCircleCiEnvironmentVariable";
+import axios from "axios";
 
-const getCircleCiContextId = async (baseUrl: string, token: string) => {
-  const { CIRCLECI_CONTEXT_NAME, CIRCLECI_SLUG } = process.env;
-  console.assert(
-    CIRCLECI_CONTEXT_NAME,
-    "CIRCLECI_CONTEXT_NAME environment variable must be set"
-  );
-  console.assert(
-    CIRCLECI_SLUG,
-    "CIRCLECI_SLUG environment variable must be set"
-  );
-
+const getCircleCiContextId = async (
+  config: CircleCiConfig,
+  baseUrl: string,
+  token: string
+) => {
   const url = `${baseUrl}/context`;
   const response = await axios.get(url, {
     headers: {
@@ -18,7 +13,7 @@ const getCircleCiContextId = async (baseUrl: string, token: string) => {
       "content-type": "application/json"
     },
     params: {
-      "owner-slug": CIRCLECI_SLUG,
+      "owner-slug": config.slug,
       "owner-type": "organization"
     }
   });
@@ -26,11 +21,9 @@ const getCircleCiContextId = async (baseUrl: string, token: string) => {
     id: string;
     name: string;
   }[]).reduce((acc, context) => ({ ...acc, [context.name]: context.id }), {});
-  const contextId = idMap[CIRCLECI_CONTEXT_NAME!];
+  const contextId = idMap[config.name!];
   if (!contextId) {
-    throw new Error(
-      `Context with name '${CIRCLECI_CONTEXT_NAME}' does not exist`
-    );
+    throw new Error(`Context with name '${config.name}' does not exist`);
   }
   return contextId;
 };
