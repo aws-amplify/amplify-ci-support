@@ -39,6 +39,9 @@ export const schema = {
               secretKeyVariableName: {
                 type: "string"
               },
+              sessionTokenVariableName: {
+                type: "string"
+              },
               roleName: {
                 type: "string"
               },
@@ -73,7 +76,8 @@ export const schema = {
               "name",
               "slug",
               "secretKeyIdVariableName",
-              "secretKeyVariableName"
+              "secretKeyVariableName",
+              "sessionTokenVariableName"
             ],
             additionalProperties: false
           }

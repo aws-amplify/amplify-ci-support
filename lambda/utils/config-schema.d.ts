@@ -35,6 +35,9 @@ export declare const schema: {
               secretKeyVariableName: {
                 type: string;
               };
+              sessionTokenVariableName: {
+                type: string;
+              };
               roleName: {
                 type: string;
               };

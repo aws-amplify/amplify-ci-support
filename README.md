@@ -36,13 +36,22 @@ Save the `ARN` returned from above operation and paste it into your project's `c
 You must update your configuration to point to your CircleCI project, by replacing the sample values with your own CircleCI information:
 
 ```json
-"cirlceCiConfig": {
+"cirlceCiConfigs": [{
   "type": "Context",
-  "contextName": "some-context",
+  "name": "some-context",
   "slug": "gh/someuser",
   "secretKeyIdVariableName": "AWS_ACCESS_KEY_ID",
   "secretKeyVariableName": "AWS_SECRET_ACCESS_KEY",
-}
+  "sessionTokenVariableName": "AWS_SESSION_TOKEN",
+  "roleName": "ecr-role",
+  "permissions": [
+    {
+      "resources": ["*"],
+      "actions": ["ecr:CreateRepository"],
+      "effect": "Allow"
+    }
+  ]
+}]
 ```
 
 ### 3. Configure alarm notifications

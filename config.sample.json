@@ -10,6 +10,7 @@
       "slug": "gh/amplify-cli",
       "secretKeyIdVariableName": "ECR_ACCESS_KEY",
       "secretKeyVariableName": "ECR_SECRET_ACCESS_KEY",
+      "sessionTokenVariableName": "AWS_SESSION_TOKEN",
       "roleName": "ecr-role",
       "permissions": [
         {

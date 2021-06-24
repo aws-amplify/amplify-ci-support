@@ -8,6 +8,7 @@ export type CircleCiConfig = {
   slug: string;
   secretKeyIdVariableName: string;
   secretKeyVariableName: string;
+  sessionTokenVariableName: string;
   roleName: string;
   permissions: {
     resources: string[];
@@ -31,7 +32,8 @@ const updateCircleCiEnvironmentVariable = async (
   };
   const mappings = {
     [config.secretKeyIdVariableName!]: credentials.AccessKeyId,
-    [config.secretKeyVariableName!]: credentials.SecretAccessKey
+    [config.secretKeyVariableName!]: credentials.SecretAccessKey,
+    [config.sessionTokenVariableName!]: credentials.SessionToken
   };
 
   let promises: Promise<any>[] = [];

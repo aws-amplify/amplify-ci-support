@@ -5,6 +5,7 @@ export declare type CircleCiConfig = {
   slug: string;
   secretKeyIdVariableName: string;
   secretKeyVariableName: string;
+  sessionTokenVariableName: string;
   roleName: string;
   permissions: {
     resources: string[];

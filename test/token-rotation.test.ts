@@ -16,6 +16,7 @@ jest.mock("fs-extra", () => {
           slug: "gh/someuser",
           secretKeyIdVariableName: "AWS_ACCESS_KEY_ID",
           secretKeyVariableName: "AWS_SECRET_ACCESS_KEY",
+          sessionTokenVariableName: "AWS_SESSION_TOKEN",
           roleName: "someRole",
           permissions: {
             resources: ["*"],
