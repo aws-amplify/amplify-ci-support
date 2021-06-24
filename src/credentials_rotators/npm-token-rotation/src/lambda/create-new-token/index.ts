@@ -184,7 +184,7 @@ const assertRotationStatus = async (
 };
 
 export const handler = async (event: SecretRotationEvent) => {
-  console.info(`end:handler(${JSON.stringify(event)})`);
+  console.info(`start:handler(${JSON.stringify(event)})`);
   await assertRotationStatus(event.SecretId, event.ClientRequestToken);
   const tokenConfig = getTokenConfigForArn(
     config as unknown as NPMTokenRotationConfig,

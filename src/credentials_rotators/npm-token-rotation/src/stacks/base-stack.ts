@@ -6,6 +6,7 @@ import * as sns from "@aws-cdk/aws-sns";
 import * as snsSubscriptions from "@aws-cdk/aws-sns-subscriptions";
 import { SecretDetail, AccessTokenRotationConfig } from "./types";
 import { StateMachine } from "@aws-cdk/aws-stepfunctions";
+import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
 
 type BaseStackProps = core.StackProps & {};
 
@@ -106,9 +107,11 @@ export class BaseStack extends core.Stack {
       topic.addSubscription(new snsSubscriptions.EmailSubscription(email));
     }
 
-    fn.metricErrors().createAlarm(this, `${name}_error_alarm`, {
+    const alarm = fn.metricErrors().createAlarm(this, `${name}_error_alarm`, {
       threshold: 1,
       evaluationPeriods: 1,
+      alarmName: `${name}-alarm`,
     });
+    alarm.addAlarmAction(new SnsAction(topic));
   };
 }

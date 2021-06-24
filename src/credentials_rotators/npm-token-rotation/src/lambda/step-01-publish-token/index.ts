@@ -76,15 +76,28 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           ).projectName,
         };
       } else {
-        throw new Error('Invalid publishConfig');
+        throw new Error("Invalid publishConfig");
       }
 
       await updateCircleCIEnvironmentVariables(circleCIToken, updateConfig);
       if (webhookUrl) {
+        const repoUserName = tokenDetails.publishConfig.slug.replace("gh/", "");
         const message =
           tokenDetails.publishConfig.type === "Context"
-            ? `NPM Token has been rotated and pushed to ${tokenDetails.publishConfig.contextName} and stored with ENV Variable name ${tokenDetails.publishConfig.variableName}`
-            : `NPM Token has been rotated and stored under ENV variable name ${tokenDetails.publishConfig.variableName} in project ${tokenDetails.publishConfig.projectName}`;
+            ? `NPM Publish Token has been rotated and pushed to CircleCI Context.\nDetails:\n ${JSON.stringify(
+                {
+                  contextName: tokenDetails.publishConfig.contextName,
+                  variableName: tokenDetails.publishConfig.variableName,
+                  org: repoUserName,
+                }
+              )}`
+            : `NPM Publish Token has been rotated and Stored in Environment. \nDetails: \n ${JSON.stringify(
+                {
+                  projectName: tokenDetails.publishConfig.projectName,
+                  variableName: tokenDetails.publishConfig.variableName,
+                  org: repoUserName,
+                }
+              )}`;
         await utils.sendSlackMessage(webhookUrl, message);
       }
     } catch (e) {

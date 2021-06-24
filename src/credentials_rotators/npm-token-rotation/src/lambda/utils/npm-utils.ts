@@ -1,6 +1,17 @@
 import TOTP from "totp-generator";
 import axios from "axios";
-export const generateOtp = (seed: string) => {
+import { URL } from "url";
+import assert from 'assert';
+
+export const generateOtp = (otpUrl: string) => {
+  let seed;
+  if (otpUrl.startsWith("otpauth")) {
+    const url = new URL(otpUrl);
+    seed = url.searchParams.get("secret");
+    assert(seed, "OTP URL is missing secret parameter");
+  } else {
+    seed = otpUrl;
+  }
   return TOTP(seed, { digits: 6 });
 };
 

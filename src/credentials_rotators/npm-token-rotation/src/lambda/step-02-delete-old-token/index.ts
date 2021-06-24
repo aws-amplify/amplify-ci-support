@@ -49,9 +49,6 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       npmCredentials.otpSeed,
       tokenToDelete
     );
-    if (webhookUrl) {
-      sendSlackMessage(webhookUrl, "Old NPM token deleted");
-    }
     console.info(`end: handler(${JSON.stringify(event)})`);
   } catch (e) {
     if (webhookUrl) {
