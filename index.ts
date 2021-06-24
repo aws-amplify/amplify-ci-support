@@ -13,7 +13,10 @@ import {
 } from "./lambda/utils/validateConfiguration";
 import { CircleCiConfig } from "./lambda/utils/updateCircleCiEnvironmentVariable";
 
-const TOKEN_TTL_HOURS = 5;
+// This is 1 hour (lambda rotation frequency) plus an additional 7 hours for test steps to run.
+// Currently the full e2e suite takes <4 hours, so this should be plenty of buffer time
+// without sacrificing the security of the token being short-lived
+const TOKEN_TTL_HOURS = 8;
 const LAMBDA_FREQUENCY = "rate(1 hour)";
 const LAMBDA_NAME = "RotateE2eAwsToken";
 const CREATE_ACCESS_KEY_TIMEOUT = 10000;

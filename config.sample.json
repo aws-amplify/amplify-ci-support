@@ -6,31 +6,16 @@
   "circleCiConfigs": [
     {
       "type": "Context",
-      "name": "some-context",
-      "slug": "gh/someuser",
-      "secretKeyIdVariableName": "ECR_ACCESS_KEY",
-      "secretKeyVariableName": "ECR_SECRET_ACCESS_KEY",
-      "roleName": "someRole",
-      "permissions": [
-        {
-          "resources": ["*"],
-          "actions": ["*"],
-          "effect": "allow"
-        }
-      ]
-    },
-    {
-      "type": "Context",
       "name": "amplify-ecr-image-pull",
-      "slug": "gh/someuser",
+      "slug": "gh/amplify-cli",
       "secretKeyIdVariableName": "ECR_ACCESS_KEY",
       "secretKeyVariableName": "ECR_SECRET_ACCESS_KEY",
-      "roleName": "someRole",
+      "roleName": "ecr-role",
       "permissions": [
         {
           "resources": ["*"],
-          "actions": ["*"],
-          "effect": "allow"
+          "actions": ["ecr:CreateRepository"],
+          "effect": "Allow"
         }
       ]
     }
