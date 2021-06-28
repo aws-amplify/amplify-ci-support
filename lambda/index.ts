@@ -18,7 +18,7 @@ exports.handler = async function() {
       token
     );
   });
-  promises.reduce(function(cur, next) {
+  await promises.reduce(function(cur, next) {
     return cur.then(() => next);
   }, Promise.resolve());
 };
