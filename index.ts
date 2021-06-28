@@ -49,7 +49,7 @@ export class LambdaCronStack extends cdk.Stack {
     };
 
     config.circleCiConfigs.forEach(circleCiConfig => {
-      const role = new iam.Role(this, id + "Role", {
+      const role = new iam.Role(this, id + circleCiConfig.roleName + "Role", {
         roleName: `${id}-${circleCiConfig.roleName}`,
         inlinePolicies: {
           roleNamePolicy: new iam.PolicyDocument({
