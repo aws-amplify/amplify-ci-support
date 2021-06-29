@@ -14,7 +14,7 @@ export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
 };
 export class NpmTokenRotationStack extends BaseStack {
-  private secreteConfig: NPMTokenRotationConfig;
+  private secretConfig: NPMTokenRotationConfig;
 
   constructor(
     scope: core.Construct,
@@ -22,7 +22,7 @@ export class NpmTokenRotationStack extends BaseStack {
     options: NpmTokenRotationStackParams
   ) {
     super(scope, id);
-    this.secreteConfig = options.config;
+    this.secretConfig = options.config;
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
       entry: path.normalize(
         path.join(__dirname, "..", "lambda", "create-new-token", "index.ts")
@@ -81,17 +81,17 @@ export class NpmTokenRotationStack extends BaseStack {
     );
 
     this.grantLambdaAccessToSecrets(rotatorFn, [
-      this.secreteConfig.npmLoginUsernameSecret,
-      this.secreteConfig.npmLoginPasswordSecret,
-      this.secreteConfig.npmOtpSeedSecret,
+      this.secretConfig.npmLoginUsernameSecret,
+      this.secretConfig.npmLoginPasswordSecret,
+      this.secretConfig.npmOtpSeedSecret,
     ]);
     this.grantLambdaAccessToSecrets(tokenRemovalFn, [
-      this.secreteConfig.npmLoginUsernameSecret,
-      this.secreteConfig.npmLoginPasswordSecret,
-      this.secreteConfig.npmOtpSeedSecret,
+      this.secretConfig.npmLoginUsernameSecret,
+      this.secretConfig.npmLoginPasswordSecret,
+      this.secretConfig.npmOtpSeedSecret,
     ]);
 
-    for (const token of this.secreteConfig.npmAccessTokenSecrets.secrets) {
+    for (const token of this.secretConfig.npmAccessTokenSecrets.secrets) {
       this.grantLambdaAccessToRotateSecrets(rotatorFn, token);
       this.grantLambdaAccessToSecrets(tokenRemovalFn, [
         token,
@@ -108,17 +108,17 @@ export class NpmTokenRotationStack extends BaseStack {
     this.enableCloudWatchAlarmNotification(
       rotatorFn,
       "npm_access_token_secrets",
-      this.secreteConfig.npmAccessTokenSecrets
+      this.secretConfig.npmAccessTokenSecrets
     );
     this.enableCloudWatchAlarmNotification(
       tokenPublisherFn,
       "token_publisher",
-      this.secreteConfig.npmAccessTokenSecrets
+      this.secretConfig.npmAccessTokenSecrets
     );
     this.enableCloudWatchAlarmNotification(
       tokenPublisherFn,
       "token_remover",
-      this.secreteConfig.npmAccessTokenSecrets
+      this.secretConfig.npmAccessTokenSecrets
     );
   }
 

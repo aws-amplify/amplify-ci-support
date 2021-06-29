@@ -56,7 +56,7 @@ const finishSecret = async (
   tokenConfig: AccessTokenItem
 ) => {
   console.info(
-    `start:finishSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `start:finishSecret()`
   );
 
   const secretsManagerClient = await getSecretsManagerClient();
@@ -104,7 +104,7 @@ const finishSecret = async (
     .promise();
 
   console.info(
-    `end:finishSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `end:finishSecret()`
   );
 };
 
@@ -114,7 +114,7 @@ const createSecret = async (
   tokenConfig: AccessTokenItem
 ) => {
   console.info(
-    `start:createSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `start:createSecret()`
   );
   // check if there is already a credential that is pending
   try {
@@ -152,7 +152,7 @@ const createSecret = async (
     }
   }
   console.info(
-    `end:createSecret(${event.SecretId}, ${event.ClientRequestToken})`
+    `end:createSecret()`
   );
 };
 
@@ -166,7 +166,7 @@ const assertRotationStatus = async (
   clientRequestToken: string
 ) => {
   console.info(
-    `start:assertRotationStatus(${secretArn}, ${clientRequestToken})`
+    `start:assertRotationStatus()`
   );
   const secretsMetadata = await (await getSecretsManagerClient())
     .describeSecret({ SecretId: secretArn })
@@ -180,11 +180,11 @@ const assertRotationStatus = async (
     console.error(`Secret ${secretArn} has no stage for rotation of secret.`);
     throw new Error(`Secret ${secretArn} has no stage for rotation of secret.`);
   }
-  console.info(`end:assertRotationStatus(${secretArn}, ${clientRequestToken})`);
+  console.info(`end:assertRotationStatus()`);
 };
 
 export const handler = async (event: SecretRotationEvent) => {
-  console.info(`start:handler(${JSON.stringify(event)})`);
+  console.info(`start:handler()`);
   await assertRotationStatus(event.SecretId, event.ClientRequestToken);
   const tokenConfig = getTokenConfigForArn(
     config as unknown as NPMTokenRotationConfig,
@@ -208,5 +208,5 @@ export const handler = async (event: SecretRotationEvent) => {
       await finishSecret(event, npmCredentials, tokenConfig);
       break;
   }
-  console.info(`end:handler(${JSON.stringify(event)})`);
+  console.info(`end:handler())`);
 };

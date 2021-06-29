@@ -31,6 +31,11 @@ export class BaseStack extends core.Stack {
     fn: lambda.IFunction,
     secret: SecretDetail
   ) => {
+     if (secret.roleArn) {
+       this.grandLambdaToAssumeRolePermission(fn, secret.roleArn);
+     } else {
+       this.grandLambdaAccessToWriteSecret(fn, secret.arn);
+     }
     const actions = secret.roleArn
       ? ["sts:AssumeRole"]
       : [
@@ -62,21 +67,12 @@ export class BaseStack extends core.Stack {
     fn: lambda.IFunction,
     secretDetails: Readonly<SecretDetail[]>
   ) => {
-    // Todo: de-dupe the duplicate entires if the same roleArn or secret arns are used
     for (const secretDetail of secretDetails) {
-      const actions = secretDetail.roleArn
-        ? ["sts:AssumeRole"]
-        : ["secretsmanager:GetSecretValue"];
-      const resources = secretDetail.roleArn
-        ? [secretDetail.roleArn]
-        : [secretDetail.arn];
-      fn.addToRolePolicy(
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          resources,
-          actions,
-        })
-      );
+      if (secretDetail.roleArn) {
+        this.grandLambdaToAssumeRolePermission(fn, secretDetail.roleArn);
+      } else {
+        this.grantLambdaAccessToReadSecret(fn, secretDetail.arn);
+      }
     }
   };
 
@@ -113,5 +109,49 @@ export class BaseStack extends core.Stack {
       alarmName: `${name}-alarm`,
     });
     alarm.addAlarmAction(new SnsAction(topic));
+  };
+
+  protected grandLambdaToAssumeRolePermission = (
+    fn: lambda.IFunction,
+    roleArn: string
+  ): void => {
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [roleArn],
+        actions: ["sts:AssumeRole"],
+      })
+    );
+  };
+
+  protected grantLambdaAccessToReadSecret = (
+    fn: lambda.IFunction,
+    secretArn: string
+  ): void => {
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [secretArn],
+        actions: ["secretsmanager:GetSecretValue"],
+      })
+    );
+  };
+
+  protected grandLambdaAccessToWriteSecret = (
+    fn: lambda.IFunction,
+    secretArn: string
+  ): void => {
+    fn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [secretArn],
+        actions: [
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:UpdateSecretVersionStage",
+        ],
+      })
+    );
   };
 }
