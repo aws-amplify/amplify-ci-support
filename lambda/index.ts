@@ -12,6 +12,7 @@ exports.handler = async function() {
   );
   const promises = config.circleCiConfigs.map(async circleCiConfig => {
     const credentials = await generateTemporaryKey(circleCiConfig.roleName);
+    console.log(credentials);
     await updateCircleCiEnvironmentVariables(
       circleCiConfig as CircleCiConfig,
       credentials,

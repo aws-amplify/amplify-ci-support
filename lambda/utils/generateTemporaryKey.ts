@@ -55,7 +55,7 @@ const generateTemporaryKey = async (roleName: string) => {
       AccessKeyId: userCredentials.AccessKeyId
     })
     .promise();
-
+  await sleep(parseInt(CREATE_ACCESS_KEY_TIMEOUT!));
   return creds.Credentials;
 };
 
