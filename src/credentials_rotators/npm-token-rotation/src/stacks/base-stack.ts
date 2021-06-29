@@ -32,9 +32,9 @@ export class BaseStack extends core.Stack {
     secret: SecretDetail
   ) => {
      if (secret.roleArn) {
-       this.grandLambdaToAssumeRolePermission(fn, secret.roleArn);
+       this.grantLambdaToAssumeRolePermission(fn, secret.roleArn);
      } else {
-       this.grandLambdaAccessToWriteSecret(fn, secret.arn);
+       this.grantLambdaAccessToWriteSecret(fn, secret.arn);
      }
     const actions = secret.roleArn
       ? ["sts:AssumeRole"]
@@ -69,7 +69,7 @@ export class BaseStack extends core.Stack {
   ) => {
     for (const secretDetail of secretDetails) {
       if (secretDetail.roleArn) {
-        this.grandLambdaToAssumeRolePermission(fn, secretDetail.roleArn);
+        this.grantLambdaToAssumeRolePermission(fn, secretDetail.roleArn);
       } else {
         this.grantLambdaAccessToReadSecret(fn, secretDetail.arn);
       }
@@ -111,7 +111,7 @@ export class BaseStack extends core.Stack {
     alarm.addAlarmAction(new SnsAction(topic));
   };
 
-  protected grandLambdaToAssumeRolePermission = (
+  protected grantLambdaToAssumeRolePermission = (
     fn: lambda.IFunction,
     roleArn: string
   ): void => {
@@ -137,7 +137,7 @@ export class BaseStack extends core.Stack {
     );
   };
 
-  protected grandLambdaAccessToWriteSecret = (
+  protected grantLambdaAccessToWriteSecret = (
     fn: lambda.IFunction,
     secretArn: string
   ): void => {
