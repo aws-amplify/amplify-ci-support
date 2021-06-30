@@ -48,14 +48,13 @@ const generateTemporaryKey = async (roleName: string) => {
       RoleSessionName: identifier
     })
     .promise();
-
+  await sleep(parseInt(CREATE_ACCESS_KEY_TIMEOUT!));
   await iam
     .deleteAccessKey({
       UserName: E2E_USERNAME,
       AccessKeyId: userCredentials.AccessKeyId
     })
     .promise();
-  await sleep(parseInt(CREATE_ACCESS_KEY_TIMEOUT!));
   return creds.Credentials;
 };
 
