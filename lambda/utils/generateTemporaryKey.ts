@@ -1,8 +1,4 @@
-import {
-  AccessKey,
-  AccessKeyMetadata,
-  ListAccessKeysResponse
-} from "aws-sdk/clients/iam";
+import { AccessKeyMetadata, ListAccessKeysResponse } from "aws-sdk/clients/iam";
 import IAM = require("aws-sdk/clients/iam");
 
 const AWS = require("aws-sdk");
@@ -26,25 +22,29 @@ const generateTemporaryKey = async (roleName: string) => {
   );
 
   const iam: IAM = new AWS.IAM();
-  // Remove any stale access keys tied to the user
+  // Remove any stale or manually generated access keys tied to the user
   const staleAccessKeys: ListAccessKeysResponse = await iam
     .listAccessKeys({
       UserName: E2E_USERNAME
     })
     .promise();
 
-  await Promise.all(
-    staleAccessKeys.AccessKeyMetadata.map(
-      async (accessKey: AccessKeyMetadata) => {
-        await iam
-          .deleteAccessKey({
-            UserName: E2E_USERNAME,
-            AccessKeyId: accessKey.AccessKeyId!
-          })
-          .promise();
-      }
-    )
-  );
+  try {
+    await Promise.all(
+      staleAccessKeys.AccessKeyMetadata.map(
+        async (accessKey: AccessKeyMetadata) => {
+          await iam
+            .deleteAccessKey({
+              UserName: E2E_USERNAME,
+              AccessKeyId: accessKey.AccessKeyId!
+            })
+            .promise();
+        }
+      )
+    );
+  } catch (e) {
+    // swallow any errors that come from pre-cleanup (the real cleanup happens at the end)
+  }
 
   const userCredentials = (
     await iam
