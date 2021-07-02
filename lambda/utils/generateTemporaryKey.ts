@@ -1,3 +1,10 @@
+import {
+  AccessKey,
+  AccessKeyMetadata,
+  ListAccessKeysResponse
+} from "aws-sdk/clients/iam";
+import IAM = require("aws-sdk/clients/iam");
+
 const AWS = require("aws-sdk");
 const generateTemporaryKey = async (roleName: string) => {
   const {
@@ -18,7 +25,27 @@ const generateTemporaryKey = async (roleName: string) => {
     "TOKEN_TTL_HOURS environment variable must be set"
   );
 
-  const iam = new AWS.IAM();
+  const iam: IAM = new AWS.IAM();
+  // Remove any stale access keys tied to the user
+  const staleAccessKeys: ListAccessKeysResponse = await iam
+    .listAccessKeys({
+      UserName: E2E_USERNAME
+    })
+    .promise();
+
+  await Promise.all(
+    staleAccessKeys.AccessKeyMetadata.map(
+      async (accessKey: AccessKeyMetadata) => {
+        await iam
+          .deleteAccessKey({
+            UserName: E2E_USERNAME,
+            AccessKeyId: accessKey.AccessKeyId!
+          })
+          .promise();
+      }
+    )
+  );
+
   const userCredentials = (
     await iam
       .createAccessKey({
