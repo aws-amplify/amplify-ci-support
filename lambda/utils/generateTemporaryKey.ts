@@ -1,5 +1,6 @@
 import { AccessKeyMetadata, ListAccessKeysResponse } from "aws-sdk/clients/iam";
 import IAM = require("aws-sdk/clients/iam");
+import { Error } from "aws-sdk/clients/s3";
 
 const AWS = require("aws-sdk");
 const generateTemporaryKey = async (roleName: string) => {
@@ -43,7 +44,8 @@ const generateTemporaryKey = async (roleName: string) => {
       )
     );
   } catch (e) {
-    // swallow any errors that come from pre-cleanup (the real cleanup happens at the end)
+    // if the access key is deleted, ignore the error
+    if (e.code !== "NoSuchEntity") throw e;
   }
 
   const userCredentials = (
