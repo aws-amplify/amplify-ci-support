@@ -10,17 +10,19 @@ exports.handler = async function() {
     config.circleCiToken.arn,
     config.circleCiToken.secretKey
   );
-  const promises = config.circleCiConfigs.map(async circleCiConfig => {
-    const credentials = await generateTemporaryKey(circleCiConfig.roleName);
-    console.log(credentials);
-    await updateCircleCiEnvironmentVariables(
-      circleCiConfig as CircleCiConfig,
-      credentials,
-      token
-    );
+  const promiseFns = config.circleCiConfigs.map(circleCiConfig => {
+    return async () => {
+      const credentials = await generateTemporaryKey(circleCiConfig.roleName);
+      console.log(credentials);
+      await updateCircleCiEnvironmentVariables(
+        circleCiConfig as CircleCiConfig,
+        credentials,
+        token
+      );
+    };
   });
 
-  for (let i = 0; i < promises.length; i++) {
-    await promises[i];
+  for (let i = 0; i < promiseFns.length; i++) {
+    await promiseFns[i]();
   }
 };

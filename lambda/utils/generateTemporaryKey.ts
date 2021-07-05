@@ -1,6 +1,5 @@
 import { AccessKeyMetadata, ListAccessKeysResponse } from "aws-sdk/clients/iam";
 import IAM = require("aws-sdk/clients/iam");
-import { Error } from "aws-sdk/clients/s3";
 
 const AWS = require("aws-sdk");
 const generateTemporaryKey = async (roleName: string) => {
