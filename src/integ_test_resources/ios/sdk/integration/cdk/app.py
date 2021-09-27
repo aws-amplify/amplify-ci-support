@@ -16,6 +16,7 @@ from cdk_integration_tests_ios.kinesis_stack import KinesisStack
 from cdk_integration_tests_ios.kinesisvideo_stack import KinesisVideoStack
 from cdk_integration_tests_ios.kms_stack import KmsStack
 from cdk_integration_tests_ios.lambda_stack import LambdaStack
+from cdk_integration_tests_ios.location_stack import LocationStack
 from cdk_integration_tests_ios.mobileclient_stack import MobileClientStack
 from cdk_integration_tests_ios.pinpoint_stack import PinpointStack
 from cdk_integration_tests_ios.polly_stack import PollyStack
@@ -67,6 +68,7 @@ stacks_in_app = [
     KinesisStack(app, "kinesis", common_stack),
     KinesisVideoStack(app, "kinesisvideo", common_stack),
     KmsStack(app, "kms", common_stack),
+    LocationStack(app, "location", common_stack),
     MobileClientStack(app, "mobileclient", common_stack),
     PinpointStack(app, "pinpoint", common_stack),
     PollyStack(app, "polly", common_stack),

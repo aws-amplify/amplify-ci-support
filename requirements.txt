@@ -13,6 +13,7 @@ aws_cdk.aws_kinesis
 aws_cdk.aws_kinesisfirehose
 aws_cdk.aws_kms
 aws_cdk.aws_lambda_python
+aws_cdk.aws_location
 aws_cdk.aws_logs
 aws_cdk.aws_pinpoint
 aws_cdk.aws_s3
