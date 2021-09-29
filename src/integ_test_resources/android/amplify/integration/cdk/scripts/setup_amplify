@@ -1,25 +1,77 @@
 #!/usr/bin/env python3
-import os
-from common import *
-from auth import *
-from api import *
+"""
+This is the entry point for the process that uses Amplify CLI commands to deploy backend resources
 
-# ENTRY POINT
-os.system(f"mkdir -p {PROJECT_DIR}")
-existing_app = get_existing_app_id()
-if existing_app is None:
-    # create the app
-    print("Need to create a new app")
-    initialize_new_app()
-else:
-    # pull the app
-    print(f"Pulling existing app with id {existing_app['appId']}")
-    pull_existing_app(existing_app['appId'])
+Typically, this is executed within a CodeBuild container although it can be executed from anywhere with a 
+valid AWS credentials having all the permissions listed in 
+src/integ_test_resources/android/amplify/integration/cdk/stacks/amplify_deployer_stack.py.
 
-auth_config = get_auth_config()
-if (config_auth(auth_config) == 0):
-    api_config = get_api_config('AmplifyAndroidIntegTestApi', f"{SCRIPTS_DIR}/../schemas", "authAndroidIntegTestAuth") 
-    config_api(api_config)
-    push()
+"""
+
+from common import (
+    OperationType,
+    parse_arguments,
+    SCRIPTS_DIR,
+    LOGGER,
+
+)
+from auth import AuthConfigFactory
+from api import (
+    ApiAuthModeFactory,
+    ApiConfigFactory
+)
+from amplify_app import AmplifyApp
+
+arguments = parse_arguments()
+LOGGER.setLevel(level=arguments.log)
+
+amplify_backend_name = arguments.backend_name
+schema_dir = arguments.schema_dir
+group_names = arguments.group_names.split(",")
+conflict_resolution = arguments.conflict_resolution
+
+
+auth_resource_name = f"{amplify_backend_name}Auth"
+idp_name = f"{amplify_backend_name}Idp"
+
+
+amplify_app = AmplifyApp(backend_name=amplify_backend_name)
+auth_op_type = OperationType.UPDATE if amplify_app.is_category_configured('auth') else OperationType.ADD
+api_op_type = OperationType.UPDATE if amplify_app.is_category_configured('api') else OperationType.ADD
+
+auth_config = AuthConfigFactory.create(auth_resource_name=auth_resource_name, 
+                                        identity_pool_name=idp_name,
+                                        op_type=auth_op_type,
+                                        group_names=group_names)
+
+auth_cmd_result = amplify_app.config_auth(auth_config=auth_config, op_type=auth_op_type)
+if auth_cmd_result == 0:
+    LOGGER.info("Auth category configured. Pushing changes.")
+    push_cmd_result = amplify_app.push()
+    if push_cmd_result == 0:
+        LOGGER.info("Auth category changed pushed.")
+    else:
+        LOGGER.error("Failed to push Auth category changes.")
+        exit(-1)
 else:
-    print("Failed to configure auth.")
+    LOGGER.error("Failed to configure Auth category.")
+    exit(-1)
+
+api_key_config = ApiAuthModeFactory.create_api_key_config()
+user_pools_config = ApiAuthModeFactory.create_user_pools_config(auth_resource_name=f"auth{auth_resource_name}")
+oidc_config = ApiAuthModeFactory.create_oidc_config(client_id='dummy', issuer_url="https://accounts.google.com/", provider_name='GoogleIntegTestOIDC')
+iam_config = ApiAuthModeFactory.create_iam_config()
+api_config = ApiConfigFactory.create(api_name=f"{amplify_backend_name}Api", 
+                                        op_type=api_op_type, 
+                                        schema_dir=f"{SCRIPTS_DIR}/../schemas/{schema_dir}", 
+                                        default_auth_mode=api_key_config,
+                                        additional_auth_modes= { "user_pools_config": user_pools_config, "oidc": oidc_config, "iam": iam_config },
+                                        conflict_resolution=conflict_resolution)
+
+api_cmd_result = amplify_app.config_api(api_config, api_op_type)
+if api_cmd_result == 0:
+    LOGGER.info("API category configured.")
+    amplify_app.push()
+else:
+    LOGGER.error("Failed to configure API category.")
+    exit(-1)
