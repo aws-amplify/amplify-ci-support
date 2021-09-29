@@ -37,7 +37,7 @@ class LocationStack(RegionAwareStack):
 
         ##### Search #####
 
-        # Reusing the get_bucket_name function to get a unique name for the map
+        # Reusing the get_bucket_name function to get a unique name for the place index.
         placeIndexName = self.get_bucket_name("placeIndex")
         self._parameters_to_save["place_index"] = placeIndexName
 
