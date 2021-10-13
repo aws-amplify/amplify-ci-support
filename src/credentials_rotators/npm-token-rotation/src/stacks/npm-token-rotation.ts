@@ -44,6 +44,21 @@ export class NpmTokenRotationStack extends BaseStack {
         ),
       }
     );
+    const githubTokenWriteFn = new lambdaNodeJs.NodejsFunction(
+      this,
+      "step-fn-github-token-write",
+      {
+        entry: path.normalize(
+          path.join(
+            __dirname,
+            "..",
+            "lambda",
+            "step-02-github-repo-write",
+            "index.ts"
+          )
+        ),
+      }
+    )
 
     const tokenRemovalFn = new lambdaNodeJs.NodejsFunction(
       this,
@@ -54,7 +69,7 @@ export class NpmTokenRotationStack extends BaseStack {
             __dirname,
             "..",
             "lambda",
-            "step-02-delete-old-token",
+            "step-03-delete-old-token",
             "index.ts"
           )
         ),
@@ -64,6 +79,7 @@ export class NpmTokenRotationStack extends BaseStack {
     const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
       core.Duration.minutes(15),
       tokenPublisherFn,
+      githubTokenWriteFn,
       tokenRemovalFn
     );
 
@@ -102,6 +118,7 @@ export class NpmTokenRotationStack extends BaseStack {
         token.publishConfig.circleCiToken,
         ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
+      this.grantLambdaAccessToSecrets(githubTokenWriteFn, [token.publishConfig.githubToken])
       this.configureSecretRotation(rotatorFn, token, Duration.days(7));
     }
 
@@ -125,6 +142,7 @@ export class NpmTokenRotationStack extends BaseStack {
   private buildTokenDeletionStateMachine = (
     wait: core.Duration,
     publishFn: IFunction,
+    githubWrite: IFunction,
     deleteFn: IFunction
   ): sfn.StateMachine => {
     wait.formatTokenToNumber();
@@ -132,6 +150,12 @@ export class NpmTokenRotationStack extends BaseStack {
       lambdaFunction: publishFn,
       payloadResponseOnly: true,
     })
+    .next(
+      new tasks.LambdaInvoke(this, "github-repo-write", {
+        lambdaFunction: githubWrite,
+        payloadResponseOnly: true,
+      })
+    )
       .next(
         new sfn.Wait(
           this,

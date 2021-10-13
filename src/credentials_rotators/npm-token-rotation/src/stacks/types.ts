@@ -13,6 +13,7 @@ export type TokenPublishCircleCIContextConfig = {
   slug: string;
   variableName: string;
   circleCiToken: SecretDetail;
+  githubToken: SecretDetail;
 };
 
 export type TokenPublishCircleCIEnvironmentConfig = {
@@ -21,6 +22,7 @@ export type TokenPublishCircleCIEnvironmentConfig = {
   projectName: string;
   variableName: string;
   circleCiToken: SecretDetail;
+  githubToken: SecretDetail;
 };
 
 export type AccessTokenItem = RotatableSecrets & {
@@ -28,6 +30,7 @@ export type AccessTokenItem = RotatableSecrets & {
     | TokenPublishCircleCIContextConfig
     | TokenPublishCircleCIEnvironmentConfig;
   slackWebHookConfig: SecretDetail;
+  roleArn?: string;
 };
 
 export type AccessTokenRotationConfig = {
