@@ -3,151 +3,173 @@
 // the input type for the schema is in ../../src/stacks/types.ts
 
 export const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  $ref: "#/definitions/NPMTokenRotationConfig",
-  definitions: {
-    NPMTokenRotationConfig: {
-      type: "object",
-      properties: {
-        npmLoginUsernameSecret: {
-          $ref: "#/definitions/SecretDetail",
-        },
-        npmLoginPasswordSecret: {
-          $ref: "#/definitions/SecretDetail",
-        },
-        npmOtpSeedSecret: {
-          $ref: "#/definitions/SecretDetail",
-        },
-        npmAccessTokenSecrets: {
-          $ref: "#/definitions/AccessTokenRotationConfig",
-        },
-      },
-      required: [
-        "npmLoginUsernameSecret",
-        "npmLoginPasswordSecret",
-        "npmOtpSeedSecret",
-        "npmAccessTokenSecrets",
-      ],
-      additionalProperties: false,
-    },
-    SecretDetail: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        roleArn: {
-          type: "string",
-        },
-        arn: {
-          type: "string",
-        },
-        secretKey: {
-          type: "string",
-        },
-      },
-      required: ["arn", "secretKey"],
-    },
-    AccessTokenRotationConfig: {
-      type: "object",
-      properties: {
-        secrets: {
-          type: "array",
-          items: {
-            $ref: "#/definitions/AccessTokenItem",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/NPMTokenRotationConfig",
+  "definitions": {
+      "NPMTokenRotationConfig": {
+          "type": "object",
+          "properties": {
+              "npmLoginUsernameSecret": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "npmLoginPasswordSecret": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "npmOtpSeedSecret": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "npmAccessTokenSecrets": {
+                  "$ref": "#/definitions/AccessTokenRotationConfig"
+              }
           },
-        },
-        alarmSubscriptions: {
-          type: "array",
-          items: {
-            type: "string",
-          },
-        },
-      },
-      required: ["secrets", "alarmSubscriptions"],
-      additionalProperties: false,
-    },
-    AccessTokenItem: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        publishConfig: {
-          anyOf: [
-            {
-              $ref: "#/definitions/TokenPublishCircleCIContextConfig",
-            },
-            {
-              $ref: "#/definitions/TokenPublishCircleCIEnvironmentConfig",
-            },
+          "required": [
+              "npmLoginUsernameSecret",
+              "npmLoginPasswordSecret",
+              "npmOtpSeedSecret",
+              "npmAccessTokenSecrets"
           ],
-        },
-        slackWebHookConfig: {
-          $ref: "#/definitions/SecretDetail",
-        },
-        arn: {
-          type: "string",
-        },
-        secretKey: {
-          type: "string",
-        },
+          "additionalProperties": false
       },
-      required: ["arn", "publishConfig", "secretKey", "slackWebHookConfig"],
-    },
-    TokenPublishCircleCIContextConfig: {
-      type: "object",
-      properties: {
-        type: {
-          type: "string",
-          const: "Context",
-        },
-        contextName: {
-          type: "string",
-        },
-        slug: {
-          type: "string",
-        },
-        variableName: {
-          type: "string",
-        },
-        circleCiToken: {
-          $ref: "#/definitions/SecretDetail",
-        },
+      "SecretDetail": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+              "roleArn": {
+                  "type": "string"
+              },
+              "arn": {
+                  "type": "string"
+              },
+              "secretKey": {
+                  "type": "string"
+              }
+          },
+          "required": [
+              "arn",
+              "secretKey"
+          ]
       },
-      required: [
-        "type",
-        "contextName",
-        "slug",
-        "variableName",
-        "circleCiToken",
-      ],
-      additionalProperties: false,
-    },
-    TokenPublishCircleCIEnvironmentConfig: {
-      type: "object",
-      properties: {
-        type: {
-          type: "string",
-          const: "Environment",
-        },
-        slug: {
-          type: "string",
-        },
-        projectName: {
-          type: "string",
-        },
-        variableName: {
-          type: "string",
-        },
-        circleCiToken: {
-          $ref: "#/definitions/SecretDetail",
-        },
+      "AccessTokenRotationConfig": {
+          "type": "object",
+          "properties": {
+              "secrets": {
+                  "type": "array",
+                  "items": {
+                      "$ref": "#/definitions/AccessTokenItem"
+                  }
+              },
+              "alarmSubscriptions": {
+                  "type": "array",
+                  "items": {
+                      "type": "string"
+                  }
+              }
+          },
+          "required": [
+              "secrets",
+              "alarmSubscriptions"
+          ],
+          "additionalProperties": false
       },
-      required: [
-        "type",
-        "slug",
-        "projectName",
-        "variableName",
-        "circleCiToken",
-      ],
-      additionalProperties: false,
-    },
-  },
-};
+      "AccessTokenItem": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+              "publishConfig": {
+                  "anyOf": [
+                      {
+                          "$ref": "#/definitions/TokenPublishCircleCIContextConfig"
+                      },
+                      {
+                          "$ref": "#/definitions/TokenPublishCircleCIEnvironmentConfig"
+                      }
+                  ]
+              },
+              "slackWebHookConfig": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "roleArn": {
+                  "type": "string"
+              },
+              "arn": {
+                  "type": "string"
+              },
+              "secretKey": {
+                  "type": "string"
+              }
+          },
+          "required": [
+              "arn",
+              "publishConfig",
+              "secretKey",
+              "slackWebHookConfig"
+          ]
+      },
+      "TokenPublishCircleCIContextConfig": {
+          "type": "object",
+          "properties": {
+              "type": {
+                  "type": "string",
+                  "const": "Context"
+              },
+              "contextName": {
+                  "type": "string"
+              },
+              "slug": {
+                  "type": "string"
+              },
+              "variableName": {
+                  "type": "string"
+              },
+              "circleCiToken": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "githubToken": {
+                  "$ref": "#/definitions/SecretDetail"
+              }
+          },
+          "required": [
+              "type",
+              "contextName",
+              "slug",
+              "variableName",
+              "circleCiToken",
+              "githubToken"
+          ],
+          "additionalProperties": false
+      },
+      "TokenPublishCircleCIEnvironmentConfig": {
+          "type": "object",
+          "properties": {
+              "type": {
+                  "type": "string",
+                  "const": "Environment"
+              },
+              "slug": {
+                  "type": "string"
+              },
+              "projectName": {
+                  "type": "string"
+              },
+              "variableName": {
+                  "type": "string"
+              },
+              "circleCiToken": {
+                  "$ref": "#/definitions/SecretDetail"
+              },
+              "githubToken": {
+                  "$ref": "#/definitions/SecretDetail"
+              }
+          },
+          "required": [
+              "type",
+              "slug",
+              "projectName",
+              "variableName",
+              "circleCiToken",
+              "githubToken"
+          ],
+          "additionalProperties": false
+      }
+  }
+}

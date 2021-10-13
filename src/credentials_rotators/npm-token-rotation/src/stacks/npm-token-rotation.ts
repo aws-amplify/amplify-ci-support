@@ -118,7 +118,7 @@ export class NpmTokenRotationStack extends BaseStack {
         token.publishConfig.circleCiToken,
         ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
-      this.grantLambdaAccessToSecrets(githubTokenWriteFn, [token.publishConfig.githubToken])
+      this.grantLambdaAccessToSecrets(githubTokenWriteFn, [token, token.publishConfig.githubToken])
       this.configureSecretRotation(rotatorFn, token, Duration.days(7));
     }
 

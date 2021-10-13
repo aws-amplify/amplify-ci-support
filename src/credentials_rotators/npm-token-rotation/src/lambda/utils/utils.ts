@@ -102,14 +102,14 @@ export const getCredentials = async (
  *
  * @param arn arn of the secret that the value should be retrieved from
  * @param key value in the secret
- * @param options Additional options like clientRequest token and stage
+ * @param options Additional options like clientRequest token, isPlainText, isPlainText is to specify if the secret contains rows or is just plaintext
  * @returns string
  */
 export const getSecret = async (
   arn: string,
   key: string,
   roleArn?: string,
-  options: { ClientRequestToken?: string; stage?: string } = {}
+  options: { ClientRequestToken?: string; stage?: string, isPlainTextValue?: boolean } = { isPlainTextValue: false }
 ) => {
   console.info(`start:getSecret()`);
   const requestOptions = {
@@ -125,9 +125,13 @@ export const getSecret = async (
       SecretId: arn.trim(),
     })
     .promise();
-  const data = JSON.parse(secret.SecretString!);
   console.info(`end:getSecret()`);
-  return data[key];
+  if(options.isPlainTextValue) {
+    return secret.SecretString;
+  } else {
+    const data = JSON.parse(secret.SecretString!);
+    return data[key];
+  }
 };
 
 export const getTokenConfigForArn = (
