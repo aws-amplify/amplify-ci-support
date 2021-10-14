@@ -1,7 +1,6 @@
 import * as sodium from 'tweetsodium';
 import { Octokit } from '@octokit/rest';
-import { GithubTokenConfig } from '../npm-token-rotation/src/stacks/types';
-
+import { GithubTokenConfig } from './types'
 //https://docs.github.com/en/rest/reference/actions#create-or-update-a-repository-secret
 
 export const updateGithubEnvironmentSecret = async (gitubConfig: GithubTokenConfig , secret: string, secretKey: string) =>  {
