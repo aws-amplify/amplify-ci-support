@@ -20,7 +20,7 @@ class LambdaConstruct(core.Construct):
         self.credential_rotator = aws_lambda_python.PythonFunction(
             self,
             "credential_rotation_lambda",
-            entry="cdk/credential_rotation/lambda_functions/src",
+            entry="../../../generic_lambda_credentials_rotator/lambda_functions/src",
             index="handler.py",
             runtime=aws_lambda.Runtime.PYTHON_3_7,
             role=iam_construct.lambda_role,
