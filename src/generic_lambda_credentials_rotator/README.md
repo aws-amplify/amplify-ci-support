@@ -1,6 +1,6 @@
 # Generic Lambda Credentials Rotator
 
-Generic Lambda Credentials Rotator is a AWS Lambda function that can be set up to move credentials and other artifacts from one source to another destination. Few use cases:
+Generic Lambda Credentials Rotator is a AWS Lambda function that can be used to move credentials and other artifacts from one source to another destination. This package can be included into any cdk package to enable credential rotation. Few use cases:
 
 1. Create temprorary AWS credentials and push the credentials to CircleCI environment variable. 
 2. Move values in lambda environment variable to CircleCI environment variable. 
@@ -9,6 +9,16 @@ Generic Lambda Credentials Rotator is a AWS Lambda function that can be set up t
 ## Destination supported:
 
 - CircleCI environment variable
+    - Input structure:
+    ```
+    "<destination_name>": {
+          "type": "cci_env_variable",
+          "description": "<Description of what this destination is>",
+          "github_path": "<github_user>/<github_repo>",
+          "circleci_api_token_secret_id_lambda_env_var_key": "<Lambda environment variable key that has the key to the AWS Secrets Manager>"
+        }
+    ```
+    - AWS Lambda requires api token from CircleCI to push values to CircleCI environment variable. This api key should be stored in AWS Secrets Manager, and the key for the secret should be stored as environment variable in lambda function. `circleci_api_token_secret_id_lambda_env_var_key` above stores the key info for this lambda environment variable. 
 
 ## Sources supported:
 
@@ -16,7 +26,7 @@ Generic Lambda Credentials Rotator is a AWS Lambda function that can be set up t
 - Lambda environment Variables
 - Secrets in AWS Secrets Manager
 
-## Input format:
+## Complete Input format:
 
 ```cli
 {
