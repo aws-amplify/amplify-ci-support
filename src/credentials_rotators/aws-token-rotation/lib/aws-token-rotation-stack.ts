@@ -34,6 +34,10 @@ export class AwsTokenRotationStack extends cdk.Stack {
       resources: [crossAccountRole.valueAsString]
     }));
 
+    role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'))
+    
+  
+
     const rotatorFunction = new nodejsLambda.NodejsFunction(this, 'RotatorLambda', {
       entry: path.normalize(path.join(__dirname, 'lambda-handler', 'index.ts')),
       environment: {
@@ -46,11 +50,10 @@ export class AwsTokenRotationStack extends cdk.Stack {
 
     })
 
+    
+
     const eventRule = new events.Rule(this, "FiveHourlySchedule", {
-      schedule: events.Schedule.cron({
-        hour: '5',
-        minute: '30',
-      })
+      schedule: events.Schedule.expression("rate(5 hours)")
     });
 
     eventRule.addTarget(new target.LambdaFunction(rotatorFunction));
