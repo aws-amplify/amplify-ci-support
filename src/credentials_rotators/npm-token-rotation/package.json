@@ -31,12 +31,15 @@
     "@aws-cdk/aws-stepfunctions": "^1.123.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.123.0",
     "@aws-cdk/core": "^1.123.0",
+    "@octokit/rest": "^18.12.0",
+
     "@types/totp-generator": "^0.0.1",
     "ajv": "^8.6.1",
     "axios": "^0.21.4",
     "esbuild": "^0.12.15",
     "source-map-support": "^0.5.19",
-    "totp-generator": "^0.0.9"
+    "totp-generator": "^0.0.9",
+    "tweetsodium": "^0.0.5"
   },
   "resolutions": {
     "proxy-agent": "^5.0.0"
