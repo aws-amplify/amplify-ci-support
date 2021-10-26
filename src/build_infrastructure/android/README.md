@@ -63,13 +63,14 @@ cdk bootstrap
 `./cdk.out/<stack_Name>.template.json`:
 
 ```bash
-cdk deploy AndroidBuildPipeline \
+cdk deploy <stack_name> \
     -c region=us-east-1 \ 
     -c account=<account_id>  \ # AWS Account ID where the stacks will be deployed
-    -c github_owner="aws-amplify" \ # Or different owner if testing from a fork.
-    -c branch="main" \ # PRs against this branch will trigger the build
+    -c library=<amplify, v2-sdk or appsync-sdk>
     --yes
 ```
+
+If testing against different branches and/or repo, the `github_owner`, `github_repo`, `branch` and `release_pr_branch` context variables can be overridden.
 
 **NOTE:** be sure to copy the config files in the bucket whose name contains "amplify-ci-assets" created by the AccountBootstrap.
 
