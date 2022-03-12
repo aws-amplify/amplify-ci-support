@@ -112,6 +112,7 @@ class Version
         Symbol::POSITIVE_INTEGER => :prerelease,
         Symbol::ZERO => :prerelease,
         Symbol::LETTER => :prerelease,
+        Symbol::DASH => :prerelease,
         Symbol::DOT => :prerelease_new_identifier,
         Symbol::PLUS => :build
       },
@@ -119,20 +120,23 @@ class Version
       prerelease_new_identifier: {
         Symbol::POSITIVE_INTEGER => :prerelease,
         Symbol::ZERO => :prerelease,
-        Symbol::LETTER => :prerelease
+        Symbol::LETTER => :prerelease,
+        Symbol::DASH => :prerelease,
       },
 
       build: {
         Symbol::POSITIVE_INTEGER => :build,
         Symbol::ZERO => :build,
         Symbol::LETTER => :build,
+        Symbol::DASH => :build,
         Symbol::DOT => :build_new_identifier
       },
 
       build_new_identifier: {
         Symbol::POSITIVE_INTEGER => :build,
         Symbol::ZERO => :build,
-        Symbol::LETTER => :build
+        Symbol::LETTER => :build,
+        Symbol::DASH => :build
       }
     }
 
