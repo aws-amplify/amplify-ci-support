@@ -121,7 +121,7 @@ class Version
         Symbol::POSITIVE_INTEGER => :prerelease,
         Symbol::ZERO => :prerelease,
         Symbol::LETTER => :prerelease,
-        Symbol::DASH => :prerelease,
+        Symbol::DASH => :prerelease
       },
 
       build: {
