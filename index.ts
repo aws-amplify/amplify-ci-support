@@ -80,11 +80,7 @@ export class LambdaCronStack extends cdk.Stack {
     lambdaFn.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         resources: [user.userArn],
-        actions: [
-          "iam:CreateAccessKey",
-          "iam:DeleteAccessKey",
-          "iam:ListAccessKeys"
-        ],
+        actions: ["iam:ListAccessKeys"],
         effect: iam.Effect.ALLOW
       })
     );

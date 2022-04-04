@@ -47,23 +47,12 @@ const generateTemporaryKey = async (roleName: string) => {
     if (e.code !== "NoSuchEntity") throw e;
   }
 
-  const userCredentials = (
-    await iam
-      .createAccessKey({
-        UserName: E2E_USERNAME
-      })
-      .promise()
-  ).AccessKey;
-
   function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
   await sleep(parseInt(CREATE_ACCESS_KEY_TIMEOUT!));
 
-  const sts = new AWS.STS({
-    accessKeyId: userCredentials.AccessKeyId,
-    secretAccessKey: userCredentials.SecretAccessKey
-  });
+  const sts = new AWS.STS({});
   const date = new Date();
   const identifier = `CredentialRotationLambda-${date.getFullYear()}${date.getMonth()}${date.getDay()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}`;
   const role = await iam
@@ -72,17 +61,11 @@ const generateTemporaryKey = async (roleName: string) => {
   const creds = await sts
     .assumeRole({
       RoleArn: role.Role.Arn,
-      DurationSeconds: +TOKEN_TTL_HOURS! * 60 * 60,
+      DurationSeconds: 1 * 60 * 60,
       RoleSessionName: identifier
     })
     .promise();
   await sleep(parseInt(CREATE_ACCESS_KEY_TIMEOUT!));
-  await iam
-    .deleteAccessKey({
-      UserName: E2E_USERNAME,
-      AccessKeyId: userCredentials.AccessKeyId
-    })
-    .promise();
   return creds.Credentials;
 };
 
