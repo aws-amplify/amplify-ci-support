@@ -12,7 +12,7 @@ class IntegrationTestResourcesStack(cdk.Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        self.s3_construct = S3Construct(
+        s3_construct = S3Construct(
             self, 
             "integration_test_resources_s3",
             bucketPrefix=bucketPrefix
@@ -20,7 +20,7 @@ class IntegrationTestResourcesStack(cdk.Stack):
 
         IAMConstruct(
             self, "integration_test_resources_iam", 
-            bucket_arn=self.s3_construct.bucket.bucket_arn
+            bucket_arn=s3_construct.bucket.bucket_arn
         )
 
 

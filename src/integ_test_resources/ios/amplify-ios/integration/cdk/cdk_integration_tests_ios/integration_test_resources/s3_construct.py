@@ -18,11 +18,11 @@ class S3Construct(core.Construct):
             removal_policy=core.RemovalPolicy.DESTROY,
         )
 
-        self.bucket_name = bucketPrefix + "amplify-ios-integ"
+        bucket_name = bucketPrefix + "amplify-ios-integ"
         self.bucket = aws_s3.Bucket(
             self,
             "amplify-ios-integ-configuration_bucket",
-            bucket_name=self.bucket_name,
+            bucket_name=bucket_name,
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=core.RemovalPolicy.DESTROY,
             server_access_logs_bucket=access_log_bucket,
