@@ -1,0 +1,6 @@
+*                                                @aws-amplify/amplify-ios
+src/build_infrastructure/android/*               @aws-amplify/amplify-android
+src/credentials_rotators/npm/*                   @aws-amplify/amplify-codegen
+src/credentials_rotators/npm-token-rotation/*    @aws-amplify/amplify-cli
+src/integ_test_resources/android/*               @aws-amplify/amplify-android
+src/monitoring_resources/cli_binary_integrity/*  @aws-amplify/amplify-cli
