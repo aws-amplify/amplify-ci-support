@@ -42,6 +42,7 @@ export class NpmTokenRotationStack extends BaseStack {
             "index.ts"
           )
         ),
+        timeout: Duration.minutes(1),
       }
     );
     const githubTokenWriteFn = new lambdaNodeJs.NodejsFunction(
@@ -57,6 +58,7 @@ export class NpmTokenRotationStack extends BaseStack {
             "index.ts"
           )
         ),
+        timeout: Duration.minutes(1),
       }
     )
 
@@ -73,6 +75,7 @@ export class NpmTokenRotationStack extends BaseStack {
             "index.ts"
           )
         ),
+        timeout: Duration.minutes(1),
       }
     );
 
@@ -149,11 +152,13 @@ export class NpmTokenRotationStack extends BaseStack {
     const steps = new tasks.LambdaInvoke(this, "publish-new-token", {
       lambdaFunction: publishFn,
       payloadResponseOnly: true,
+      timeout: core.Duration.seconds(10) // timing out on publishing token to circle ci
     })
     .next(
       new tasks.LambdaInvoke(this, "github-repo-write", {
         lambdaFunction: githubWrite,
         payloadResponseOnly: true,
+        timeout: core.Duration.seconds(10)
       })
     )
       .next(

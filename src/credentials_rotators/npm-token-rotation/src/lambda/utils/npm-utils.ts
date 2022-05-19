@@ -15,6 +15,33 @@ export const generateOtp = (otpUrl: string) => {
   return TOTP(seed, { digits: 6 });
 };
 
+export const getTokenKey = async (
+  username: string,
+  password: string,
+  otpSeed: string,
+  token: string,
+): Promise<string> => {
+
+  try {
+    const result = await axios.get('https://registry.npmjs.org/-/npm/v1/tokens?perPage=9999', {
+      headers:{
+          'content-type': 'application/json',
+          'npm-otp': otpSeed,
+      },
+      auth: {
+          username,
+          password,
+      }
+    });
+    const tokenResult = result.data.objects.find( (r: { token: string; }) => token.startsWith(r.token) );
+    if (!tokenResult){
+      throw new Error("Could not find the token to retrieve Id");
+    }
+    return tokenResult.key; 
+  }catch (e) {
+    throw new Error(`Error occurred when getting tokenKey: ${e.message}`);
+  }
+}
 export const createAccessToken = async (
   username: string,
   password: string,
@@ -48,12 +75,12 @@ export const deleteAccessToken = async (
   username: string,
   password: string,
   otpSeed: string,
-  token: string
+  tokenKey: string
 ): Promise<boolean> => {
   try {
     const otp = generateOtp(otpSeed);
     const result = await axios.delete(
-      `https://registry.npmjs.org/-/npm/v1/tokens/token/${token}`,
+      `https://registry.npmjs.org/-/npm/v1/tokens/token/${tokenKey}`,
       {
         headers: {
           "content-type": "application/json",
@@ -64,6 +91,7 @@ export const deleteAccessToken = async (
           password,
         },
       }
+      
     );
     return result.status >= 200 && result.status < 300;
   } catch (e) {

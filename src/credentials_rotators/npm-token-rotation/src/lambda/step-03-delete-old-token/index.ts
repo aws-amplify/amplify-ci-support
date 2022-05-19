@@ -1,4 +1,4 @@
-import { deleteAccessToken } from "../utils/npm-utils";
+import { deleteAccessToken, getTokenKey } from "../utils/npm-utils";
 import {
   getCredentials,
   getSecret,
@@ -43,11 +43,17 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
     : undefined;
 
   try {
-    await deleteAccessToken(
+    const tokenKey = await getTokenKey(
       npmCredentials.username,
       npmCredentials.password,
       npmCredentials.otpSeed,
       tokenToDelete
+    );
+    await deleteAccessToken(
+      npmCredentials.username,
+      npmCredentials.password,
+      npmCredentials.otpSeed,
+      tokenKey
     );
     console.info(`end: handler(${JSON.stringify(event)})`);
   } catch (e) {
