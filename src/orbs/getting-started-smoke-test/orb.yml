@@ -5,6 +5,13 @@ description: "This orb contains a collection of jobs for smoke testing the AWS A
 display:
   source_url: 'https://github.com/aws-amplify/amplify-ci-support/src/orbs/getting-started-smoke-test'
 
+orbs:
+  macos: circleci/macos@2
+  android: circleci/android@2.0.0
+  flutter-orb: circleci/flutter@1.0.1
+  node: circleci/node@5.0.2
+  ruby: circleci/ruby@1.6.0
+
 executors:
   web-executor:
     docker:
@@ -27,6 +34,40 @@ js_env_vars: &js_env_vars
     IMPORT_STATEMENT: import {Logger} from 'aws-amplify';
     LIBRARY_STATEMENT: Logger.LOG_LEVEL='DEBUG';
     MAX_WAIT_ON_TIMEOUT: 180000 # 3 minutes; how long we wait for the build to succeed before failing the job
+
+commands:
+  install-flutter:
+    description: Install Flutter and set up paths.
+    parameters:
+      flutter_branch:
+        description: Flutter branch or version tag.
+        type: string
+        default: stable
+    steps:
+      - run:
+          name: Set up Flutter
+          command: |
+            echo 'export FLUTTER_HOME=${HOME}/sdks/flutter' >> $BASH_ENV
+            echo 'export FLUTTER_BRANCH=<< parameters.flutter_branch >>' >> $BASH_ENV
+            echo 'export FLUTTER_ROOT=${FLUTTER_HOME}' >> $BASH_ENV
+            echo 'export PATH=${PATH}:${FLUTTER_HOME}/bin:${FLUTTER_HOME}/bin/cache/dart-sdk/bin:${HOME}/.pub-cache/bin:${FLUTTER_HOME}/.pub-cache/bin' >> $BASH_ENV
+            source $BASH_ENV
+            git clone --branch ${FLUTTER_BRANCH} https://github.com/flutter/flutter.git ${FLUTTER_HOME}
+            (yes || true) | flutter doctor --android-licenses && flutter doctor
+            flutter precache
+  setup-amplify-project:
+    description: Setup Amplify project
+    steps:
+      - run:
+          name: Setting up dependences
+          command: cd amplified_todo && flutter pub add amplify_flutter && flutter pub add amplify_datastore && flutter pub add -d integration_test
+      - run:
+          name: Update outdated dependences
+          command: cd amplified_todo && flutter pub upgrade --major-versions
+      - run:
+          name: Adding Amplify code
+          command: cp canaries/amplifyconfiguration.dart amplified_todo/lib && cp canaries/main.dart amplified_todo/lib && cp -r canaries/integration_test amplified_todo/integration_test
+
 
 jobs:
   web:
@@ -187,3 +228,103 @@ jobs:
       - run:
           name: Start App
           command: yarn web & wait-on http://localhost:19006  -t $MAX_WAIT_ON_TIMEOUT
+
+  flutter-android:
+    executor:
+      name: android/android-machine
+      resource-class: xlarge
+      tag: 2022.03.1
+    steps:
+      - checkout
+      - install-flutter
+      - run:
+          name: Setting up project
+          command: flutter create amplified_todo
+      - run:
+          name: Update Android version
+          command: cd amplified_todo && sed -i -e "s/minSdkVersion .*/minSdkVersion 21/" ./android/app/build.gradle && cat ./android/app/build.gradle
+      - setup-amplify-project
+      - flutter-orb/install_android_gradle:
+          app-dir: ./amplified_todo
+      - android/create-avd:
+          avd-name: flutter
+          install: true
+          system-image: system-images;android-29;default;x86
+      - android/start-emulator:
+          avd-name: flutter
+          post-emulator-launch-assemble-command: ls -lrt
+          restore-gradle-cache-find-args: ./amplified_todo/android -name 'build.gradle'
+      - run:
+          name: Run Flutter Tests
+          command: cd amplified_todo && flutter test integration_test --no-sound-null-safety -v
+
+  flutter-ios:
+    executor: mac-executor
+    working_directory: ~/flutter-canaries
+    steps:
+      - checkout
+      - macos/preboot-simulator:
+          device: iPhone 13
+          version: "15.4"
+      - install-flutter
+      - run:
+          name: Setting up project
+          command: flutter create amplified_todo
+      - setup-amplify-project
+      - run:
+          name: Update ios version
+          command: cd amplified_todo && sed -i -e "s/# platform :ios, '9.0'/platform :ios, '13.0'/" ./ios/Podfile
+      - run:
+          name: Run Flutter Tests
+          command: cd amplified_todo && flutter test integration_test --no-sound-null-safety -v
+
+  ios:
+    parameters:
+      xcode-version:
+        type: string
+        default: 13.3.0
+      simulator-device:
+        type: string
+        default: iPhone 13
+      simulator-os-version:
+        type: string
+        default: "15.4"
+    working_directory: ~/ios-canaries/example
+    macos:
+      xcode: <<parameters.xcode-version>>
+    environment:
+      FL_OUTPUT_DIR: output
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout:
+          path: ~/ios-canaries
+      - run: ls -lst; pwd;
+      - node/install
+      - run: npm install -g @aws-amplify/cli
+      - run: amplify init --quickstart --frontend ios
+      - macos/preboot-simulator:
+          device: <<parameters.simulator-device>>
+          version: <<parameters.simulator-os-version>>
+      - ruby/install-deps
+      - run: pod install
+      - run:
+          name: Run tests
+          command: bundle exec fastlane scan
+
+  android:
+    working_directory: ~/android-canaries/canaries/example
+    executor:
+      name: android/android-machine
+      resource-class: xlarge
+      tag: 2022.03.1
+    steps:
+      - checkout:
+          path: ~/android-canaries
+      - android/create-avd:
+          avd-name: myavd
+          install: true
+          system-image: system-images;android-29;default;x86
+      - android/start-emulator:
+          avd-name: myavd
+      - android/run-tests
