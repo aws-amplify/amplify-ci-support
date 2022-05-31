@@ -55,18 +55,21 @@ commands:
             git clone --branch ${FLUTTER_BRANCH} https://github.com/flutter/flutter.git ${FLUTTER_HOME}
             (yes || true) | flutter doctor --android-licenses && flutter doctor
             flutter precache
-  setup-amplify-project:
+  setup-amplify-flutter-project:
     description: Setup Amplify project
     steps:
       - run:
           name: Setting up dependences
-          command: cd amplified_todo && flutter pub add amplify_flutter && flutter pub add amplify_datastore && flutter pub add -d integration_test
+          command: cd amplified_todo && flutter pub add amplify_flutter && flutter pub add amplify_datastore
+      - run:
+          name: Adding integration_test package
+          command: 'cd amplified_todo && sed -i -e "s/dev_dependencies:/dev_dependencies:\n  integration_test:\n    sdk: flutter/" ./pubspec.yaml && cat ./pubspec.yaml'
       - run:
           name: Update outdated dependences
           command: cd amplified_todo && flutter pub upgrade --major-versions
       - run:
           name: Adding Amplify code
-          command: cp canaries/amplifyconfiguration.dart amplified_todo/lib && cp canaries/main.dart amplified_todo/lib && cp -r canaries/integration_test amplified_todo/integration_test
+          command: mv canaries/dummy_amplifyconfiguration.dart canaries/amplifyconfiguration.dart && cp canaries/amplifyconfiguration.dart amplified_todo/lib && cp canaries/main.dart amplified_todo/lib && cp -r canaries/integration_test amplified_todo/integration_test
 
 
 jobs:
@@ -243,7 +246,7 @@ jobs:
       - run:
           name: Update Android version
           command: cd amplified_todo && sed -i -e "s/minSdkVersion .*/minSdkVersion 21/" ./android/app/build.gradle && cat ./android/app/build.gradle
-      - setup-amplify-project
+      - setup-amplify-flutter-project
       - flutter-orb/install_android_gradle:
           app-dir: ./amplified_todo
       - android/create-avd:
@@ -270,7 +273,7 @@ jobs:
       - run:
           name: Setting up project
           command: flutter create amplified_todo
-      - setup-amplify-project
+      - setup-amplify-flutter-project
       - run:
           name: Update ios version
           command: cd amplified_todo && sed -i -e "s/# platform :ios, '9.0'/platform :ios, '13.0'/" ./ios/Podfile
@@ -289,7 +292,7 @@ jobs:
       simulator-os-version:
         type: string
         default: "15.4"
-    working_directory: ~/ios-canaries/example
+    working_directory: ~/ios-canaries/canaries/example
     macos:
       xcode: <<parameters.xcode-version>>
     environment:
