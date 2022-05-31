@@ -20,8 +20,7 @@ executors:
 
   mac-executor:
     macos:
-      # TODO: use param for this
-      xcode: 13.3.1
+      xcode: 13.4.0
     resource_class: large
 
   android-executor:
@@ -70,7 +69,6 @@ commands:
       - run:
           name: Adding Amplify code
           command: mv canaries/dummy_amplifyconfiguration.dart canaries/amplifyconfiguration.dart && cp canaries/amplifyconfiguration.dart amplified_todo/lib && cp canaries/main.dart amplified_todo/lib && cp -r canaries/integration_test amplified_todo/integration_test
-
 
 jobs:
   web:
@@ -138,7 +136,12 @@ jobs:
       tag:
         type: string
         default: latest
-    executor: mac-executor
+      xcode-version:
+        type: string
+        default: 13.4.0
+    macos:
+      xcode: << parameters.xcode-version >>
+    resource_class: large
     working_directory: ~/amplify_getting_started_<< parameters.framework >>
     steps:
       - run:
@@ -268,7 +271,7 @@ jobs:
       - checkout
       - macos/preboot-simulator:
           device: iPhone 13
-          version: "15.4"
+          version: '15.4'
       - install-flutter
       - run:
           name: Setting up project
@@ -291,7 +294,7 @@ jobs:
         default: iPhone 13
       simulator-os-version:
         type: string
-        default: "15.4"
+        default: '15.4'
     working_directory: ~/ios-canaries/canaries/example
     macos:
       xcode: <<parameters.xcode-version>>
