@@ -1,0 +1,61 @@
+Parameters:
+  FullRepoName:
+    Type: String
+    Description: Example "aws-amplify/amplify-flutter"
+    AllowedPattern: ^[a-zA-Z0-9-\_\.]+\/[a-zA-Z0-9-\_\.]+$
+    ConstraintDescription: must contain two alphanumeric strings with dashes, periods, or underscores separated by a backslash
+    
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: pull_amplify_integration_test_configs
+      Policies:
+        - PolicyName: AmplifyPullIntegrationTestsS3
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource: "arn:aws:s3:::amplify-*"
+        - PolicyName: AmplifyPullIntegrationTestsCloudformation
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - cloudformation:ListStackResources
+                Resource: "arn:aws:cloudformation:*amplify*"
+        - PolicyName: AmplifyPullIntegrationTestsAmplify
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - amplify:GetApp
+                  - amplify:GetBackendEnvironment
+                Resource: "arn:aws:amplify:*"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Ref GithubOidc
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${FullRepoName}:*
+
+  GithubOidc:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ThumbprintList: 
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+      ClientIdList: 
+        - sts.amazonaws.com
+
+Outputs:
+  Role:
+    Value: !GetAtt Role.Arn
