@@ -5,3 +5,4 @@ src/credentials_rotators/npm-token-rotation/*    @aws-amplify/amplify-cli
 src/integ_test_resources/android/*               @aws-amplify/amplify-android
 src/orbs/*                                       @aws-amplify/amplify-devops
 src/monitoring_resources/cli_binary_integrity/*  @aws-amplify/amplify-cli
+src/integ_test_resources/flutter/*               @aws-amplify/amplify-flutter
