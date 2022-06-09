@@ -3,7 +3,7 @@ Parameters:
     Type: String
     Description: Example "aws-amplify/amplify-flutter"
     AllowedPattern: ^[a-zA-Z0-9-\_\.]+\/[a-zA-Z0-9-\_\.]+$
-    ConstraintDescription: must contain two alphanumeric strings with dashes, periods, or underscores separated by a backslash
+    ConstraintDescription: must contain two alphanumeric strings with dashes, periods, or underscores separated by a slash
     
 Resources:
   Role:
