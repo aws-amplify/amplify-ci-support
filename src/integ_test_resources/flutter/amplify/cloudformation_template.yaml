@@ -4,6 +4,16 @@ Parameters:
     Description: Example "aws-amplify/amplify-flutter"
     AllowedPattern: ^[a-zA-Z0-9-\_\.]+\/[a-zA-Z0-9-\_\.]+$
     ConstraintDescription: must contain two alphanumeric strings with dashes, periods, or underscores separated by a slash
+  AmplifyEnvName:
+    Type: String
+    Description: Name of Amplify environment for which pull permissions are granted. E.g. "test"
+    Default: test
+  AmplifyAppName:
+    Type: String
+    Description: Optional. If provided, pull permissions limited to this app. Otherwise, permissions granted for all apps. Should be all lowercase.
+
+Conditions:
+  AllAmplifyApps: !Equals [!Ref AmplifyAppName, ""]
     
 Resources:
   Role:
@@ -19,7 +29,7 @@ Resources:
                 Action:
                   - s3:GetObject
                   - s3:ListBucket
-                Resource: "arn:aws:s3:::amplify-*"
+                Resource: !If [AllAmplifyApps, !Sub "arn:aws:s3:::amplify-*${AmplifyEnvName}*", !Sub "arn:aws:s3:::amplify-${AmplifyAppName}-${AmplifyEnvName}*"]
         - PolicyName: AmplifyPullIntegrationTestsCloudformation
           PolicyDocument:
             Statement:
@@ -27,7 +37,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - cloudformation:ListStackResources
-                Resource: "arn:aws:cloudformation:*amplify*"
+                Resource: !If [AllAmplifyApps, !Sub "arn:aws:cloudformation:*amplify*${AmplifyEnvName}*", !Sub "arn:aws:cloudformation:*amplify-${AmplifyAppName}-${AmplifyEnvName}*"]
         - PolicyName: AmplifyPullIntegrationTestsAmplify
           PolicyDocument:
             Statement:

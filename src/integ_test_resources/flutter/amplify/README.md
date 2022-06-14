@@ -15,10 +15,12 @@ This template can be used to provision a stack in an AWS account so that Github 
 5. Click "Next."
 6. Enter a stack name such as "GithubAmplifyOIDC."
 7. For "FullRepoName" field, enter identifier for the Github repository such as "aws-amplify/amplify-flutter." Only Github Actions from this repository will be able to use the generated OIDC provider stack because Github will provide this as a parameter when requesting credentials from AWS and the configured stack will check that parameter.
-8. Click "Next."
-9. Click "Next" again. There is nothing to change on this page.
-10. Scroll down to the bottom and click the checkbox next to "I acknowledge that AWS CloudFormation might create IAM resources with custom names."
-11. Click "Create stack."
+8. Specify an environment name like "dev" or "test."
+9. Optionally provide the lowercase version of an Amplify app name to limit permissions to apps with that name. If omitted, permissions will be scoped to all Amplify apps.
+10. Click "Next."
+11. Click "Next" again. There is nothing to change on this page.
+12. Scroll down to the bottom and click the checkbox next to "I acknowledge that AWS CloudFormation might create IAM resources with custom names."
+13. Click "Create stack."
 
 Wait for the stack to finish creating, which should take less than 30 seconds.
 
