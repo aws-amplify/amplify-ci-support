@@ -67,8 +67,8 @@ platform :android do |options|
   github_releases = []
   lane :create_next_release_pr do |options|
     is_dryrun = options.has_key?(:dryrun)
-    if options[:release_tag_override]
-      release_tag_override = options[:release_tag_override].split(",")
+    if options[:release_tag]
+      release_tag_override = options[:release_tag].split(",")
     end
 
     product_name = build_parameters[:product_name]
