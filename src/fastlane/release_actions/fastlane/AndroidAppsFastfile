@@ -67,6 +67,9 @@ platform :android do |options|
   github_releases = []
   lane :create_next_release_pr do |options|
     is_dryrun = options.has_key?(:dryrun)
+    if options[:release_tag_override]
+      release_tag_override = options[:release_tag_override].split(",")
+    end
 
     product_name = build_parameters[:product_name]
     repo = build_parameters[:repo]
@@ -75,9 +78,14 @@ platform :android do |options|
     commit_slug = nil
     pr_body_details = []
     files_to_commit = []
+    build_index = 0
     build_parameters[:releases].each do |params| 
       params[:repo] = repo
+      if release_tag_override
+        params[:release_tag_override] = release_tag_override[build_index]
+      end
       release_title = params[:release_title]
+      build_index += 1
 
       result = execute_changes_locally(params)
       next_version = result[:next_version]
@@ -150,6 +158,9 @@ platform :android do |options|
     
     # Find the tag for the last release
     last_release_tag = last_git_tag(pattern: "#{release_tag_prefix}*")
+    if options[:release_tag_override]
+      last_release_tag = "#{release_tag_prefix}#{options[:release_tag_override]}"
+    end
     last_version = last_release_tag.dup
     last_version.slice! "#{release_tag_prefix}"
 
