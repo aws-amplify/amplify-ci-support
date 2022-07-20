@@ -23,12 +23,26 @@ export class NpmTokenRotationStack extends BaseStack {
   ) {
     super(scope, id);
     this.secretConfig = options.config;
+
+    // create lambda function objects
+
+    /**
+     * Rotator Lambda is the head lambda function that will be used by
+     * Secrets Manager rotation cron.
+     * 
+     * https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html
+     */
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
       entry: path.normalize(
         path.join(__dirname, "..", "lambda", "create-new-token", "index.ts")
       ),
     });
 
+    // Rotator function starts the following step functions.
+
+    /**
+     * Step function 1: Publish new token to CCI
+     */
     const tokenPublisherFn = new lambdaNodeJs.NodejsFunction(
       this,
       "step-fn-token-publisher",
@@ -45,6 +59,9 @@ export class NpmTokenRotationStack extends BaseStack {
       }
     );
 
+    /**
+     * Step function 2: Remove old NPM token
+     */
     const tokenRemovalFn = new lambdaNodeJs.NodejsFunction(
       this,
       "step-fn-delete-token",
@@ -73,6 +90,9 @@ export class NpmTokenRotationStack extends BaseStack {
       [rotatorFn]
     );
 
+    /**
+     * Grant proper iam accesses
+     */
     this.grantSecretsManagerToAccessLambda(rotatorFn);
 
     this.grantLambdaFunctionToAccessStepFunctions(
@@ -122,6 +142,10 @@ export class NpmTokenRotationStack extends BaseStack {
     );
   }
 
+
+  /**
+   * Create the state machine for step functions
+   */
   private buildTokenDeletionStateMachine = (
     wait: core.Duration,
     publishFn: IFunction,

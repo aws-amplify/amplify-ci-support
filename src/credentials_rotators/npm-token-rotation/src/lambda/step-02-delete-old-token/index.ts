@@ -26,6 +26,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
     tokenConfig.secretKey,
     tokenConfig.roleArn,
     {
+      // get the old token
       ClientRequestToken: event.tokenEvent,
     }
   );
