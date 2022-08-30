@@ -107,6 +107,7 @@ export class BaseStack extends core.Stack {
       threshold: 1,
       evaluationPeriods: 1,
       alarmName: `${name}-alarm`,
+      alarmDescription: 'See https://tiny.amazon.com/rv8519a6',
     });
     alarm.addAlarmAction(new SnsAction(topic));
   };
