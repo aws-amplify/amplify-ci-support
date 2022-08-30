@@ -62,7 +62,7 @@ export class NpmTokenRotationStack extends BaseStack {
     );
 
     const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
-      core.Duration.minutes(15),
+      core.Duration.minutes(30),
       tokenPublisherFn,
       tokenRemovalFn
     );
