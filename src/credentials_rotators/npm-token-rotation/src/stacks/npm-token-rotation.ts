@@ -24,6 +24,7 @@ export class NpmTokenRotationStack extends BaseStack {
     super(scope, id);
     this.secretConfig = options.config;
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
+      timeout: core.Duration.seconds(30),
       entry: path.normalize(
         path.join(__dirname, "..", "lambda", "create-new-token", "index.ts")
       ),
@@ -62,7 +63,7 @@ export class NpmTokenRotationStack extends BaseStack {
     );
 
     const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
-      core.Duration.minutes(30),
+      core.Duration.minutes(15),
       tokenPublisherFn,
       tokenRemovalFn
     );
