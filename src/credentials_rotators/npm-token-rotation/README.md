@@ -1,4 +1,4 @@
-# NPM Token rotation
+# NPM Token rotation (GitHub Actions)
 
 This is a project that generates CDK stacks to rotate the NPM tokens. The stack is generated based on the configuration passed in `config.json` file in the root of the project. The configuration should have the following shape
 
@@ -8,6 +8,11 @@ The `config.json` configuration file should be populated with the
 information about **accessing** secret values from AWS Secrets Manager. **It must not be
 used to store the secret values themselves.**
 
+### Configuring GitHub
+
+After NPM tokens are rotated, CDK will update the GitHub secrets with the new rotated token. This CDK works with both environment and repository secrets. Organization secrets are not supported.
+
+Please see [Encrypted Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) documentation to learn more.
 ## Sample `config.json`
 
 ```json
@@ -33,12 +38,16 @@ used to store the secret values themselves.**
         "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:npm_access_token_secrets_cli-ZtI1lL",
         "secretKey": "npm_access_token",
         "publishConfig": {
-          "type": "Context", // This could either be Context or Environment
-          "contextName": "publish", // projectName when type is Environment
-          "slug": "gh/yuth",
-          "variableName": "NPM_PUBLISH_TOKEN",
-          "circleCiToken": {
-            "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:amplify_cli_circleci_token-cawIdq",
+          /** Type of GitHub secret. This can be either "Repository" or "Environment" */
+          "type": "Environment", 
+          /** The name of the environment that stores NPM_TOKEN. Only required if type is "Environment" */
+          "environmentName": "publish",
+          /** The name of the repository that stores NPM_TOKEN */
+          "repository": "aws-amplify/my-repository",
+          /** Name of the secret */
+          "variableName": "NPM_TOKEN",
+          "githubToken": {
+            "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:amplify_ui_github_token-cawIdq",
             "secretKey": "token"
           }
         },
@@ -52,12 +61,11 @@ used to store the secret values themselves.**
         "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:npm_access_token_secrets_js-ZtI1lL",
         "secretKey": "npm_access_token",
         "publishConfig": {
-          "type": "Environment", // This could either be Context or Environment
-          "slug": "gh/yuth",
-          "projectName": "amplify-cli",
+          "type": "Repository",
+          "repository": "aws-amplify/my-repository",
           "variableName": "NPM_PUBLISH_TOKEN",
-          "circleCiToken": {
-            "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:amplify_cli_circleci_token-cawIdq",
+          "githubToken": {
+            "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:amplify_ui_github_token-cawIdq",
             "secretKey": "token"
           }
         },
@@ -81,7 +89,7 @@ For example, to create a secret to hold the npm username using CLI:
 aws secretsmanager create-secret --name npm-username-secret --secret-string "{ \"npm_login_username\": \"my-npm-username\" }"
 ```
 
-Paste the `ARN` returned from above operation under `npmLoginUsernameSecret`.The `secretKey` (`npm_login_username` in the example) which can be customized. Each of the secret has `secretKey` which indicates the key used to store secrets in SecretManager. The `npmLoginUsernameSecret`, `npmLoginPasswordSecret` and `npmOtpSeedSecret` accept optional `roleArn` to support retrieving the credentials from a different account as the NPM credentials can be shared between different teams. 
+Paste the `ARN` returned from above operation under `npmLoginUsernameSecret`. The `secretKey` (`npm_login_username` in the example) which can be customized. Each of the secret has `secretKey` which indicates the key used to store secrets in SecretManager. The `npmLoginUsernameSecret`, `npmLoginPasswordSecret` and `npmOtpSeedSecret` accept optional `roleArn` to support retrieving the credentials from a different account as the NPM credentials can be shared between different teams. 
 
 | Configuration Key                                                | Description                                                                                          |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -91,12 +99,11 @@ Paste the `ARN` returned from above operation under `npmLoginUsernameSecret`.The
 | npmAccessTokenSecrets.secrets                                    | List of tokens that needs rotation                                                                   |
 | npmAccessTokenSecrets.secrets[].arn                              | ARN of NPM token that needs rotation                                                                 |
 | npmAccessTokenSecrets.secrets[].secretKey                        | Secret Key                                                                                           |
-| npmAccessTokenSecrets.secrets[].publishConfig.type               | Location where environment variable gets stored. This could either be Context or Environment         |
-| npmAccessTokenSecrets.secrets[].publishConfig.contextName        | Name of CircleCI context when type is Context                                                        |
-| npmAccessTokenSecrets.secrets[].publishConfig.projectName        | Name of CircleCI project where the environment variable is when type stored when type is Environment |
-| npmAccessTokenSecrets.secrets[].publishConfig.slug               | CircleCI Slug. For GitHub it starts with gh and username. Examples are `gh/aws-amplify` or `gh/yuth` |
-| npmAccessTokenSecrets.secrets[].publishConfig.variableName       | Environment variable name                                                                            |
-| npmAccessTokenSecrets.secrets[].publishConfig.circleCIToken      | CircleCI Token secret `arn`, `secretKey` and optional `roleArn`                                      |
+| npmAccessTokenSecrets.secrets[].publishConfig.type               | Location where GitHub secret gets stored. This could either be Context or Environment                |
+| npmAccessTokenSecrets.secrets[].publishConfig.environmentName    | Name of GitHub environment context when type is Environment                                          |
+| npmAccessTokenSecrets.secrets[].publishConfig.repository         | The name of the repository                                                                           |
+| npmAccessTokenSecrets.secrets[].publishConfig.secretName         | Name of the secret containing NPM_TOKEN                                                              |
+| npmAccessTokenSecrets.secrets[].publishConfig.githubToken        | GitHub Token secret `arn`, `secretKey` and optional `roleArn`                                      |
 | npmAccessTokenSecrets.secrets[].publishConfig.slackWebHookConfig | [Optional] `arn`, `secretKey` and optional `roleArn` for slackWebhookUrl used for notification       |
 
 ## High Level Architecture

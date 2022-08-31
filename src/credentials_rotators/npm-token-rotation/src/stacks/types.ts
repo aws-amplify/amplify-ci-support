@@ -7,26 +7,26 @@ export type SecretDetail = RotatableSecrets & {
   roleArn?: string;
 };
 
-export type TokenPublishCircleCIContextConfig = {
-  type: "Context";
-  contextName: string;
+export type TokenPublishGitHubRepoConfig = {
+  type: "Repository";
+  repository: string;
   slug: string;
   variableName: string;
-  circleCiToken: SecretDetail;
+  githubToken: SecretDetail;
 };
 
-export type TokenPublishCircleCIEnvironmentConfig = {
+export type TokenPublishGitHubEnvironmentConfig = {
   type: "Environment";
-  slug: string;
-  projectName: string;
+  repository: string;
+  environmentName: string;
   variableName: string;
-  circleCiToken: SecretDetail;
+  githubToken: SecretDetail;
 };
 
 export type AccessTokenItem = RotatableSecrets & {
   publishConfig:
-    | TokenPublishCircleCIContextConfig
-    | TokenPublishCircleCIEnvironmentConfig;
+    | TokenPublishGitHubRepoConfig
+    | TokenPublishGitHubEnvironmentConfig;
   slackWebHookConfig: SecretDetail;
 };
 
