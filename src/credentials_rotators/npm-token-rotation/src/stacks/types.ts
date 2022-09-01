@@ -7,18 +7,23 @@ export type SecretDetail = RotatableSecrets & {
   roleArn?: string;
 };
 
-export type TokenPublishGitHubRepoConfig = {
-  type: "Repository";
+export type GitHubTokenSecretDetail = {
+  githubToken: SecretDetail;
+};
+
+export type GitHubRepoInfo = {
   owner: string;
   repo: string;
+};
+/** Publish configs */
+export type TokenPublishGitHubRepoConfig = GitHubRepoInfo & {
+  type: "Repository";
   variableName: string;
   githubToken: SecretDetail;
 };
 
-export type TokenPublishGitHubEnvironmentConfig = {
+export type TokenPublishGitHubEnvironmentConfig = GitHubRepoInfo & {
   type: "Environment";
-  owner: string;
-  repo: string;
   environmentName: string;
   variableName: string;
   githubToken: SecretDetail;
@@ -27,6 +32,31 @@ export type TokenPublishGitHubEnvironmentConfig = {
 export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
   | TokenPublishGitHubEnvironmentConfig;
+
+/**
+ * Parameters to updateGitHubSecrets call. These are used after `githubToken`
+ * has been fetched.
+ */
+export type SecretValuesMap = Record<string, string>; //maps secret name to secret value
+
+export type BaseUpdateGitHubSecretsParam = GitHubRepoInfo & {
+  type: string;
+  variables: SecretValuesMap;
+  token: string;
+};
+
+export type UpdateGitHubRepoSecretsParam = BaseUpdateGitHubSecretsParam & {
+  type: "Repository";
+};
+
+export type UpdateGitHubEnvSecretsParam = BaseUpdateGitHubSecretsParam & {
+  type: "Environment";
+  environmentName: string;
+};
+
+export type UpdateGitHubSecretsParam =
+  | UpdateGitHubRepoSecretsParam
+  | UpdateGitHubEnvSecretsParam;
 
 export type AccessTokenItem = SecretDetail & {
   publishConfig:

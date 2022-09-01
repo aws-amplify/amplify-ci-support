@@ -1,12 +1,10 @@
 import config from "../../../config.json";
 import assert from "assert";
-import {
-  UpdateGitHubSecretsConfig,
-  updateGitHubActionsSecrets,
-} from "../utils/github-helper";
+import { updateGitHubActionsSecrets } from "../utils/github-helper";
 import * as utils from "../utils/utils";
 import {
   NPMTokenRotationConfig,
+  UpdateGitHubSecretsParam,
   TokenRotationStepFnEvent,
 } from "../../stacks/types";
 
@@ -49,7 +47,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       assert(newNPMToken, "Secrets manager should have newNPMToken");
 
       const { type, owner, repo } = publishConfig;
-      let updateConfig: UpdateGitHubSecretsConfig;
+      let updateConfig: UpdateGitHubSecretsParam;
+      
       if (type === "Repository") {
         updateConfig = {
           type,

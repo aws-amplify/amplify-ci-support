@@ -2,27 +2,10 @@ import { Octokit } from "@octokit/core";
 import { retry } from "@octokit/plugin-retry";
 import { assert } from "console";
 import sodium from "libsodium-wrappers";
-
-export type BaseUpdateSecretsConfig = {
-  type: string;
-  owner: string;
-  repo: string;
-  variables: Record<string, string>;
-  token: string;
-};
-
-export type RepositorySecretsConfig = BaseUpdateSecretsConfig & {
-  type: "Repository";
-};
-
-export type EnvironmentSecretsConfig = BaseUpdateSecretsConfig & {
-  type: "Environment";
-  environmentName: string;
-};
-
-export type UpdateGitHubSecretsConfig =
-  | RepositorySecretsConfig
-  | EnvironmentSecretsConfig;
+import {
+  BaseUpdateGitHubSecretsParam,
+  UpdateGitHubSecretsParam,
+} from "../../stacks/types";
 
 export const createOctokit = (token: string) => {
   const OctokitWithRetries = Octokit.plugin(retry);
@@ -33,7 +16,7 @@ export const createOctokit = (token: string) => {
 };
 
 export const updateGitHubActionsSecrets = async (
-  config: UpdateGitHubSecretsConfig
+  config: UpdateGitHubSecretsParam
 ) => {
   console.info("start:updateGitHubActionsSecrets");
 
@@ -56,7 +39,7 @@ export const updateGitHubActionsSecrets = async (
     } else {
       throw new Error(
         `Unknown type ${
-          (config as BaseUpdateSecretsConfig).type
+          config as BaseUpdateGitHubSecretsParam
         } is not supported`
       );
     }
