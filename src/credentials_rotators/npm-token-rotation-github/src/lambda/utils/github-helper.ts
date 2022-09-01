@@ -1,6 +1,5 @@
 import { Octokit } from "@octokit/core";
 import { retry } from "@octokit/plugin-retry";
-import axios from "axios";
 import { assert } from "console";
 import sodium from "tweetsodium";
 
