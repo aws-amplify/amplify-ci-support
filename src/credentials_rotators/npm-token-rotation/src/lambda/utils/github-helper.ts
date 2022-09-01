@@ -199,7 +199,6 @@ export const updateGitHubEnvironmentSecret = async (
     const octokit = createOctokit(githubToken);
 
     const repoId = await getRepoId(octokit, owner, repo);
-    console.log("Retrieved repo id", repoId);
 
     const { keyId, key } = await getEnvironmentPublicKey(
       octokit,

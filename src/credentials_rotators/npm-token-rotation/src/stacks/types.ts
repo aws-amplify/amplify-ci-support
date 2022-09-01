@@ -19,29 +19,31 @@ export type GitHubRepoInfo = {
 };
 
 /** Publish configs */
-export type TokenPublishGitHubRepoConfig = GitHubRepoInfo & {
-  type: "Repository";
+export type BaseTokenPublishGitHubConfig = GitHubRepoInfo & {
+  type: string;
   variableName: string;
   githubToken: SecretDetail;
+};
+
+export type TokenPublishGitHubRepoConfig = BaseTokenPublishGitHubConfig & {
+  type: "Repository";
 };
 
 export type TokenPublishGitHubEnvironmentConfig = GitHubRepoInfo & {
   type: "Environment";
   environmentName: string;
-  variableName: string;
-  githubToken: SecretDetail;
 };
 
 export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
   | TokenPublishGitHubEnvironmentConfig;
 
-export type SecretValuesMap = Record<string, string>; //maps secret name to secret value
-
 /**
  * Parameters to updateGitHubSecrets call. These are used after `githubToken`
  * has been fetched.
  */
+export type SecretValuesMap = Record<string, string>; //maps secret name to secret value
+
 export type BaseUpdateGitHubSecretsParam = GitHubRepoInfo & {
   type: string;
   variables: SecretValuesMap;

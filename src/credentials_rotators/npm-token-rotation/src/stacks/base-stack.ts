@@ -4,11 +4,10 @@ import * as iam from "@aws-cdk/aws-iam";
 import * as secretsManager from "@aws-cdk/aws-secretsmanager";
 import * as sns from "@aws-cdk/aws-sns";
 import * as snsSubscriptions from "@aws-cdk/aws-sns-subscriptions";
-import { SecretDetail, AccessTokenRotationConfig } from "./types";
 import { StateMachine } from "@aws-cdk/aws-stepfunctions";
 import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
 
-type BaseStackProps = core.StackProps & {};
+import { SecretDetail, AccessTokenRotationConfig } from "./types";
 
 /**
  * This is the Base Stack that contains helper functions that grants the right
