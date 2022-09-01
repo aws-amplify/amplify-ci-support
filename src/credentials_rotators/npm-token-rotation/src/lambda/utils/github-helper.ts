@@ -7,7 +7,7 @@ import {
   UpdateGitHubSecretsParam,
 } from "../../stacks/types";
 
-export const createOctokit = (githubToken: string) => {
+const createOctokit = (githubToken: string) => {
   const OctokitWithRetries = Octokit.plugin(retry);
   const octokit = new OctokitWithRetries({
     auth: githubToken,
@@ -15,45 +15,7 @@ export const createOctokit = (githubToken: string) => {
   return octokit;
 };
 
-export const updateGitHubActionsSecrets = async (
-  config: UpdateGitHubSecretsParam
-) => {
-  console.info("start:updateGitHubActionsSecrets");
-
-  const { githubToken, owner, repo, type } = config;
-
-  for (const [secretName, secretValue] of Object.entries(config.secrets)) {
-    if (type === "Repository") {
-      await updateGitHubRepositorySecret(
-        owner,
-        repo,
-        githubToken,
-        secretName,
-        secretValue
-      );
-    } else if (type === "Environment") {
-      const { environmentName } = config;
-
-      await updateGitHubEnvironmentSecret(
-        owner,
-        repo,
-        githubToken,
-        environmentName,
-        secretName,
-        secretValue
-      );
-    } else {
-      throw new Error(
-        `Unknown type ${
-          config as BaseUpdateGitHubSecretsParam
-        } is not supported`
-      );
-    }
-  }
-  console.info("end:updateGitHubActionsSecrets");
-};
-
-export const getRepoPublicKey = async (
+const getRepoPublicKey = async (
   octokit: Octokit,
   owner: string,
   repo: string
@@ -70,11 +32,7 @@ export const getRepoPublicKey = async (
   return { key, keyId };
 };
 
-export const getRepoId = async (
-  octokit: Octokit,
-  owner: string,
-  repo: string
-) => {
+const getRepoId = async (octokit: Octokit, owner: string, repo: string) => {
   const response = await octokit.request("GET /repos/{owner}/{repo}", {
     owner,
     repo,
@@ -130,7 +88,7 @@ const encryptSecret = async (key: string, value: string) => {
  * @param secretValue the value of the secret
  * @returns
  */
-export const updateGitHubRepositorySecret = async (
+const updateGitHubRepositorySecret = async (
   owner: string,
   repo: string,
   githubToken: string,
@@ -179,7 +137,7 @@ export const updateGitHubRepositorySecret = async (
  * @param secretValue the value of the secret
  * @returns
  */
-export const updateGitHubEnvironmentSecret = async (
+const updateGitHubEnvironmentSecret = async (
   owner: string,
   repo: string,
   githubToken: string,
@@ -226,4 +184,42 @@ export const updateGitHubEnvironmentSecret = async (
     console.error("Updating environment secrets to GitHub failed. Error:", e);
     throw new Error(message);
   }
+};
+
+export const updateGitHubActionsSecrets = async (
+  config: UpdateGitHubSecretsParam
+) => {
+  console.info("start:updateGitHubActionsSecrets");
+
+  const { githubToken, owner, repo, type } = config;
+
+  for (const [secretName, secretValue] of Object.entries(config.secrets)) {
+    if (type === "Repository") {
+      await updateGitHubRepositorySecret(
+        owner,
+        repo,
+        githubToken,
+        secretName,
+        secretValue
+      );
+    } else if (type === "Environment") {
+      const { environmentName } = config;
+
+      await updateGitHubEnvironmentSecret(
+        owner,
+        repo,
+        githubToken,
+        environmentName,
+        secretName,
+        secretValue
+      );
+    } else {
+      throw new Error(
+        `Unknown type ${
+          config as BaseUpdateGitHubSecretsParam
+        } is not supported`
+      );
+    }
+  }
+  console.info("end:updateGitHubActionsSecrets");
 };
