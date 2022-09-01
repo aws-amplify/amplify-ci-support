@@ -9,6 +9,7 @@ import {
   NPMTokenRotationConfig,
   TokenPublishGitHubEnvironmentConfig,
   TokenRotationStepFnEvent,
+  isPublishRepositorySecretConfig,
 } from "../../stacks/types";
 
 export const handler = async (event: TokenRotationStepFnEvent) => {
@@ -25,7 +26,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
     : undefined;
   if (tokenDetails) {
     try {
-      const tokenConfig = tokenDetails.publishConfig.githubToken;
+      const { publishConfig } = tokenDetails;
+      const tokenConfig = publishConfig.githubToken;
       if (!tokenConfig || !tokenConfig.arn || !tokenConfig.secretKey) {
         throw Error(
           `Invalid rotation configuration. Expected arn and token key, got ${JSON.stringify(
@@ -49,26 +51,26 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       assert(newNPMToken, "Secrets manager should have newNPMToken");
 
       let updateConfig: UpdateGitHubSecretsConfig;
-      if (tokenDetails.publishConfig.type === "Repository") {
+      if (isPublishRepositorySecretConfig(publishConfig)) {
         updateConfig = {
-          type: tokenDetails.publishConfig.type,
-          repository: tokenDetails.publishConfig.repository,
+          type: publishConfig.type,
+          repository: publishConfig.repository,
           variables: {
-            [tokenDetails.publishConfig.variableName]: newNPMToken,
+            [publishConfig.variableName]: newNPMToken,
           },
         };
-      } else if (tokenDetails.publishConfig.type === "Environment") {
+      } else if (publishConfig.type === "Environment") {
         assert(
-          (tokenDetails.publishConfig as TokenPublishGitHubEnvironmentConfig)
+          (publishConfig as TokenPublishGitHubEnvironmentConfig)
             .environmentName,
           "Environment name is missing"
         );
         updateConfig = {
           type: "Environment",
-          repository: tokenDetails.publishConfig.repository,
-          environmentName: tokenDetails.publishConfig.environmentName,
+          repository: publishConfig.repository,
+          environmentName: publishConfig.environmentName,
           variables: {
-            [tokenDetails.publishConfig.variableName]: newNPMToken,
+            [publishConfig.variableName]: newNPMToken,
           },
         };
       } else {
@@ -78,18 +80,18 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       await updateGitHubActionsSecrets(githubToken, updateConfig);
       if (webhookUrl) {
         const message =
-          tokenDetails.publishConfig.type === "Repository"
+          publishConfig.type === "Repository"
             ? `NPM Publish Token has been rotated and pushed to GitHub repository secret.\nDetails:\n ${JSON.stringify(
                 {
-                  repository: tokenDetails.publishConfig.repository,
-                  variableName: tokenDetails.publishConfig.variableName,
+                  repository: publishConfig.repository,
+                  variableName: publishConfig.variableName,
                 }
               )}`
             : `NPM Publish Token has been rotated and Stored in GitHub environment secret. \nDetails: \n ${JSON.stringify(
                 {
-                  repository: tokenDetails.publishConfig.repository,
-                  environmentName: tokenDetails.publishConfig.environmentName,
-                  variableName: tokenDetails.publishConfig.variableName,
+                  repository: publishConfig.repository,
+                  environmentName: publishConfig.environmentName,
+                  variableName: publishConfig.variableName,
                 }
               )}`;
         await utils.sendSlackMessage(webhookUrl, message);

@@ -57,7 +57,9 @@ export const updateGitHubActionsSecrets = async (
       );
     } else {
       throw new Error(
-        `Unknown type ${(config as BaseUpdateSecretsConfig).type} is not supported`
+        `Unknown type ${
+          (config as BaseUpdateSecretsConfig).type
+        } is not supported`
       );
     }
   }

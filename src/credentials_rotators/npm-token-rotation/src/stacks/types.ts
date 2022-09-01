@@ -10,7 +10,6 @@ export type SecretDetail = RotatableSecrets & {
 export type TokenPublishGitHubRepoConfig = {
   type: "Repository";
   repository: string;
-  slug: string;
   variableName: string;
   githubToken: SecretDetail;
 };
@@ -21,6 +20,16 @@ export type TokenPublishGitHubEnvironmentConfig = {
   environmentName: string;
   variableName: string;
   githubToken: SecretDetail;
+};
+
+export type TokenPublishGitHubConfig =
+  | TokenPublishGitHubRepoConfig
+  | TokenPublishGitHubEnvironmentConfig;
+
+export const isPublishRepositorySecretConfig = (
+  config: TokenPublishGitHubConfig
+): config is TokenPublishGitHubRepoConfig => {
+  return config.type === "Repository";
 };
 
 export type AccessTokenItem = SecretDetail & {
