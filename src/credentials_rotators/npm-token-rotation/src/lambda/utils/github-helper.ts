@@ -7,10 +7,10 @@ import {
   UpdateGitHubSecretsParam,
 } from "../../stacks/types";
 
-export const createOctokit = (token: string) => {
+export const createOctokit = (githubToken: string) => {
   const OctokitWithRetries = Octokit.plugin(retry);
   const octokit = new OctokitWithRetries({
-    auth: token,
+    auth: githubToken,
   });
   return octokit;
 };
@@ -20,18 +20,24 @@ export const updateGitHubActionsSecrets = async (
 ) => {
   console.info("start:updateGitHubActionsSecrets");
 
-  const { token, owner, repo, type } = config;
+  const { githubToken, owner, repo, type } = config;
 
   for (const [envName, envValue] of Object.entries(config.variables)) {
     if (type === "Repository") {
-      await updateGitHubRepositorySecret(owner, repo, token, envName, envValue);
+      await updateGitHubRepositorySecret(
+        owner,
+        repo,
+        githubToken,
+        envName,
+        envValue
+      );
     } else if (type === "Environment") {
       const { environmentName } = config;
 
       await updateGitHubEnvironmentSecret(
         owner,
         repo,
-        token,
+        githubToken,
         environmentName,
         envName,
         envValue
@@ -119,7 +125,7 @@ const encryptSecret = async (key: string, value: string) => {
 /**
  * Creates a new repository secret if missing and adds/updates the secret
  * @param repository repository to publish new secrets to
- * @param token GitHub token
+ * @param githubToken GitHub token
  * @param secretName the name of the secret
  * @param secretValue the value of the secret
  * @returns
@@ -127,7 +133,7 @@ const encryptSecret = async (key: string, value: string) => {
 export const updateGitHubRepositorySecret = async (
   owner: string,
   repo: string,
-  token: string,
+  githubToken: string,
   secretName: string,
   secretValue: string
 ) => {
@@ -135,11 +141,11 @@ export const updateGitHubRepositorySecret = async (
     console.info("start:updateGitHubRepositorySecret");
     assert(owner, "owner is needed");
     assert(repo, "repo is needed");
-    assert(token, "token is needed");
+    assert(githubToken, "token is needed");
     assert(secretName, "secretName is required");
     assert(secretValue, "secretValue is required");
 
-    const octokit = createOctokit(token);
+    const octokit = createOctokit(githubToken);
 
     const { keyId, key } = await getRepoPublicKey(octokit, owner, repo);
 
@@ -168,7 +174,7 @@ export const updateGitHubRepositorySecret = async (
 /**
  * Creates a new environment secret if missing and adds/updates the secret
  * @param repository repository to publish new secrets to
- * @param token GitHub token
+ * @param githubToken GitHub token
  * @param secretName the name of the secret
  * @param secretValue the value of the secret
  * @returns
@@ -176,7 +182,7 @@ export const updateGitHubRepositorySecret = async (
 export const updateGitHubEnvironmentSecret = async (
   owner: string,
   repo: string,
-  token: string,
+  githubToken: string,
   environmentName: string,
   secretName: string,
   secretValue: string
@@ -184,13 +190,13 @@ export const updateGitHubEnvironmentSecret = async (
   console.info("start:updateGitHubEnvironmentSecret");
   assert(owner, "owner is needed");
   assert(repo, "repo is needed");
-  assert(token, "token is needed");
+  assert(githubToken, "token is needed");
   assert(environmentName, "environmentName is required");
   assert(secretName, "secretName is required");
   assert(secretValue, "secretValue is required");
 
   try {
-    const octokit = createOctokit(token);
+    const octokit = createOctokit(githubToken);
 
     const repoId = await getRepoId(octokit, owner, repo);
     console.log("Retrieved repo id", repoId);
