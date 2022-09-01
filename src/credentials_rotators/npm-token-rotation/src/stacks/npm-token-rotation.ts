@@ -5,10 +5,10 @@ import * as sfn from "@aws-cdk/aws-stepfunctions";
 import * as tasks from "@aws-cdk/aws-stepfunctions-tasks";
 import * as path from "path";
 
-import { BaseStack } from "./base-stack";
-import { NPMTokenRotationConfig } from "./types";
 import { Duration } from "@aws-cdk/core";
 import { IFunction } from "@aws-cdk/aws-lambda";
+import { BaseStack } from "./base-stack";
+import { NPMTokenRotationConfig } from "../lambda/types";
 
 export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
@@ -16,7 +16,7 @@ export type NpmTokenRotationStackParams = {
 
 /**
  * This stack contains the implementation for rotating the token.
- * 
+ *
  * See README.md for high level overview.
  */
 export class NpmTokenRotationStack extends BaseStack {
@@ -33,9 +33,9 @@ export class NpmTokenRotationStack extends BaseStack {
     // create lambda function objects
 
     /**
-     * This is the head lambda function that Secrets Managers use to 
+     * This is the head lambda function that Secrets Managers use to
      * rotate its secrets on cron.
-     * 
+     *
      * https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html
      */
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
@@ -154,7 +154,6 @@ export class NpmTokenRotationStack extends BaseStack {
       this.secretConfig.npmAccessTokenSecrets
     );
   }
-
 
   /**
    * Create the state machine for step functions

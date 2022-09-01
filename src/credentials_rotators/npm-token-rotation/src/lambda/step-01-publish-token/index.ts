@@ -4,9 +4,9 @@ import { updateGitHubActionsSecrets } from "../utils/github-helper";
 import * as utils from "../utils/utils";
 import {
   NPMTokenRotationConfig,
-  UpdateGitHubSecretsParam,
   TokenRotationStepFnEvent,
-} from "../../stacks/types";
+  UpdateGitHubSecretsParam,
+} from "../types";
 
 export const handler = async (event: TokenRotationStepFnEvent) => {
   const tokenDetails = utils.getTokenConfigForArn(

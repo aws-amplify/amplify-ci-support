@@ -2,14 +2,11 @@ import aws from "aws-sdk";
 import assert from "assert";
 import Ajv from "ajv";
 import * as fs from "fs";
-import {
-  NPMTokenRotationConfig,
-  AccessTokenItem,
-  SecretDetail,
-} from "../../stacks/types";
-
-import { schema } from "./config-schema";
 import axios from "axios";
+
+import { AccessTokenItem, SecretDetail } from "../../stacks/types";
+import { NPMTokenRotationConfig } from '../types';
+import { schema } from "./config-schema";
 
 export type NPMCredentials = {
   username: string;
@@ -136,7 +133,7 @@ export const getTokenConfigForArn = (
 ): AccessTokenItem => {
   console.info("begin: getTokenConfigForArn");
   const tokenDetails = config.npmAccessTokenSecrets.secrets.find(
-    (s) => s.arn === arn
+    s => s.arn === arn
   );
   if (!tokenDetails) {
     throw new Error(
@@ -186,7 +183,7 @@ export const validateConfiguration = async (payload: any) => {
     validatedJson.npmOtpSeedSecret,
     "npmOtpSeedSecret is not accessible"
   );
-  
+
   return result;
 };
 

@@ -2,10 +2,11 @@ import { Octokit } from "@octokit/core";
 import { retry } from "@octokit/plugin-retry";
 import { assert } from "console";
 import sodium from "libsodium-wrappers";
+
 import {
   BaseUpdateGitHubSecretsParam,
   UpdateGitHubSecretsParam,
-} from "../../stacks/types";
+} from "../types";
 
 const createOctokit = (githubToken: string) => {
   const OctokitWithRetries = Octokit.plugin(retry);

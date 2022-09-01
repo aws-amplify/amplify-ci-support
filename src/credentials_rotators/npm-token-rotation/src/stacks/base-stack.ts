@@ -7,7 +7,7 @@ import * as snsSubscriptions from "@aws-cdk/aws-sns-subscriptions";
 import { StateMachine } from "@aws-cdk/aws-stepfunctions";
 import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
 
-import { SecretDetail, AccessTokenRotationConfig } from "./types";
+import { AccessTokenRotationConfig, SecretDetail } from "./types";
 
 /**
  * This is the Base Stack that contains helper functions that grants the right
@@ -34,11 +34,11 @@ export class BaseStack extends core.Stack {
     fn: lambda.IFunction,
     secret: SecretDetail
   ) => {
-     if (secret.roleArn) {
-       this.grantLambdaToAssumeRolePermission(fn, secret.roleArn);
-     } else {
-       this.grantLambdaAccessToWriteSecret(fn, secret.arn);
-     }
+    if (secret.roleArn) {
+      this.grantLambdaToAssumeRolePermission(fn, secret.roleArn);
+    } else {
+      this.grantLambdaAccessToWriteSecret(fn, secret.arn);
+    }
     const actions = secret.roleArn
       ? ["sts:AssumeRole"]
       : [
