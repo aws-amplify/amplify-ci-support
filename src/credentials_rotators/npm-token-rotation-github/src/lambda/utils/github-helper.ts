@@ -3,15 +3,17 @@ import { retry } from "@octokit/plugin-retry";
 import { assert } from "console";
 import sodium from "libsodium-wrappers";
 
-export type BaseSecretsConfig = {
+export type BaseUpdateSecretsConfig = {
   type: string;
   repository: string;
   variables: Record<string, string>;
 };
-export type RepositorySecretsConfig = BaseSecretsConfig & {
+
+export type RepositorySecretsConfig = BaseUpdateSecretsConfig & {
   type: "Repository";
 };
-export type EnvironmentSecretsConfig = BaseSecretsConfig & {
+
+export type EnvironmentSecretsConfig = BaseUpdateSecretsConfig & {
   type: "Environment";
   environmentName: string;
 };
@@ -43,13 +45,8 @@ export const updateGitHubActionsSecrets = async (
         envName,
         envValue
       );
-    } else if ((config.type == "Environment")) {
-      console.log(
-        config.repository,
-        config.environmentName,
-        envName,
-        envValue
-      );
+    } else if (config.type === "Environment") {
+      console.log(config.repository, config.environmentName, envName, envValue);
 
       await updateGitHubEnvironmentSecret(
         config.repository,
@@ -60,7 +57,7 @@ export const updateGitHubActionsSecrets = async (
       );
     } else {
       throw new Error(
-        `Unknown type ${(config as BaseSecretsConfig).type} is not supported`
+        `Unknown type ${(config as BaseUpdateSecretsConfig).type} is not supported`
       );
     }
   }
