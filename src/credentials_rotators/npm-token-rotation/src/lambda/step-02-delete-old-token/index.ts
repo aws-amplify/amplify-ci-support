@@ -52,7 +52,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
     console.info(`end: handler(${JSON.stringify(event)})`);
   } catch (e) {
     if (webhookUrl) {
-      sendSlackMessage(webhookUrl, "Deleting the old NPM token failed");
+      sendSlackMessage(webhookUrl, `Deleting the old NPM token failed. Runbook: https://tiny.amazon.com/rv8519a6 Error: ${e}`);
     }
     throw e;
   }

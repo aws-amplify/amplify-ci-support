@@ -104,7 +104,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       if (webhookUrl) {
         await utils.sendSlackMessage(
           webhookUrl,
-          "NPM Access token has been rotation failed"
+          `NPM Access token rotation failed. Runbook: https://tiny.amazon.com/rv8519a6 Error: ${e}`,
         );
       }
       throw e;
