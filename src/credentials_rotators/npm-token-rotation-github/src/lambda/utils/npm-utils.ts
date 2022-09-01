@@ -40,7 +40,7 @@ export const createAccessToken = async (
     );
     return result.data["token"];
   } catch (e) {
-    throw new Error(`Error occurred when creating token: ${e.message}`);
+    throw new Error(`Error occurred when creating token: ${(e as Error).message}`);
   }
 };
 
@@ -67,7 +67,7 @@ export const deleteAccessToken = async (
     );
     return result.status >= 200 && result.status < 300;
   } catch (e) {
-    throw new Error(`Error occurred when deleting token: ${e.message}`);
+    throw new Error(`Error occurred when deleting token: ${(e as Error).message}`);
   }
 };
 
@@ -84,6 +84,6 @@ export const validateAccessToken = async (
     });
     return result.status >= 200 && result.status < 300;
   } catch (e) {
-    throw new Error(`Error occurred when verifying token: ${e.message}`);
+    throw new Error(`Error occurred when verifying token: ${(e as Error).message}`);
   }
 };
