@@ -1,3 +1,4 @@
+/** Secrets Manager Types */
 export type RotatableSecrets = {
   arn: string;
   secretKey: string;
@@ -7,6 +8,7 @@ export type SecretDetail = RotatableSecrets & {
   roleArn?: string;
 };
 
+/** GitHub specific utility types */
 export type GitHubTokenSecretDetail = {
   githubToken: SecretDetail;
 };
@@ -15,6 +17,7 @@ export type GitHubRepoInfo = {
   owner: string;
   repo: string;
 };
+
 /** Publish configs */
 export type TokenPublishGitHubRepoConfig = GitHubRepoInfo & {
   type: "Repository";
@@ -33,16 +36,16 @@ export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
   | TokenPublishGitHubEnvironmentConfig;
 
+export type SecretValuesMap = Record<string, string>; //maps secret name to secret value
+
 /**
  * Parameters to updateGitHubSecrets call. These are used after `githubToken`
  * has been fetched.
  */
-export type SecretValuesMap = Record<string, string>; //maps secret name to secret value
-
 export type BaseUpdateGitHubSecretsParam = GitHubRepoInfo & {
   type: string;
   variables: SecretValuesMap;
-  token: string;
+  githubToken: string;
 };
 
 export type UpdateGitHubRepoSecretsParam = BaseUpdateGitHubSecretsParam & {
@@ -58,6 +61,7 @@ export type UpdateGitHubSecretsParam =
   | UpdateGitHubRepoSecretsParam
   | UpdateGitHubEnvSecretsParam;
 
+/** High level config objects */
 export type AccessTokenItem = SecretDetail & {
   publishConfig:
     | TokenPublishGitHubRepoConfig

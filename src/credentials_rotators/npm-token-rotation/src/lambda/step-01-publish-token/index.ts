@@ -48,13 +48,13 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
 
       const { type, owner, repo } = publishConfig;
       let updateConfig: UpdateGitHubSecretsParam;
-      
+
       if (type === "Repository") {
         updateConfig = {
           type,
           owner,
           repo,
-          token: githubToken,
+          githubToken,
           variables: {
             [publishConfig.variableName]: newNPMToken,
           },
@@ -67,7 +67,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           type,
           owner,
           repo,
-          token: githubToken,
+          githubToken,
           environmentName,
           variables: {
             [publishConfig.variableName]: newNPMToken,
