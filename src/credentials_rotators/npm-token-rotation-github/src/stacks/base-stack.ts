@@ -10,6 +10,10 @@ import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
 
 type BaseStackProps = core.StackProps & {};
 
+/**
+ * This is the Base Stack that contains helper functions that grants the right
+ * IAM roles to perform token rotation.
+ */
 export class BaseStack extends core.Stack {
   constructor(scope: core.Construct, id: string, props: core.StackProps = {}) {
     super(scope, id, props);
