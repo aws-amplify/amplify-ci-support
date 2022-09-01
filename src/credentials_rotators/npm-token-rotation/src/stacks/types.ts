@@ -9,14 +9,16 @@ export type SecretDetail = RotatableSecrets & {
 
 export type TokenPublishGitHubRepoConfig = {
   type: "Repository";
-  repository: string;
+  owner: string;
+  repo: string;
   variableName: string;
   githubToken: SecretDetail;
 };
 
 export type TokenPublishGitHubEnvironmentConfig = {
   type: "Environment";
-  repository: string;
+  owner: string;
+  repo: string;
   environmentName: string;
   variableName: string;
   githubToken: SecretDetail;

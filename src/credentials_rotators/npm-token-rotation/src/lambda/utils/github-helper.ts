@@ -5,7 +5,8 @@ import sodium from "libsodium-wrappers";
 
 export type BaseUpdateSecretsConfig = {
   type: string;
-  repository: string;
+  owner: string;
+  repo: string;
   variables: Record<string, string>;
   token: string;
 };
@@ -36,17 +37,17 @@ export const updateGitHubActionsSecrets = async (
 ) => {
   console.info("start:updateGitHubActionsSecrets");
 
-  const { token, repository, type } = config;
+  const { token, owner, repo, type } = config;
 
   for (const [envName, envValue] of Object.entries(config.variables)) {
     if (type === "Repository") {
-      console.log(config.repository, envName, envValue);
-      await updateGitHubRepositorySecret(repository, token, envName, envValue);
+      await updateGitHubRepositorySecret(owner, repo, token, envName, envValue);
     } else if (type === "Environment") {
       const { environmentName } = config;
 
       await updateGitHubEnvironmentSecret(
-        repository,
+        owner,
+        repo,
         token,
         environmentName,
         envName,
@@ -141,20 +142,16 @@ const encryptSecret = async (key: string, value: string) => {
  * @returns
  */
 export const updateGitHubRepositorySecret = async (
-  repository: string,
+  owner: string,
+  repo: string,
   token: string,
   secretName: string,
   secretValue: string
 ) => {
-  const [owner, repo] = repository.split("/");
-  assert(
-    owner && repo,
-    "Could not read repository information. Format: {owner}/{repo}"
-  );
-
   try {
     console.info("start:updateGitHubRepositorySecret");
-    assert(repository, "repository is needed");
+    assert(owner, "owner is needed");
+    assert(repo, "repo is needed");
     assert(token, "token is needed");
     assert(secretName, "secretName is required");
     assert(secretValue, "secretValue is required");
@@ -194,16 +191,16 @@ export const updateGitHubRepositorySecret = async (
  * @returns
  */
 export const updateGitHubEnvironmentSecret = async (
-  repository: string,
+  owner: string,
+  repo: string,
   token: string,
   environmentName: string,
   secretName: string,
   secretValue: string
 ): Promise<boolean> => {
-  const [owner, repo] = repository.split("/");
-
   console.info("start:updateGitHubEnvironmentSecret");
-  assert(repository, "repository is needed");
+  assert(owner, "owner is needed");
+  assert(repo, "repo is needed");
   assert(token, "token is needed");
   assert(environmentName, "environmentName is required");
   assert(secretName, "secretName is required");

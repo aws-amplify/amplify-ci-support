@@ -48,13 +48,14 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       );
       assert(newNPMToken, "Secrets manager should have newNPMToken");
 
-      const { type, repository } = publishConfig;
+      const { type, owner, repo } = publishConfig;
       let updateConfig: UpdateGitHubSecretsConfig;
       if (type === "Repository") {
         updateConfig = {
           type,
+          owner,
+          repo,
           token: githubToken,
-          repository: repository,
           variables: {
             [publishConfig.variableName]: newNPMToken,
           },
@@ -65,7 +66,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
 
         updateConfig = {
           type,
-          repository,
+          owner,
+          repo,
           token: githubToken,
           environmentName,
           variables: {
@@ -83,13 +85,15 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           type === "Repository"
             ? `NPM Publish Token has been rotated and pushed to GitHub repository secret.\nDetails:\n ${JSON.stringify(
                 {
-                  repository: publishConfig.repository,
+                  owner,
+                  repo,
                   variableName: publishConfig.variableName,
                 }
               )}`
             : `NPM Publish Token has been rotated and Stored in GitHub environment secret. \nDetails: \n ${JSON.stringify(
                 {
-                  repository: publishConfig.repository,
+                  owner,
+                  repo,
                   environmentName: publishConfig.environmentName,
                   variableName: publishConfig.variableName,
                 }
