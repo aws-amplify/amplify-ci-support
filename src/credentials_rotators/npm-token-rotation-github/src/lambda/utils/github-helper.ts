@@ -1,22 +1,26 @@
 import { Octokit } from "@octokit/core";
 import { retry } from "@octokit/plugin-retry";
 import { assert } from "console";
-import sodium from "tweetsodium";
+import sodium from "libsodium-wrappers";
 
-export type BaseVariableType = {
+export type BaseSecretsConfig = {
   type: string;
   repository: string;
   variables: Record<string, string>;
 };
-export type RepositoryVariables = BaseVariableType & {
+export type RepositorySecretsConfig = BaseSecretsConfig & {
   type: "Repository";
 };
-export type EnvironmentVariables = BaseVariableType & {
+export type EnvironmentSecretsConfig = BaseSecretsConfig & {
   type: "Environment";
   environmentName: string;
 };
 
-const createOctokit = (token: string) => {
+export type UpdateGitHubSecretsConfig =
+  | RepositorySecretsConfig
+  | EnvironmentSecretsConfig;
+
+export const createOctokit = (token: string) => {
   const OctokitWithRetries = Octokit.plugin(retry);
   const octokit = new OctokitWithRetries({
     auth: token,
@@ -26,35 +30,44 @@ const createOctokit = (token: string) => {
 
 export const updateGitHubActionsSecrets = async (
   token: string,
-  variables: RepositoryVariables | EnvironmentVariables
+  config: UpdateGitHubSecretsConfig
 ) => {
   console.info("start:updateGitHubActionsSecrets");
-  for (const [envName, envValue] of Object.entries(variables.variables)) {
-    if (variables.type === "Repository") {
+
+  for (const [envName, envValue] of Object.entries(config.variables)) {
+    if (config.type === "Repository") {
+      console.log(config.repository, envName, envValue);
       await updateGitHubRepositorySecret(
-        variables.repository,
+        config.repository,
         token,
         envName,
         envValue
       );
-    } else if ((variables.type = "Environment")) {
+    } else if ((config.type == "Environment")) {
+      console.log(
+        config.repository,
+        config.environmentName,
+        envName,
+        envValue
+      );
+
       await updateGitHubEnvironmentSecret(
-        variables.repository,
+        config.repository,
         token,
-        variables.environmentName,
+        config.environmentName,
         envName,
         envValue
       );
     } else {
       throw new Error(
-        `Unknown type ${(variables as BaseVariableType).type} is not supported`
+        `Unknown type ${(config as BaseSecretsConfig).type} is not supported`
       );
     }
   }
   console.info("end:updateGitHubActionsSecrets");
 };
 
-const getRepoPublicKey = async (
+export const getRepoPublicKey = async (
   octokit: Octokit,
   owner: string,
   repo: string
@@ -71,10 +84,14 @@ const getRepoPublicKey = async (
   return { key, keyId };
 };
 
-const getRepoId = async (octokit: Octokit, owner: string, repo: string) => {
+export const getRepoId = async (
+  octokit: Octokit,
+  owner: string,
+  repo: string
+) => {
   const response = await octokit.request("GET /repos/{owner}/{repo}", {
-    owner: "OWNER",
-    repo: "REPO",
+    owner,
+    repo,
   });
 
   const { id } = response.data;
@@ -86,6 +103,7 @@ const getEnvironmentPublicKey = async (
   repoId: number,
   environment: string
 ) => {
+  console.log(environment);
   const response = await octokit.request(
     "GET /repositories/{repository_id}/environments/{environment_name}/secrets/public-key",
     {
@@ -98,16 +116,22 @@ const getEnvironmentPublicKey = async (
   return { key, keyId };
 };
 
-const encryptSecret = (key: string, value: string) => {
-  // Convert the message and key to Uint8Array's (Buffer implements that interface)
-  const messageBytes = Buffer.from(value);
-  const keyBytes = Buffer.from(key, "base64");
+const encryptSecret = async (key: string, value: string) => {
+  // prepare libsodium
+  await sodium.ready;
+
+  // Convert Secret & Base64 key to Uint8Array
+  const keyBytes = sodium.from_base64(key, sodium.base64_variants.ORIGINAL);
+  const secretBytes = sodium.from_string(value);
 
   // Encrypt using LibSodium.
-  const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+  const encryptedBytes = sodium.crypto_box_seal(secretBytes, keyBytes);
 
-  // Base64 the encrypted secret
-  const encrypted = Buffer.from(encryptedBytes).toString("base64");
+  // Convert encrypted Uint8Array to Base64
+  const encrypted = sodium.to_base64(
+    encryptedBytes,
+    sodium.base64_variants.ORIGINAL
+  );
 
   return encrypted;
 };
@@ -141,9 +165,9 @@ export const updateGitHubRepositorySecret = async (
 
     const octokit = createOctokit(token);
 
-    const { keyId, key } = await getRepoPublicKey(octokit, repo, owner);
+    const { keyId, key } = await getRepoPublicKey(octokit, owner, repo);
 
-    const encryptedValue = encryptSecret(key, secretValue);
+    const encryptedValue = await encryptSecret(key, secretValue);
 
     const response = await octokit.request(
       "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}",
@@ -159,13 +183,14 @@ export const updateGitHubRepositorySecret = async (
     return response.status === 201;
   } catch (e) {
     const message = (e as Error).message;
-    console.error("Updating secrets to GitHub failed. Message:", message);
+    console.error(e);
+    // console.error("Updating secrets to GitHub failed. Message:", message);
     throw new Error(message);
   }
 };
 
 /**
- * Creates a new repository secret if missing and adds/updates the secret
+ * Creates a new environment secret if missing and adds/updates the secret
  * @param repository repository to publish new secrets to
  * @param token GitHub token
  * @param secretName the name of the secret
@@ -197,10 +222,10 @@ export const updateGitHubEnvironmentSecret = async (
     const { keyId, key } = await getEnvironmentPublicKey(
       octokit,
       repoId,
-      owner
+      environmentName
     );
 
-    const encryptedValue = encryptSecret(key, secretValue);
+    const encryptedValue = await encryptSecret(key, secretValue);
 
     const response = await octokit.request(
       "PUT /repositories/{repository_id}/environments/{environment_name}/secrets/{secret_name}",
@@ -217,10 +242,7 @@ export const updateGitHubEnvironmentSecret = async (
     return response.status === 201;
   } catch (e) {
     const message = (e as Error).message;
-    console.error(
-      "Updating environment secrets to GitHub failed. Message:",
-      message
-    );
+    console.error("Updating environment secrets to GitHub failed. Error:", e);
     throw new Error(message);
   }
 };

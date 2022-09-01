@@ -1,8 +1,7 @@
 import config from "../../../config.json";
 import assert from "assert";
 import {
-  RepositoryVariables,
-  EnvironmentVariables,
+  UpdateGitHubSecretsConfig,
   updateGitHubActionsSecrets,
 } from "../utils/github-helper";
 import * as utils from "../utils/utils";
@@ -49,7 +48,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       );
       assert(newNPMToken, "Secrets manager should have newNPMToken");
 
-      let updateConfig: RepositoryVariables | EnvironmentVariables;
+      let updateConfig: UpdateGitHubSecretsConfig;
       if (tokenDetails.publishConfig.type === "Repository") {
         updateConfig = {
           type: tokenDetails.publishConfig.type,
