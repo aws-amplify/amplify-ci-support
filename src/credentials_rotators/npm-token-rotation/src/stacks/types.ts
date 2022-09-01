@@ -29,10 +29,11 @@ export type TokenPublishGitHubRepoConfig = BaseTokenPublishGitHubConfig & {
   type: "Repository";
 };
 
-export type TokenPublishGitHubEnvironmentConfig = GitHubRepoInfo & {
-  type: "Environment";
-  environmentName: string;
-};
+export type TokenPublishGitHubEnvironmentConfig =
+  BaseTokenPublishGitHubConfig & {
+    type: "Environment";
+    environmentName: string;
+  };
 
 export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
@@ -65,9 +66,7 @@ export type UpdateGitHubSecretsParam =
 
 /** High level config objects */
 export type AccessTokenItem = SecretDetail & {
-  publishConfig:
-    | TokenPublishGitHubRepoConfig
-    | TokenPublishGitHubEnvironmentConfig;
+  publishConfig: TokenPublishGitHubConfig;
   slackWebHookConfig: SecretDetail;
 };
 
