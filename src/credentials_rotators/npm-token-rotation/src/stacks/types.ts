@@ -26,12 +26,6 @@ export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
   | TokenPublishGitHubEnvironmentConfig;
 
-export const isPublishRepositorySecretConfig = (
-  config: TokenPublishGitHubConfig
-): config is TokenPublishGitHubRepoConfig => {
-  return config.type === "Repository";
-};
-
 export type AccessTokenItem = SecretDetail & {
   publishConfig:
     | TokenPublishGitHubRepoConfig

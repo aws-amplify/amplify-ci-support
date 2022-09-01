@@ -7,6 +7,7 @@ export type BaseUpdateSecretsConfig = {
   type: string;
   repository: string;
   variables: Record<string, string>;
+  token: string;
 };
 
 export type RepositorySecretsConfig = BaseUpdateSecretsConfig & {
@@ -31,27 +32,23 @@ export const createOctokit = (token: string) => {
 };
 
 export const updateGitHubActionsSecrets = async (
-  token: string,
   config: UpdateGitHubSecretsConfig
 ) => {
   console.info("start:updateGitHubActionsSecrets");
 
+  const { token, repository, type } = config;
+
   for (const [envName, envValue] of Object.entries(config.variables)) {
-    if (config.type === "Repository") {
+    if (type === "Repository") {
       console.log(config.repository, envName, envValue);
-      await updateGitHubRepositorySecret(
-        config.repository,
-        token,
-        envName,
-        envValue
-      );
-    } else if (config.type === "Environment") {
-      console.log(config.repository, config.environmentName, envName, envValue);
+      await updateGitHubRepositorySecret(repository, token, envName, envValue);
+    } else if (type === "Environment") {
+      const { environmentName } = config;
 
       await updateGitHubEnvironmentSecret(
-        config.repository,
+        repository,
         token,
-        config.environmentName,
+        environmentName,
         envName,
         envValue
       );

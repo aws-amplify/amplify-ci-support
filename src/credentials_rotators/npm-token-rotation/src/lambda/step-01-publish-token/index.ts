@@ -7,9 +7,7 @@ import {
 import * as utils from "../utils/utils";
 import {
   NPMTokenRotationConfig,
-  TokenPublishGitHubEnvironmentConfig,
   TokenRotationStepFnEvent,
-  isPublishRepositorySecretConfig,
 } from "../../stacks/types";
 
 export const handler = async (event: TokenRotationStepFnEvent) => {
@@ -50,25 +48,26 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       );
       assert(newNPMToken, "Secrets manager should have newNPMToken");
 
+      const { type, repository } = publishConfig;
       let updateConfig: UpdateGitHubSecretsConfig;
-      if (isPublishRepositorySecretConfig(publishConfig)) {
+      if (type === "Repository") {
         updateConfig = {
-          type: publishConfig.type,
-          repository: publishConfig.repository,
+          type,
+          token: githubToken,
+          repository: repository,
           variables: {
             [publishConfig.variableName]: newNPMToken,
           },
         };
-      } else if (publishConfig.type === "Environment") {
-        assert(
-          (publishConfig as TokenPublishGitHubEnvironmentConfig)
-            .environmentName,
-          "Environment name is missing"
-        );
+      } else if (type === "Environment") {
+        const { environmentName } = publishConfig;
+        assert(environmentName, "Environment name is missing");
+
         updateConfig = {
-          type: "Environment",
-          repository: publishConfig.repository,
-          environmentName: publishConfig.environmentName,
+          type,
+          repository,
+          token: githubToken,
+          environmentName,
           variables: {
             [publishConfig.variableName]: newNPMToken,
           },
@@ -77,10 +76,11 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
         throw new Error("Invalid publishConfig");
       }
 
-      await updateGitHubActionsSecrets(githubToken, updateConfig);
+      await updateGitHubActionsSecrets(updateConfig);
+
       if (webhookUrl) {
         const message =
-          publishConfig.type === "Repository"
+          type === "Repository"
             ? `NPM Publish Token has been rotated and pushed to GitHub repository secret.\nDetails:\n ${JSON.stringify(
                 {
                   repository: publishConfig.repository,
