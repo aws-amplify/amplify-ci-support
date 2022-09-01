@@ -31,9 +31,7 @@ const testSecret = async (
   credential: NPMCredentials,
   tokenConfig: AccessTokenItem
 ) => {
-  console.info(
-    `start:testSecret()`
-  );
+  console.info(`start:testSecret()`);
   const stagedToken = await getSecret(
     event.SecretId,
     tokenConfig.secretKey,
@@ -45,9 +43,7 @@ const testSecret = async (
   );
   await validateAccessToken(credential.username, stagedToken);
   console.info("testSecret: Successfully tested secret");
-  console.info(
-    `end:testSecret()`
-  );
+  console.info(`end:testSecret()`);
 };
 
 const finishSecret = async (
@@ -55,9 +51,7 @@ const finishSecret = async (
   credentials: NPMCredentials,
   tokenConfig: AccessTokenItem
 ) => {
-  console.info(
-    `start:finishSecret()`
-  );
+  console.info(`start:finishSecret()`);
 
   const secretsManagerClient = await getSecretsManagerClient();
   const metadata = await secretsManagerClient
@@ -65,7 +59,7 @@ const finishSecret = async (
     .promise();
 
   const currentVersion = Object.keys(metadata.VersionIdsToStages ?? {}).find(
-    (versionId) => {
+    versionId => {
       return metadata.VersionIdsToStages![versionId].includes("AWSCURRENT");
     }
   );
@@ -103,9 +97,7 @@ const finishSecret = async (
     })
     .promise();
 
-  console.info(
-    `end:finishSecret()`
-  );
+  console.info(`end:finishSecret()`);
 };
 
 const createSecret = async (
@@ -113,20 +105,13 @@ const createSecret = async (
   credentials: NPMCredentials,
   tokenConfig: AccessTokenItem
 ) => {
-  console.info(
-    `start:createSecret()`
-  );
+  console.info(`start:createSecret()`);
   // check if there is already a credential that is pending
   try {
-    await getSecret(
-      event.SecretId,
-      tokenConfig.secretKey,
-      undefined,
-      {
-        ClientRequestToken: event.ClientRequestToken,
-        stage: "AWSPENDING",
-      }
-    );
+    await getSecret(event.SecretId, tokenConfig.secretKey, undefined, {
+      ClientRequestToken: event.ClientRequestToken,
+      stage: "AWSPENDING",
+    });
     console.info(`Secret already is in AWSPENDING. Not creating a new one`);
   } catch (e) {
     if ((e as aws.AWSError).code === "ResourceNotFoundException") {
@@ -151,9 +136,7 @@ const createSecret = async (
       throw e;
     }
   }
-  console.info(
-    `end:createSecret()`
-  );
+  console.info(`end:createSecret()`);
 };
 
 /**
@@ -165,9 +148,7 @@ const assertRotationStatus = async (
   secretArn: string,
   clientRequestToken: string
 ) => {
-  console.info(
-    `start:assertRotationStatus()`
-  );
+  console.info(`start:assertRotationStatus()`);
   const secretsMetadata = await (await getSecretsManagerClient())
     .describeSecret({ SecretId: secretArn })
     .promise();

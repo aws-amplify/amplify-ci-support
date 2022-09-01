@@ -1,14 +1,14 @@
 import config from "../../../config.json";
 import assert from "assert";
 import {
-  ContextVariables,
+  RepositoryVariables,
   EnvironmentVariables,
-  updateCircleCIEnvironmentVariables,
-} from "../utils/circleci-helper";
+  updateGitHubActionsSecrets,
+} from "../utils/github-helper";
 import * as utils from "../utils/utils";
 import {
   NPMTokenRotationConfig,
-  TokenPublishCircleCIEnvironmentConfig,
+  TokenPublishGitHubEnvironmentConfig,
   TokenRotationStepFnEvent,
 } from "../../stacks/types";
 
@@ -26,7 +26,7 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
     : undefined;
   if (tokenDetails) {
     try {
-      const tokenConfig = tokenDetails.publishConfig.circleCiToken;
+      const tokenConfig = tokenDetails.publishConfig.githubToken;
       if (!tokenConfig || !tokenConfig.arn || !tokenConfig.secretKey) {
         throw Error(
           `Invalid rotation configuration. Expected arn and token key, got ${JSON.stringify(
@@ -34,68 +34,63 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           )}`
         );
       }
-      const circleCIToken = await utils.getSecret(
+      const githubToken = await utils.getSecret(
         tokenConfig.arn,
         tokenConfig.secretKey,
         tokenConfig.roleArn
       );
-      if (!circleCIToken) {
-        throw new Error("Could not get the CircleCI token");
+      if (!githubToken) {
+        throw new Error("Could not get the GitHub access token");
       }
       const newNPMToken = await utils.getSecret(
         event.secretArn,
         tokenDetails.secretKey,
         tokenDetails.roleArn
       );
-      assert(newNPMToken, "Secret manager should have newNPMToken");
+      assert(newNPMToken, "Secrets manager should have newNPMToken");
 
-      let updateConfig: ContextVariables | EnvironmentVariables;
-      if (tokenDetails.publishConfig.type === "Context") {
+      let updateConfig: RepositoryVariables | EnvironmentVariables;
+      if (tokenDetails.publishConfig.type === "Repository") {
         updateConfig = {
           type: tokenDetails.publishConfig.type,
-          context: tokenDetails.publishConfig.contextName!,
-          slug: tokenDetails.publishConfig.slug,
+          repository: tokenDetails.publishConfig.repository,
           variables: {
             [tokenDetails.publishConfig.variableName]: newNPMToken,
           },
         };
       } else if (tokenDetails.publishConfig.type === "Environment") {
         assert(
-          (tokenDetails.publishConfig as TokenPublishCircleCIEnvironmentConfig)
-            .projectName,
-          "Project name is missing"
+          (tokenDetails.publishConfig as TokenPublishGitHubEnvironmentConfig)
+            .environmentName,
+          "Environment name is missing"
         );
         updateConfig = {
           type: "Environment",
-          slug: tokenDetails.publishConfig.slug,
+          repository: tokenDetails.publishConfig.repository,
+          environmentName: tokenDetails.publishConfig.environmentName,
           variables: {
             [tokenDetails.publishConfig.variableName]: newNPMToken,
           },
-          projectName: (
-            tokenDetails.publishConfig as TokenPublishCircleCIEnvironmentConfig
-          ).projectName,
         };
       } else {
         throw new Error("Invalid publishConfig");
       }
 
-      await updateCircleCIEnvironmentVariables(circleCIToken, updateConfig);
+      await updateGitHubActionsSecrets(githubToken, updateConfig);
       if (webhookUrl) {
-        const repoUserName = tokenDetails.publishConfig.slug.replace("gh/", "");
         const message =
-          tokenDetails.publishConfig.type === "Context"
-            ? `NPM Publish Token has been rotated and pushed to CircleCI Context.\nDetails:\n ${JSON.stringify(
+          tokenDetails.publishConfig.type === "Repository"
+            ? `NPM Publish Token has been rotated and pushed to GitHub repository secret.\nDetails:\n ${JSON.stringify(
                 {
-                  contextName: tokenDetails.publishConfig.contextName,
+                  repository: tokenDetails.publishConfig.repository,
                   variableName: tokenDetails.publishConfig.variableName,
-                  org: repoUserName,
                 }
               )}`
-            : `NPM Publish Token has been rotated and Stored in Environment. \nDetails: \n ${JSON.stringify(
+            : `NPM Publish Token has been rotated and Stored in GitHub environment secret. \nDetails: \n ${JSON.stringify(
                 {
-                  projectName: tokenDetails.publishConfig.projectName,
+                  repository: tokenDetails.publishConfig.repository,
+                  environmentName: tokenDetails.publishConfig.environmentName,
                   variableName: tokenDetails.publishConfig.variableName,
-                  org: repoUserName,
                 }
               )}`;
         await utils.sendSlackMessage(webhookUrl, message);

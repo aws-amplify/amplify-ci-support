@@ -23,7 +23,7 @@ export type TokenPublishGitHubEnvironmentConfig = {
   githubToken: SecretDetail;
 };
 
-export type AccessTokenItem = RotatableSecrets & {
+export type AccessTokenItem = SecretDetail & {
   publishConfig:
     | TokenPublishGitHubRepoConfig
     | TokenPublishGitHubEnvironmentConfig;
