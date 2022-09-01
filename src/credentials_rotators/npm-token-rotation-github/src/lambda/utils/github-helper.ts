@@ -22,7 +22,6 @@ const createOctokit = (token: string) => {
   const octokit = new OctokitWithRetries({
     auth: token,
   });
-
   return octokit;
 };
 
@@ -30,7 +29,7 @@ export const updateGitHubActionsSecrets = async (
   token: string,
   variables: RepositoryVariables | EnvironmentVariables
 ) => {
-  console.info("start:updateCircleCIEnvironmentVariables");
+  console.info("start:updateGitHubActionsSecrets");
   for (const [envName, envValue] of Object.entries(variables.variables)) {
     if (variables.type === "Repository") {
       await updateGitHubRepositorySecret(
@@ -53,7 +52,7 @@ export const updateGitHubActionsSecrets = async (
       );
     }
   }
-  console.info("end:updateCircleCIEnvironmentVariables");
+  console.info("end:updateGitHubActionsSecrets");
 };
 
 const getRepoPublicKey = async (
@@ -219,7 +218,10 @@ export const updateGitHubEnvironmentSecret = async (
     return response.status === 201;
   } catch (e) {
     const message = (e as Error).message;
-    console.error("Updating environment secrets to GitHub failed. Message:", message);
+    console.error(
+      "Updating environment secrets to GitHub failed. Message:",
+      message
+    );
     throw new Error(message);
   }
 };
