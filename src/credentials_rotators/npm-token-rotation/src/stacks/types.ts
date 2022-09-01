@@ -21,7 +21,7 @@ export type GitHubRepoInfo = {
 /** Publish configs */
 export type BaseTokenPublishGitHubConfig = GitHubRepoInfo & {
   type: string;
-  variableName: string;
+  secretName: string;
   githubToken: SecretDetail;
 };
 
@@ -47,7 +47,7 @@ export type SecretValuesMap = Record<string, string>; //maps secret name to secr
 
 export type BaseUpdateGitHubSecretsParam = GitHubRepoInfo & {
   type: string;
-  variables: SecretValuesMap;
+  secrets: SecretValuesMap;
   githubToken: string;
 };
 

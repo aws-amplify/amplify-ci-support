@@ -22,14 +22,14 @@ export const updateGitHubActionsSecrets = async (
 
   const { githubToken, owner, repo, type } = config;
 
-  for (const [envName, envValue] of Object.entries(config.variables)) {
+  for (const [secretName, secretValue] of Object.entries(config.secrets)) {
     if (type === "Repository") {
       await updateGitHubRepositorySecret(
         owner,
         repo,
         githubToken,
-        envName,
-        envValue
+        secretName,
+        secretValue
       );
     } else if (type === "Environment") {
       const { environmentName } = config;
@@ -39,8 +39,8 @@ export const updateGitHubActionsSecrets = async (
         repo,
         githubToken,
         environmentName,
-        envName,
-        envValue
+        secretName,
+        secretValue
       );
     } else {
       throw new Error(

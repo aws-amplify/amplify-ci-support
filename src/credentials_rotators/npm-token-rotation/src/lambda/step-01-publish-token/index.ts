@@ -55,8 +55,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           owner,
           repo,
           githubToken,
-          variables: {
-            [publishConfig.variableName]: newNPMToken,
+          secrets: {
+            [publishConfig.secretName]: newNPMToken,
           },
         };
       } else if (type === "Environment") {
@@ -69,8 +69,8 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
           repo,
           githubToken,
           environmentName,
-          variables: {
-            [publishConfig.variableName]: newNPMToken,
+          secrets: {
+            [publishConfig.secretName]: newNPMToken,
           },
         };
       } else {
@@ -80,21 +80,22 @@ export const handler = async (event: TokenRotationStepFnEvent) => {
       await updateGitHubActionsSecrets(updateConfig);
 
       if (webhookUrl) {
+        const { secretName } = publishConfig;
         const message =
           type === "Repository"
             ? `NPM Publish Token has been rotated and pushed to GitHub repository secret.\nDetails:\n ${JSON.stringify(
                 {
                   owner,
                   repo,
-                  variableName: publishConfig.variableName,
+                  secretName,
                 }
               )}`
             : `NPM Publish Token has been rotated and Stored in GitHub environment secret. \nDetails: \n ${JSON.stringify(
                 {
                   owner,
                   repo,
+                  secretName,
                   environmentName: publishConfig.environmentName,
-                  variableName: publishConfig.variableName,
                 }
               )}`;
         await utils.sendSlackMessage(webhookUrl, message);
