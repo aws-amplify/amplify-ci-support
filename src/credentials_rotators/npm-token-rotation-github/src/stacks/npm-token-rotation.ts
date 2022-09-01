@@ -13,6 +13,12 @@ import { IFunction } from "@aws-cdk/aws-lambda";
 export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
 };
+
+/**
+ * This stack contains the implementation for rotating the token.
+ * 
+ * See README.md for high level overview.
+ */
 export class NpmTokenRotationStack extends BaseStack {
   private secretConfig: NPMTokenRotationConfig;
 
@@ -27,8 +33,8 @@ export class NpmTokenRotationStack extends BaseStack {
     // create lambda function objects
 
     /**
-     * Rotator Lambda is the head lambda function that will be used by
-     * Secrets Manager rotation cron.
+     * This is the head lambda function that Secrets Managers use to 
+     * rotate its secrets on cron.
      * 
      * https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html
      */
@@ -100,6 +106,9 @@ export class NpmTokenRotationStack extends BaseStack {
       deleteOldTokenStateMachine
     );
 
+    /**
+     * Grant lambdas to access NPM credentials
+     */
     this.grantLambdaAccessToSecrets(rotatorFn, [
       this.secretConfig.npmLoginUsernameSecret,
       this.secretConfig.npmLoginPasswordSecret,
@@ -111,6 +120,10 @@ export class NpmTokenRotationStack extends BaseStack {
       this.secretConfig.npmOtpSeedSecret,
     ]);
 
+    /**
+     * Grant lambdas access to npm token in secrets manager, and GitHub
+     * Bot User Credentials.
+     */
     for (const token of this.secretConfig.npmAccessTokenSecrets.secrets) {
       this.grantLambdaAccessToRotateSecrets(rotatorFn, token);
       this.grantLambdaAccessToSecrets(tokenRemovalFn, [
@@ -119,7 +132,7 @@ export class NpmTokenRotationStack extends BaseStack {
       ]);
       this.grantLambdaAccessToSecrets(tokenPublisherFn, [
         token,
-        token.publishConfig.circleCiToken,
+        token.publishConfig.githubToken,
         ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
       this.configureSecretRotation(rotatorFn, token, Duration.days(7));
