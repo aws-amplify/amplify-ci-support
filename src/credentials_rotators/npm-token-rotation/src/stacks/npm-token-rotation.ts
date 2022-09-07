@@ -14,11 +14,6 @@ export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
 };
 
-/**
- * This stack contains the implementation for rotating the token.
- *
- * See README.md for high level overview.
- */
 export class NpmTokenRotationStack extends BaseStack {
   private secretConfig: NPMTokenRotationConfig;
 
@@ -30,75 +25,53 @@ export class NpmTokenRotationStack extends BaseStack {
     super(scope, id);
     this.secretConfig = options.config;
 
-    // create lambda function objects
-
     /**
-     * This is the head lambda function that Secrets Managers use to
-     * rotate its secrets on cron.
-     *
+     * Secrets manger rotation lambda
      * https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html
      */
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
-      entry: path.normalize(
-        path.join(__dirname, "..", "lambda", "create-new-token", "index.ts")
-      ),
+      entry: path.join(__dirname, "../lambda/create-new-token/index.ts"),
     });
 
-    // Rotator function starts the following step functions.
+    const { tokenPublisherFn, tokenRemovalFn } = this.getStepFunctions();
 
     /**
-     * Step function 1: Publish new token to CCI
+     * This state machine publishes new token to GitHub, waits 15 minutes, and
+     * removes old token on NPM.
      */
-    const tokenPublisherFn = new lambdaNodeJs.NodejsFunction(
-      this,
-      "step-fn-token-publisher",
-      {
-        entry: path.normalize(
-          path.join(
-            __dirname,
-            "..",
-            "lambda",
-            "step-01-publish-token",
-            "index.ts"
-          )
-        ),
-      }
-    );
-
-    /**
-     * Step function 2: Remove old NPM token
-     */
-    const tokenRemovalFn = new lambdaNodeJs.NodejsFunction(
-      this,
-      "step-fn-delete-token",
-      {
-        entry: path.normalize(
-          path.join(
-            __dirname,
-            "..",
-            "lambda",
-            "step-02-delete-old-token",
-            "index.ts"
-          )
-        ),
-      }
-    );
-
     const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
       core.Duration.minutes(15),
       tokenPublisherFn,
       tokenRemovalFn
     );
 
+    // This will be referenced by rotation lambda.
     this.addEnvironment(
       "DELETE_TOKEN_STATE_MACHINE_ARN",
       deleteOldTokenStateMachine.stateMachineArn,
       [rotatorFn]
     );
 
-    /**
-     * Grant proper iam accesses
-     */
+    this.grantLambdaResourcePermissions(
+      rotatorFn,
+      tokenPublisherFn,
+      tokenRemovalFn,
+      deleteOldTokenStateMachine
+    );
+
+    this.enableLambdaCloudWatchAlarms(
+      rotatorFn,
+      tokenPublisherFn,
+      tokenRemovalFn
+    );
+  }
+
+  private grantLambdaResourcePermissions(
+    rotatorFn: lambdaNodeJs.NodejsFunction,
+    tokenPublisherFn: lambdaNodeJs.NodejsFunction,
+    tokenRemovalFn: lambdaNodeJs.NodejsFunction,
+    deleteOldTokenStateMachine: sfn.StateMachine
+  ) {
     this.grantSecretsManagerToAccessLambda(rotatorFn);
 
     this.grantLambdaFunctionToAccessStepFunctions(
@@ -106,9 +79,6 @@ export class NpmTokenRotationStack extends BaseStack {
       deleteOldTokenStateMachine
     );
 
-    /**
-     * Grant lambdas to access NPM credentials
-     */
     this.grantLambdaAccessToSecrets(rotatorFn, [
       this.secretConfig.npmLoginUsernameSecret,
       this.secretConfig.npmLoginPasswordSecret,
@@ -120,10 +90,6 @@ export class NpmTokenRotationStack extends BaseStack {
       this.secretConfig.npmOtpSeedSecret,
     ]);
 
-    /**
-     * Grant lambdas access to npm token in secrets manager, and GitHub
-     * Bot User Credentials.
-     */
     for (const token of this.secretConfig.npmAccessTokenSecrets.secrets) {
       this.grantLambdaAccessToRotateSecrets(rotatorFn, token);
       this.grantLambdaAccessToSecrets(tokenRemovalFn, [
@@ -137,7 +103,13 @@ export class NpmTokenRotationStack extends BaseStack {
       ]);
       this.configureSecretRotation(rotatorFn, token, Duration.days(7));
     }
+  }
 
+  private enableLambdaCloudWatchAlarms(
+    rotatorFn: lambdaNodeJs.NodejsFunction,
+    tokenPublisherFn: lambdaNodeJs.NodejsFunction,
+    tokenRemovalFn: lambdaNodeJs.NodejsFunction
+  ) {
     this.enableCloudWatchAlarmNotification(
       rotatorFn,
       "npm_access_token_secrets",
@@ -149,15 +121,12 @@ export class NpmTokenRotationStack extends BaseStack {
       this.secretConfig.npmAccessTokenSecrets
     );
     this.enableCloudWatchAlarmNotification(
-      tokenPublisherFn,
+      tokenRemovalFn,
       "token_remover",
       this.secretConfig.npmAccessTokenSecrets
     );
   }
 
-  /**
-   * Create the state machine for step functions
-   */
   private buildTokenDeletionStateMachine = (
     wait: core.Duration,
     publishFn: IFunction,
@@ -188,13 +157,31 @@ export class NpmTokenRotationStack extends BaseStack {
     });
   };
 
-  private addEnvironment = (
-    name: string,
-    value: string,
-    fns: lambda.Function[]
-  ) => {
+  private getStepFunctions() {
+    const tokenPublisherFn = new lambdaNodeJs.NodejsFunction(
+      this,
+      "step-fn-token-publisher",
+      {
+        entry: path.join(__dirname, "../lambda/step-01-publish-token/index.ts"),
+      }
+    );
+
+    const tokenRemovalFn = new lambdaNodeJs.NodejsFunction(
+      this,
+      "step-fn-delete-token",
+      {
+        entry: path.join(
+          __dirname,
+          "../lambda/step-02-delete-old-token/index.ts"
+        ),
+      }
+    );
+    return { tokenPublisherFn, tokenRemovalFn };
+  }
+
+  private addEnvironment(name: string, value: string, fns: lambda.Function[]) {
     for (const fn of fns) {
       fn.addEnvironment(name, value);
     }
-  };
+  }
 }
