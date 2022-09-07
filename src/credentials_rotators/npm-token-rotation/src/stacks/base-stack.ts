@@ -11,8 +11,7 @@ import { SecretDetail } from '../base-types';
 import { AccessTokenRotationConfig } from '../config-types';
 
 /**
- * This is the Base Stack that contains helper functions that grants the right
- * IAM roles to perform token rotation.
+ * Contains utility functions for NpmTokenRotationStack to use
  */
 export class BaseStack extends core.Stack {
   constructor(scope: core.Construct, id: string, props: core.StackProps = {}) {
