@@ -1,25 +1,65 @@
-// Schema is automatically generated using Name: Typescript JSON schema generator using
-// https://marketplace.visualstudio.com/items?itemName=marcoq.vscode-typescript-to-json-schema
-// the input type for the schema is in ../../src/stacks/types.ts
+// Schema is automatically generated using:
+// % npx ts-json-schema-generator --path src/config-types.ts --type NPMTokenRotationConfig
 
 export const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
   $ref: "#/definitions/NPMTokenRotationConfig",
+  $schema: "http://json-schema.org/draft-07/schema#",
   definitions: {
-    NPMTokenRotationConfig: {
-      type: "object",
+    AccessTokenItem: {
+      additionalProperties: false,
       properties: {
-        npmLoginUsernameSecret: {
+        arn: {
+          type: "string",
+        },
+        publishConfig: {
+          $ref: "#/definitions/TokenPublishGitHubConfig",
+        },
+        roleArn: {
+          type: "string",
+        },
+        secretKey: {
+          type: "string",
+        },
+        slackWebHookConfig: {
           $ref: "#/definitions/SecretDetail",
+        },
+      },
+      required: ["arn", "publishConfig", "secretKey", "slackWebHookConfig"],
+      type: "object",
+    },
+    AccessTokenRotationConfig: {
+      additionalProperties: false,
+      properties: {
+        alarmSubscriptions: {
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        secrets: {
+          items: {
+            $ref: "#/definitions/AccessTokenItem",
+          },
+          type: "array",
+        },
+      },
+      required: ["secrets", "alarmSubscriptions"],
+      type: "object",
+    },
+    NPMTokenRotationConfig: {
+      additionalProperties: false,
+      properties: {
+        npmAccessTokenSecrets: {
+          $ref: "#/definitions/AccessTokenRotationConfig",
         },
         npmLoginPasswordSecret: {
           $ref: "#/definitions/SecretDetail",
         },
-        npmOtpSeedSecret: {
+        npmLoginUsernameSecret: {
           $ref: "#/definitions/SecretDetail",
         },
-        npmAccessTokenSecrets: {
-          $ref: "#/definitions/AccessTokenRotationConfig",
+        npmOtpSeedSecret: {
+          $ref: "#/definitions/SecretDetail",
         },
       },
       required: [
@@ -28,16 +68,15 @@ export const schema = {
         "npmOtpSeedSecret",
         "npmAccessTokenSecrets",
       ],
-      additionalProperties: false,
+      type: "object",
     },
     SecretDetail: {
-      type: "object",
       additionalProperties: false,
       properties: {
-        roleArn: {
+        arn: {
           type: "string",
         },
-        arn: {
+        roleArn: {
           type: "string",
         },
         secretKey: {
@@ -45,109 +84,73 @@ export const schema = {
         },
       },
       required: ["arn", "secretKey"],
-    },
-    AccessTokenRotationConfig: {
       type: "object",
-      properties: {
-        secrets: {
-          type: "array",
-          items: {
-            $ref: "#/definitions/AccessTokenItem",
-          },
-        },
-        alarmSubscriptions: {
-          type: "array",
-          items: {
-            type: "string",
-          },
-        },
-      },
-      required: ["secrets", "alarmSubscriptions"],
-      additionalProperties: false,
     },
-    AccessTokenItem: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        publishConfig: {
-          anyOf: [
-            {
-              $ref: "#/definitions/TokenPublishCircleCIContextConfig",
-            },
-            {
-              $ref: "#/definitions/TokenPublishCircleCIEnvironmentConfig",
-            },
-          ],
+    TokenPublishGitHubConfig: {
+      anyOf: [
+        {
+          $ref: "#/definitions/TokenPublishGitHubRepoConfig",
         },
-        slackWebHookConfig: {
-          $ref: "#/definitions/SecretDetail",
+        {
+          $ref: "#/definitions/TokenPublishGitHubEnvironmentConfig",
         },
-        arn: {
-          type: "string",
-        },
-        secretKey: {
-          type: "string",
-        },
-      },
-      required: ["arn", "publishConfig", "secretKey", "slackWebHookConfig"],
-    },
-    TokenPublishCircleCIContextConfig: {
-      type: "object",
-      properties: {
-        type: {
-          type: "string",
-          const: "Context",
-        },
-        contextName: {
-          type: "string",
-        },
-        slug: {
-          type: "string",
-        },
-        variableName: {
-          type: "string",
-        },
-        circleCiToken: {
-          $ref: "#/definitions/SecretDetail",
-        },
-      },
-      required: [
-        "type",
-        "contextName",
-        "slug",
-        "variableName",
-        "circleCiToken",
       ],
-      additionalProperties: false,
     },
-    TokenPublishCircleCIEnvironmentConfig: {
-      type: "object",
+    TokenPublishGitHubEnvironmentConfig: {
+      additionalProperties: false,
       properties: {
-        type: {
+        environmentName: {
           type: "string",
+        },
+        githubToken: {
+          $ref: "#/definitions/SecretDetail",
+        },
+        owner: {
+          type: "string",
+        },
+        repo: {
+          type: "string",
+        },
+        secretName: {
+          type: "string",
+        },
+        type: {
           const: "Environment",
-        },
-        slug: {
           type: "string",
-        },
-        projectName: {
-          type: "string",
-        },
-        variableName: {
-          type: "string",
-        },
-        circleCiToken: {
-          $ref: "#/definitions/SecretDetail",
         },
       },
       required: [
+        "environmentName",
+        "githubToken",
+        "owner",
+        "repo",
+        "secretName",
         "type",
-        "slug",
-        "projectName",
-        "variableName",
-        "circleCiToken",
       ],
+      type: "object",
+    },
+    TokenPublishGitHubRepoConfig: {
       additionalProperties: false,
+      properties: {
+        githubToken: {
+          $ref: "#/definitions/SecretDetail",
+        },
+        owner: {
+          type: "string",
+        },
+        repo: {
+          type: "string",
+        },
+        secretName: {
+          type: "string",
+        },
+        type: {
+          const: "Repository",
+          type: "string",
+        },
+      },
+      required: ["githubToken", "owner", "repo", "secretName", "type"],
+      type: "object",
     },
   },
 };
