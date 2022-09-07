@@ -24,7 +24,7 @@ export const schema = {
           $ref: "#/definitions/SecretDetail",
         },
       },
-      required: ["arn", "publishConfig", "secretKey", "slackWebHookConfig"],
+      required: ["arn", "publishConfig", "secretKey"],
       type: "object",
     },
     AccessTokenRotationConfig: {

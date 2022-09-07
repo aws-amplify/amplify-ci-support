@@ -23,7 +23,7 @@ export type TokenPublishGitHubConfig =
 
 export type AccessTokenItem = SecretDetail & {
   publishConfig: TokenPublishGitHubConfig;
-  slackWebHookConfig: SecretDetail;
+  slackWebHookConfig?: SecretDetail;
 };
 
 export type AccessTokenRotationConfig = {

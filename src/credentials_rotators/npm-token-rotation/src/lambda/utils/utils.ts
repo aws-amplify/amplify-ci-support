@@ -166,7 +166,7 @@ export const validateConfiguration = async (payload: any) => {
   const validator = a.compile(schema);
   const result = validator(payload);
   if (!result) {
-    console.log("Configuration validation failed");
+    console.log("Configuration validation failed", validator.errors);
     throw new Error("Configuration validation failed");
   }
   const validatedJson = payload as NPMTokenRotationConfig;
