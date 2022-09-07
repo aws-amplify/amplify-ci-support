@@ -1,4 +1,4 @@
-import { Construct } from 'constructs';
+import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodeJs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
@@ -6,9 +6,9 @@ import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { IFunction } from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 
-import { NPMTokenRotationConfig } from '../config-types';
+import { NPMTokenRotationConfig } from "../config-types";
 import { BaseStack } from "./base-stack";
-import { Duration } from 'aws-cdk-lib';
+import { Duration } from "aws-cdk-lib";
 
 export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
@@ -30,6 +30,7 @@ export class NpmTokenRotationStack extends BaseStack {
      * https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_how.html
      */
     const rotatorFn = new lambdaNodeJs.NodejsFunction(this, "lambda", {
+      timeout: Duration.seconds(10),
       entry: path.join(__dirname, "../lambda/create-new-token/index.ts"),
     });
 
@@ -163,6 +164,7 @@ export class NpmTokenRotationStack extends BaseStack {
       "step-fn-token-publisher",
       {
         entry: path.join(__dirname, "../lambda/step-01-publish-token/index.ts"),
+        timeout: Duration.seconds(10),
       }
     );
 
@@ -174,6 +176,7 @@ export class NpmTokenRotationStack extends BaseStack {
           __dirname,
           "../lambda/step-02-delete-old-token/index.ts"
         ),
+        timeout: Duration.seconds(10),
       }
     );
     return { tokenPublisherFn, tokenRemovalFn };
