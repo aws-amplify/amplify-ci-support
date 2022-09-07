@@ -101,7 +101,7 @@ export class NpmTokenRotationStack extends BaseStack {
         token.publishConfig.githubToken,
         ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
       ]);
-      this.configureSecretRotation(rotatorFn, token, Duration.days(7));
+      this.configureSecretRotation(rotatorFn, token, Duration.days(1));
     }
   }
 
