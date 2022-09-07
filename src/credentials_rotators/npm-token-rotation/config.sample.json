@@ -19,29 +19,12 @@
         "secretKey": "npm_access_token",
         "publishConfig": {
           "type": "Environment",
-          "slug": "gh/yuth",
-          "projectName": "amplify-cli",
-          "variableName": "NPM_PUBLISH_CONTENT",
-          "circleCiToken": {
-            "arn": "arn:aws:secretsmanager:us-east-2:11111111111111:secret:amplify_cli_circleci_token-cawIdq",
-            "secretKey": "token"
-          }
-        },
-        "slackWebHookConfig": {
-          "arn": "arn:aws:secretsmanager:us-east-2:11111111111111:secret:slackWebHookUrl-mCFi2K",
-          "secretKey": "webhook_url"
-        }
-      },
-      {
-        "arn": "arn:aws:secretsmanager:us-east-2:11111111111111:secret:npm_access_token_secrets_js-ZtI1ZZ",
-        "secretKey": "npm_access_token",
-        "publishConfig": {
-          "type": "Environment",
-          "slug": "gh/someuser",
-          "projectName": "some-project",
-          "variableName": "NPM_PUBLISH_TOKEN",
-          "circleCiToken": {
-            "arn": "arn:aws:secretsmanager:us-east-2:11111111111111:secret:amplify_cli_circleci_token-cawIBB",
+          "environmentName": "publish",
+          "owner": "my-org",
+          "repo": "my-repository",
+          "secretName": "NPM_TOKEN",
+          "githubToken": {
+            "arn": "arn:aws:secretsmanager:us-east-2:12345678:secret:amplify_ui_github_token-cawIdq",
             "secretKey": "token"
           }
         },
