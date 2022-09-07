@@ -1,22 +1,4 @@
-/** Secrets Manager Types */
-export type RotatableSecrets = {
-  arn: string;
-  secretKey: string;
-};
-
-export type SecretDetail = RotatableSecrets & {
-  roleArn?: string;
-};
-
-/** GitHub specific utility types */
-export type GitHubTokenSecretDetail = {
-  githubToken: SecretDetail;
-};
-
-export type GitHubRepoInfo = {
-  owner: string;
-  repo: string;
-};
+import { GitHubRepoInfo, SecretDetail } from "./base-types";
 
 /** Publish configs */
 export type BaseTokenPublishGitHubConfig = GitHubRepoInfo & {
@@ -39,7 +21,6 @@ export type TokenPublishGitHubConfig =
   | TokenPublishGitHubRepoConfig
   | TokenPublishGitHubEnvironmentConfig;
 
-/** High level config objects */
 export type AccessTokenItem = SecretDetail & {
   publishConfig: TokenPublishGitHubConfig;
   slackWebHookConfig: SecretDetail;

@@ -7,7 +7,8 @@ import * as snsSubscriptions from "@aws-cdk/aws-sns-subscriptions";
 import { StateMachine } from "@aws-cdk/aws-stepfunctions";
 import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
 
-import { AccessTokenRotationConfig, SecretDetail } from "./types";
+import { SecretDetail } from '../base-types';
+import { AccessTokenRotationConfig } from '../config-types';
 
 /**
  * This is the Base Stack that contains helper functions that grants the right

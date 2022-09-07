@@ -4,8 +4,9 @@ import Ajv from "ajv";
 import * as fs from "fs";
 import axios from "axios";
 
-import { AccessTokenItem, SecretDetail } from "../../stacks/types";
 import { NPMTokenRotationConfig } from "../types";
+import { SecretDetail } from '../../base-types';
+import { AccessTokenItem } from '../../config-types';
 import { schema } from "./config-schema";
 
 export type NPMCredentials = {

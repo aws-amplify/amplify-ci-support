@@ -1,8 +1,5 @@
-import {
-  AccessTokenRotationConfig,
-  GitHubRepoInfo,
-  SecretDetail,
-} from "../stacks/types";
+import { GitHubRepoInfo, SecretDetail } from '../base-types';
+import { AccessTokenRotationConfig } from '../config-types';
 
 /**
  * Parameters to updateGitHubSecrets call. These are used after `githubToken`
