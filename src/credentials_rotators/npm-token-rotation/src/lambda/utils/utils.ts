@@ -5,7 +5,7 @@ import * as fs from "fs";
 import axios from "axios";
 
 import { AccessTokenItem, SecretDetail } from "../../stacks/types";
-import { NPMTokenRotationConfig } from '../types';
+import { NPMTokenRotationConfig } from "../types";
 import { schema } from "./config-schema";
 
 export type NPMCredentials = {
