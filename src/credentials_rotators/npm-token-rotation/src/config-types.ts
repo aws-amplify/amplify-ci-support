@@ -30,3 +30,10 @@ export type AccessTokenRotationConfig = {
   secrets: AccessTokenItem[];
   alarmSubscriptions: string[];
 };
+
+export type NPMTokenRotationConfig = {
+  npmLoginUsernameSecret: SecretDetail;
+  npmLoginPasswordSecret: SecretDetail;
+  npmOtpSeedSecret: SecretDetail;
+  npmAccessTokenSecrets: AccessTokenRotationConfig;
+};

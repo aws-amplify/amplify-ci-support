@@ -10,8 +10,7 @@ import {
 } from "../utils/utils";
 
 import config from "../../../config.json";
-import { AccessTokenItem } from '../../config-types';
-import { NPMTokenRotationConfig } from '../types';
+import { AccessTokenItem, NPMTokenRotationConfig } from "../../config-types";
 
 export type SecretRotationEvent = {
   SecretId: string;

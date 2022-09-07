@@ -2,11 +2,8 @@ import config from "../../../config.json";
 import assert from "assert";
 import { updateGitHubActionsSecrets } from "../utils/github-helper";
 import * as utils from "../utils/utils";
-import {
-  NPMTokenRotationConfig,
-  TokenRotationStepFnEvent,
-  UpdateGitHubSecretsParam,
-} from "../types";
+import { TokenRotationStepFnEvent, UpdateGitHubSecretsParam } from "../types";
+import { NPMTokenRotationConfig } from "../../config-types";
 
 export const handler = async (event: TokenRotationStepFnEvent) => {
   const tokenDetails = utils.getTokenConfigForArn(

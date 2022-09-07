@@ -3,12 +3,12 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as lambdaNodeJs from "@aws-cdk/aws-lambda-nodejs";
 import * as sfn from "@aws-cdk/aws-stepfunctions";
 import * as tasks from "@aws-cdk/aws-stepfunctions-tasks";
-import * as path from "path";
-
 import { Duration } from "@aws-cdk/core";
 import { IFunction } from "@aws-cdk/aws-lambda";
+import * as path from "path";
+
+import { NPMTokenRotationConfig } from '../config-types';
 import { BaseStack } from "./base-stack";
-import { NPMTokenRotationConfig } from "../lambda/types";
 
 export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;

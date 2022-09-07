@@ -6,7 +6,8 @@ import {
   sendSlackMessage,
 } from "../utils/utils";
 import config from "../../../config.json";
-import { NPMTokenRotationConfig, TokenRotationStepFnEvent } from '../types';
+import { NPMTokenRotationConfig } from "../../config-types";
+import { TokenRotationStepFnEvent } from "../types";
 
 export const handler = async (event: TokenRotationStepFnEvent) => {
   console.info(`start: handler(${JSON.stringify(event)})`);

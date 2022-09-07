@@ -1,5 +1,5 @@
-import { GitHubRepoInfo, SecretDetail } from '../base-types';
-import { AccessTokenRotationConfig } from '../config-types';
+import { GitHubRepoInfo, SecretDetail } from "../base-types";
+import { AccessTokenRotationConfig } from "../config-types";
 
 /**
  * Parameters to updateGitHubSecrets call. These are used after `githubToken`
@@ -29,11 +29,4 @@ export type UpdateGitHubSecretsParam =
 export type TokenRotationStepFnEvent = {
   tokenEvent: string;
   secretArn: string;
-};
-
-export type NPMTokenRotationConfig = {
-  npmLoginUsernameSecret: SecretDetail;
-  npmLoginPasswordSecret: SecretDetail;
-  npmOtpSeedSecret: SecretDetail;
-  npmAccessTokenSecrets: AccessTokenRotationConfig;
 };
