@@ -1,14 +1,14 @@
-import * as core from "@aws-cdk/core";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as lambdaNodeJs from "@aws-cdk/aws-lambda-nodejs";
-import * as sfn from "@aws-cdk/aws-stepfunctions";
-import * as tasks from "@aws-cdk/aws-stepfunctions-tasks";
-import { Duration } from "@aws-cdk/core";
-import { IFunction } from "@aws-cdk/aws-lambda";
+import { Construct } from 'constructs';
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambdaNodeJs from "aws-cdk-lib/aws-lambda-nodejs";
+import * as sfn from "aws-cdk-lib/aws-stepfunctions";
+import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
+import { IFunction } from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 
 import { NPMTokenRotationConfig } from '../config-types';
 import { BaseStack } from "./base-stack";
+import { Duration } from 'aws-cdk-lib';
 
 export type NpmTokenRotationStackParams = {
   config: NPMTokenRotationConfig;
@@ -18,7 +18,7 @@ export class NpmTokenRotationStack extends BaseStack {
   private secretConfig: NPMTokenRotationConfig;
 
   constructor(
-    scope: core.Construct,
+    scope: Construct,
     id: string,
     options: NpmTokenRotationStackParams
   ) {
@@ -40,7 +40,7 @@ export class NpmTokenRotationStack extends BaseStack {
      * removes old token on NPM.
      */
     const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
-      core.Duration.minutes(15),
+      Duration.minutes(15),
       tokenPublisherFn,
       tokenRemovalFn
     );
@@ -128,7 +128,7 @@ export class NpmTokenRotationStack extends BaseStack {
   }
 
   private buildTokenDeletionStateMachine = (
-    wait: core.Duration,
+    wait: Duration,
     publishFn: IFunction,
     deleteFn: IFunction
   ): sfn.StateMachine => {

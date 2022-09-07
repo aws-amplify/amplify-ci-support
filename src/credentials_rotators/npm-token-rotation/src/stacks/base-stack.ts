@@ -1,20 +1,22 @@
-import * as core from "@aws-cdk/core";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as iam from "@aws-cdk/aws-iam";
-import * as secretsManager from "@aws-cdk/aws-secretsmanager";
-import * as sns from "@aws-cdk/aws-sns";
-import * as snsSubscriptions from "@aws-cdk/aws-sns-subscriptions";
-import { StateMachine } from "@aws-cdk/aws-stepfunctions";
-import { SnsAction } from "@aws-cdk/aws-cloudwatch-actions";
+// import * as core from "@aws-cdk/core";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as iam from "aws-cdk-lib/aws-iam";
+import { StateMachine } from "aws-cdk-lib/aws-stepfunctions";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as secretsManager from "aws-cdk-lib/aws-secretsmanager";
+import * as snsSubscriptions from "aws-cdk-lib/aws-sns-subscriptions";
+import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
 
-import { SecretDetail } from '../base-types';
-import { AccessTokenRotationConfig } from '../config-types';
+import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { SecretDetail } from "../base-types";
+import { AccessTokenRotationConfig } from "../config-types";
 
 /**
  * Contains utility functions for NpmTokenRotationStack to use
  */
-export class BaseStack extends core.Stack {
-  constructor(scope: core.Construct, id: string, props: core.StackProps = {}) {
+export class BaseStack extends Stack {
+  constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
   }
 
@@ -82,7 +84,7 @@ export class BaseStack extends core.Stack {
   protected configureSecretRotation = (
     fn: lambda.IFunction,
     config: Readonly<SecretDetail>,
-    duration: core.Duration
+    duration: Duration
   ) => {
     const secret = secretsManager.Secret.fromSecretCompleteArn(
       this,
