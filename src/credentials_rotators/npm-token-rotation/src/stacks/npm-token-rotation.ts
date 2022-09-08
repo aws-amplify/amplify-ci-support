@@ -60,6 +60,8 @@ export class NpmTokenRotationStack extends BaseStack {
       publishNewTokenStateMachine
     );
 
+    this.enableSecretRotation(rotatorFn);
+
     this.enableLambdaCloudWatchAlarms(
       rotatorFn,
       tokenPublisherFn,
@@ -91,18 +93,26 @@ export class NpmTokenRotationStack extends BaseStack {
       this.secretConfig.npmOtpSeedSecret,
     ]);
 
-    for (const token of this.secretConfig.npmAccessTokenSecrets.secrets) {
-      this.grantLambdaAccessToRotateSecrets(rotatorFn, token);
+    const { npmAccessTokenSecrets } = this.secretConfig;
+
+    for (const secret of npmAccessTokenSecrets.secrets) {
+      this.grantLambdaAccessToRotateSecrets(rotatorFn, secret);
       this.grantLambdaAccessToSecrets(tokenRemovalFn, [
-        token,
-        ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
+        secret,
+        ...(secret.slackWebHookConfig ? [secret.slackWebHookConfig] : []),
       ]);
       this.grantLambdaAccessToSecrets(tokenPublisherFn, [
-        token,
-        token.publishConfig.githubToken,
-        ...(token.slackWebHookConfig ? [token.slackWebHookConfig] : []),
+        secret,
+        secret.publishConfig.githubToken,
+        ...(secret.slackWebHookConfig ? [secret.slackWebHookConfig] : []),
       ]);
-      this.configureSecretRotation(rotatorFn, token, Duration.days(1));
+    }
+  }
+
+  private enableSecretRotation(rotatorFn: lambdaNodeJs.NodejsFunction) {
+    const { npmAccessTokenSecrets } = this.secretConfig;
+    for (const secret of npmAccessTokenSecrets.secrets) {
+      this.configureSecretRotation(rotatorFn, secret, Duration.days(1));
     }
   }
 
