@@ -73,8 +73,8 @@ const finishSecret = async (
   }
 
   const stepFnClient = new aws.StepFunctions();
-  const stepFnArn = process.env.DELETE_TOKEN_STATE_MACHINE_ARN;
-  assert(stepFnArn, "Missing DELETE_TOKEN_STATE_MACHINE_ARN env variable");
+  const stepFnArn = process.env.PUBLISH_TOKEN_STATE_MACHINE_ARN;
+  assert(stepFnArn, "Missing PUBLISH_TOKEN_STATE_MACHINE_ARN env variable");
 
   const stepFnPayload = {
     tokenEvent: currentVersion,

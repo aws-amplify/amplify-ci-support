@@ -40,7 +40,7 @@ export class NpmTokenRotationStack extends BaseStack {
      * This state machine publishes new token to GitHub, waits 15 minutes, and
      * removes old token on NPM.
      */
-    const deleteOldTokenStateMachine = this.buildTokenDeletionStateMachine(
+    const publishNewTokenStateMachine = this.buildTokenPublishStateMachine(
       Duration.minutes(15),
       tokenPublisherFn,
       tokenRemovalFn
@@ -48,8 +48,8 @@ export class NpmTokenRotationStack extends BaseStack {
 
     // This will be referenced by rotation lambda.
     this.addEnvironment(
-      "DELETE_TOKEN_STATE_MACHINE_ARN",
-      deleteOldTokenStateMachine.stateMachineArn,
+      "PUBLISH_TOKEN_STATE_MACHINE_ARN",
+      publishNewTokenStateMachine.stateMachineArn,
       [rotatorFn]
     );
 
@@ -57,7 +57,7 @@ export class NpmTokenRotationStack extends BaseStack {
       rotatorFn,
       tokenPublisherFn,
       tokenRemovalFn,
-      deleteOldTokenStateMachine
+      publishNewTokenStateMachine
     );
 
     this.enableLambdaCloudWatchAlarms(
@@ -71,13 +71,13 @@ export class NpmTokenRotationStack extends BaseStack {
     rotatorFn: lambdaNodeJs.NodejsFunction,
     tokenPublisherFn: lambdaNodeJs.NodejsFunction,
     tokenRemovalFn: lambdaNodeJs.NodejsFunction,
-    deleteOldTokenStateMachine: sfn.StateMachine
+    publishNewTokenStateMachine: sfn.StateMachine
   ) {
     this.grantSecretsManagerToAccessLambda(rotatorFn);
 
     this.grantLambdaFunctionToAccessStepFunctions(
       rotatorFn,
-      deleteOldTokenStateMachine
+      publishNewTokenStateMachine
     );
 
     this.grantLambdaAccessToSecrets(rotatorFn, [
@@ -128,7 +128,7 @@ export class NpmTokenRotationStack extends BaseStack {
     );
   }
 
-  private buildTokenDeletionStateMachine = (
+  private buildTokenPublishStateMachine = (
     wait: Duration,
     publishFn: IFunction,
     deleteFn: IFunction
@@ -153,7 +153,7 @@ export class NpmTokenRotationStack extends BaseStack {
         })
       );
 
-    return new sfn.StateMachine(this, "token-invalidation-step-fn", {
+    return new sfn.StateMachine(this, "publish-new-token-step-fn", {
       definition: steps,
     });
   };
