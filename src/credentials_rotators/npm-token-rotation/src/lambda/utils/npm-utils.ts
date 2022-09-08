@@ -22,6 +22,7 @@ export const createAccessToken = async (
 ): Promise<string> => {
   try {
     const otp = generateOtp(otpSeed);
+    // https://github.com/npm/registry/blob/master/docs/user/authentication.md#token-create
     const result = await axios.post(
       "https://registry.npmjs.org/-/npm/v1/tokens",
       {
@@ -52,6 +53,7 @@ export const deleteAccessToken = async (
 ): Promise<boolean> => {
   try {
     const otp = generateOtp(otpSeed);
+    // https://github.com/npm/registry/blob/master/docs/user/authentication.md#token-delete
     const result = await axios.delete(
       `https://registry.npmjs.org/-/npm/v1/tokens/token/${token}`,
       {
@@ -76,6 +78,7 @@ export const validateAccessToken = async (
   accessToken: string
 ): Promise<boolean> => {
   try {
+    // https://github.com/npm/registry/blob/master/docs/user/profile.md#user-detail
     const result = await axios.get("https://registry.npmjs.org/-/npm/v1/user", {
       headers: {
         Authorization: `Bearer ${accessToken}`,

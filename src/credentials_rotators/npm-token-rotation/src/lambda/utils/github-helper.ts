@@ -16,12 +16,12 @@ const createOctokit = (githubToken: string) => {
   return octokit;
 };
 
-// https://docs.github.com/en/rest/actions/secrets#get-a-repository-public-key
 const getRepoPublicKey = async (
   octokit: Octokit,
   owner: string,
   repo: string
 ) => {
+  // https://docs.github.com/en/rest/actions/secrets#get-a-repository-public-key
   const response = await octokit.request(
     "GET /repos/{owner}/{repo}/actions/secrets/public-key",
     {
@@ -34,8 +34,8 @@ const getRepoPublicKey = async (
   return { key, keyId };
 };
 
-// https://docs.github.com/en/rest/repos/repos#get-a-repository
 const getRepoId = async (octokit: Octokit, owner: string, repo: string) => {
+  // https://docs.github.com/en/rest/repos/repos#get-a-repository
   const response = await octokit.request("GET /repos/{owner}/{repo}", {
     owner,
     repo,
