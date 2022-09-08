@@ -16,6 +16,7 @@ const createOctokit = (githubToken: string) => {
   return octokit;
 };
 
+// https://docs.github.com/en/rest/actions/secrets#get-a-repository-public-key
 const getRepoPublicKey = async (
   octokit: Octokit,
   owner: string,
@@ -33,6 +34,7 @@ const getRepoPublicKey = async (
   return { key, keyId };
 };
 
+// https://docs.github.com/en/rest/repos/repos#get-a-repository
 const getRepoId = async (octokit: Octokit, owner: string, repo: string) => {
   const response = await octokit.request("GET /repos/{owner}/{repo}", {
     owner,
@@ -43,6 +45,7 @@ const getRepoId = async (octokit: Octokit, owner: string, repo: string) => {
   return id;
 };
 
+// https://docs.github.com/en/rest/actions/secrets#get-an-environment-public-key
 const getEnvironmentPublicKey = async (
   octokit: Octokit,
   repoId: number,
@@ -61,8 +64,12 @@ const getEnvironmentPublicKey = async (
   return { key, keyId };
 };
 
+// https://docs.github.com/en/rest/actions/secrets#example-encrypting-a-secret-using-nodejs
 const encryptSecret = async (key: string, value: string) => {
-  // prepare libsodium
+  /**
+   * Using libsodium as recommended by GitHub:
+   * https://github.com/github/tweetsodium/blob/main/README.md
+   */
   await sodium.ready;
 
   // Convert Secret & Base64 key to Uint8Array
@@ -83,7 +90,8 @@ const encryptSecret = async (key: string, value: string) => {
 
 /**
  * Creates a new repository secret if missing and adds/updates the secret
- * @param repository repository to publish new secrets to
+ * @param owner owner of the repository
+ * @param repo name of the repository
  * @param githubToken GitHub token
  * @param secretName the name of the secret
  * @param secretValue the value of the secret
@@ -132,7 +140,8 @@ const updateGitHubRepositorySecret = async (
 
 /**
  * Creates a new environment secret if missing and adds/updates the secret
- * @param repository repository to publish new secrets to
+ * @param owner owner of the repository
+ * @param repo name of the repository
  * @param githubToken GitHub token
  * @param secretName the name of the secret
  * @param secretValue the value of the secret
