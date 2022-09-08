@@ -1,6 +1,6 @@
 import config from "../../../config.json";
 import assert from "assert";
-import { updateGitHubActionsSecrets } from "../utils/github-helper";
+import { updateGitHubActionsSecrets } from "../utils/github-utils";
 import * as utils from "../utils/utils";
 import { TokenRotationStepFnEvent, UpdateGitHubSecretsParam } from "../types";
 import { NPMTokenRotationConfig } from "../../config-types";
