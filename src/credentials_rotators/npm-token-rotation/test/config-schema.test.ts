@@ -17,7 +17,6 @@ describe("Config schema", () => {
     );
     const config = JSON.parse(content);
     const result = await Utils.validateConfiguration(config);
-    console.log(result);
 
     expect(result).toBeTruthy();
   });
