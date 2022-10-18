@@ -29,7 +29,7 @@ class IAMConstruct(core.Construct):
             self,
             "github_actions_role",
             role_name="amplifyios-githubaction-integtest",
-            description="Role assumed by GitHub action in the amplify-ios integration test",
+            description="Role assumed by GitHub action in the amplify-swift integration test",
             assumed_by=aws_iam.FederatedPrincipal(
                 self.oidc.open_id_connect_provider_arn,
                 assume_role_action="sts:AssumeRoleWithWebIdentity",
@@ -38,7 +38,7 @@ class IAMConstruct(core.Construct):
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
                     },
                     "StringLike": {
-                        "token.actions.githubusercontent.com:sub": "repo:aws-amplify/amplify-ios:*"
+                        "token.actions.githubusercontent.com:sub": "repo:aws-amplify/amplify-swift:*"
                     }
                 })
         )
