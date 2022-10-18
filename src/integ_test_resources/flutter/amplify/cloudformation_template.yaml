@@ -16,6 +16,13 @@ Conditions:
   AllAmplifyApps: !Equals [!Ref AmplifyAppName, ""]
     
 Resources:
+  IntegrationTestSecrets:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      # "Amplify Flutter Secrets," abbreviated because it becomes part of
+      # environmental variable names.
+      Name: afs
+      Description: Secrets needed to run integration tests for amplify-flutter
   Role:
     Type: AWS::IAM::Role
     Properties:
@@ -47,6 +54,21 @@ Resources:
                   - amplify:GetApp
                   - amplify:GetBackendEnvironment
                 Resource: "arn:aws:amplify:*"
+        # Secrets manager permissions as documented on https://github.com/marketplace/actions/aws-secrets-manager-github-action.
+        - PolicyName: ListIntegrationTestSecrets
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action: secretsmanager:ListSecrets
+                Resource: !Ref IntegrationTestSecrets
+        - PolicyName: GetIntegrationTestSecrets
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref IntegrationTestSecrets
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
