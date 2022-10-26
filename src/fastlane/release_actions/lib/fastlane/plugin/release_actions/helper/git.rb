@@ -12,6 +12,7 @@ class Git
     tag
   end
 
+  # Return the next release tag after looking at the list of tags below the parameter below
   def self.last_release_tag(below = "v100.0.0")
     command = %w(git tag)
     tags = run(command, 'Could not list tags').chomp.gsub(/\s+/m, ' ').strip.split
