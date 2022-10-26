@@ -12,6 +12,9 @@ module Fastlane
         version_limit = params[:version_limit]
         tag = Git.last_release_tag(version_limit)
         print(tag)
+        print("version_limit")
+        puts "version_limit " + version_limit
+        print(version_limit)
         version = Version.from(tag)
         messages = Git.log(tag)
         commits = Commits.from(messages)
