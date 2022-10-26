@@ -9,7 +9,9 @@ module Fastlane
   module Actions
     class CalculateNextReleaseVersionAction < Action
       def self.run(params)
-        tag = Git.last_release_tag
+        version_limit = params[:version_limit]
+        tag = Git.last_release_tag(version_limit)
+        print(tag)
         version = Version.from(tag)
         messages = Git.log(tag)
         commits = Commits.from(messages)
@@ -44,7 +46,15 @@ module Fastlane
       end
 
       def self.available_options
-        []
+        [
+          FastlaneCore::ConfigItem.new(
+            key: :version_limit,
+            description: 'The version limit below which the script will look for next release version',
+            optional: true,
+            type: String,
+            default_value: 'v100.0.1'
+          )
+        ]
       end
 
       def self.is_supported?(platform)

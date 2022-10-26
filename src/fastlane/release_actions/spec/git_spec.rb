@@ -29,5 +29,15 @@ describe Git do
       expect(Git).to receive(:run).and_return("v1.10.0-dev.0\nv1.10.0\nv1.8.0\n\n")
       expect(Git.last_release_tag).to eq('v1.10.0')
     end
+
+    example do
+      expect(Git).to receive(:run).and_return("v1.10.0 v1.8.0 v2.0.0 v2.1.2")
+      expect(Git.last_release_tag('v2.0.0')).to eq('v1.10.0')
+    end
+
+    example do
+      expect(Git).to receive(:run).and_return("v1.10.0 v1.8.0 v2.0.0 v0.1.2")
+      expect(Git.last_release_tag('v1.0.0')).to eq('v0.1.2')
+    end
   end
 end

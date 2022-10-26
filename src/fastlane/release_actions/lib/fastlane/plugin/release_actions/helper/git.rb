@@ -12,11 +12,13 @@ class Git
     tag
   end
 
-  def self.last_release_tag
+  def self.last_release_tag(below = "v100.0.0")
     command = %w(git tag)
     tags = run(command, 'Could not list tags').chomp.gsub(/\s+/m, ' ').strip.split
     release_tags = tags.reject { |tag| Version.from(tag).prerelease? }
-    release_tags.max_by { |tag| Version.from(tag) }
+    tag_limit = Version.from(below)
+    filtered_tags = release_tags.reject { |tag| Version.from(tag) >= tag_limit }
+    filtered_tags.max_by { |tag| Version.from(tag) }
   end
 
   def self.log(from, to = 'HEAD')
