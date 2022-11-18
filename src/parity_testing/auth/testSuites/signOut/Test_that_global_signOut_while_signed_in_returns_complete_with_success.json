@@ -32,8 +32,9 @@
         {
             "type": "amplify",
             "apiName": "signOut",
-            "responseType": "complete",
+            "responseType": "success",
             "response": {
+                "signOutResult": "COMPLETE"
             }
         }
     ]

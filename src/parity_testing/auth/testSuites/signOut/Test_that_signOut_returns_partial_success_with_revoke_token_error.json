@@ -27,13 +27,14 @@
         {
             "type": "amplify",
             "apiName": "signOut",
-            "responseType": "complete",
+            "responseType": "success",
             "response": {
+                "signOutResult": "PARTIAL",
                 "globalSignOutError": null,
                 "hostedUIError": null,
                 "revokeTokenError": {
                     "exception": {
-                        "errorType": "RevokeTokenException",
+                        "errorType": "NotAuthorizedException",
                         "errorMessage": "Failed to revoke token",
                         "recoverySuggestion": "See attached exception for more details. RevokeToken can be retried using the CognitoIdentityProviderClient accessible from the escape hatch.",
                         "cause": {
