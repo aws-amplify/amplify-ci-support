@@ -71,6 +71,9 @@ platform :android do |options|
       release_tag_override = options[:release_tag].split(",")
     end
 
+    # Default to opening a PR against "main" if not specified
+    base_branch = options.fetch(:base_branch, "main")
+
     product_name = build_parameters[:product_name]
     repo = build_parameters[:repo]
 
@@ -93,7 +96,6 @@ platform :android do |options|
       changelog_body = result[:changelog_body]
       files_to_commit += result[:files_to_commit]
       
-      puts("Token length = #{ENV["RELEASE_MANAGER_TOKEN"].length}")
       # We have to create separate Github releases for different products.
       # They can share one commit and the same PR, but if they have 
       # different versions, they should have different releases.
@@ -125,6 +127,7 @@ platform :android do |options|
         The following would have happened:
         Files committed: #{files_to_commit}
          Commit message: #{commit_slug}
+            Base Branch: #{base_branch}
                PR title: #{pr_title}
                 PR body: #{pr_body}
       )
@@ -134,7 +137,8 @@ platform :android do |options|
       git_commit(path: files_to_commit, message: commit_slug)
       push_to_git_remote(force: true)
       # Create the PR for the new release
-      create_pull_request(base: 'main', 
+      create_pull_request(
+        base: base_branch, 
         title: pr_title,
         body: pr_body,
         repo: repo, 
