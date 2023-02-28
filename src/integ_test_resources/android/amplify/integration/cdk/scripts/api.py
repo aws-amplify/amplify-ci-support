@@ -15,7 +15,7 @@ class ApiConfigBuilder:
     def with_name(self, name: str):
         self.name = name
         return self
-    
+
     def with_schemas_dir(self, schema_dir: str):
         self.schema_dir = schema_dir
         return self
@@ -65,7 +65,7 @@ class ApiConfigBuilder:
             'additionalAuthTypes': list(self.additional_auth_modes.values())
         }
         return api_config
-        
+
 
 def get_api_config(api_name: str, schemas_dir: str, auth_resource_id: str):
     is_update = True if get_category_config("api") is not None else False
@@ -76,7 +76,7 @@ def get_api_config(api_name: str, schemas_dir: str, auth_resource_id: str):
                             .with_iam()
     if(is_update):
         builder.as_update()
-    
+
     return builder.build()
 
 def config_api(api_config):

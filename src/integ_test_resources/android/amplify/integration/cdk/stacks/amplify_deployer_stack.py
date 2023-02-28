@@ -17,15 +17,15 @@ class AmplifyDeployer(core.Stack):
         github_repo = props['github_repo']
         github_owner  = self.DEFAULT_GITHUB_OWNER if 'github_owner' not in props else props['github_owner']
         branch  = self.DEFAULT_BRANCH if 'branch' not in props else props['branch']
-        build_environment = aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3, 
+        build_environment = aws_codebuild.BuildEnvironment(build_image=aws_codebuild.LinuxBuildImage.AMAZON_LINUX_2_3,
                                                             privileged=True,
                                                             compute_type=aws_codebuild.ComputeType.SMALL)
-        
+
         project = aws_codebuild.Project(self,
                                         props['project_name'],
-                                        source=aws_codebuild.Source.git_hub(owner=github_owner, 
+                                        source=aws_codebuild.Source.git_hub(owner=github_owner,
                                                                             report_build_status=False,
-                                                                            repo=github_repo, 
+                                                                            repo=github_repo,
                                                                             branch_or_ref=branch,
                                                                             webhook=False), # Will need to setup creds to make this true
                                         environment=build_environment,
@@ -40,7 +40,7 @@ class AmplifyDeployer(core.Stack):
         ]
 
         policy = aws_iam.ManagedPolicy(self,
-            "AmplifyDeployerLeastPrivilegePolicy", 
+            "AmplifyDeployerLeastPrivilegePolicy",
             managed_policy_name="AmplifyDeployerLeastPrivilegePolicy",
             description="Policy used by the CodeBuild role that manages the creation of backend resources using the Amplify CLI",
             # document=aws_iam.PolicyDocument(
@@ -56,5 +56,4 @@ class AmplifyDeployer(core.Stack):
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name("AWSCloudFormationFullAccess"))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('IAMReadOnlyAccess'))
-        project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('AWSLambdaFullAccess'))
         project.role.add_managed_policy(aws_iam.ManagedPolicy.from_aws_managed_policy_name('AWSAppSyncAdministrator'))

@@ -32,7 +32,7 @@ AMPLIFY_PROVIDER_CONFIG = {
 
 AMPLIFY_FRONTEND_CONFIG = {
     'frontend': 'android',
-    'config' : {
+    'config': {
         'ResDir': f"app/src/main/res"
     }
 }
@@ -49,6 +49,17 @@ AMPLIFY_CODEGEN_CONFIG = {
     'generateDocs': True
 }
 
+STORAGECONFIG = {
+    "region": "us-east-1",
+    "bucketName": "my-project-bucket"
+}
+
+CATEGORIES = {
+    "storage": STORAGECONFIG
+}
+
+
+
 def get_existing_app_id():
     try:
         response = AMPLIFY_AWSSDK_CLIENT.list_apps()
@@ -58,12 +69,15 @@ def get_existing_app_id():
         print(f"Unable to find existing Amplify app for {PROJECT_NAME}")
         return None
 
+
 def initialize_new_app():
-    init_cmd = [AMPLIFY_COMMAND, 
-                AMPLIFY_ACTION_INIT, 
-                "--amplify", json.dumps(AMPLIFY_CONFIG), 
-                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
-                "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG)]
+    init_cmd = [AMPLIFY_COMMAND,
+                AMPLIFY_ACTION_INIT,
+                "--amplify", json.dumps(AMPLIFY_CONFIG),
+                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG),
+                "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
+                "--categories", json.dumps(CATEGORIES),
+                "--yes"]
     result = run_command(init_cmd)
     return result.returncode
 
@@ -71,20 +85,28 @@ def initialize_new_app():
 def pull_existing_app(existing_app_id):
     amplify_params = AMPLIFY_CONFIG.copy()
     amplify_params.update({'appId': existing_app_id})
-    pull_cmd = [AMPLIFY_COMMAND, 
-                AMPLIFY_ACTION_PULL, 
-                "--amplify", json.dumps(amplify_params), 
-                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG), 
+    pull_cmd = [AMPLIFY_COMMAND,
+                AMPLIFY_ACTION_PULL,
+                "--amplify", json.dumps(amplify_params),
+                "--providers", json.dumps(AMPLIFY_PROVIDER_CONFIG),
                 "--frontend", json.dumps(AMPLIFY_FRONTEND_CONFIG),
+                "--categories", json.dumps(CATEGORIES),
                 "--yes"]
     result = run_command(pull_cmd)
     return result.returncode
 
+
 def get_category_config(category_name: str):
-    with open(f"{PROJECT_DIR}/amplify/backend/amplify-meta.json") as amplify_meta_file:
-        amplify_meta_content = json.load(amplify_meta_file)
-        category_config = amplify_meta_content[category_name]
-    return category_config
+    file_path = f"{PROJECT_DIR}/amplify/backend/amplify-meta.json"
+    if os.path.exists(file_path):
+        with open(file_path) as amplify_meta_file:
+            amplify_meta_content = json.load(amplify_meta_file)
+            if category_name in amplify_meta_content:
+                category_config = amplify_meta_content[category_name]
+                return category_config
+    else:
+        return None
+
 
 def push():
     push_cmd = [AMPLIFY_COMMAND,
@@ -94,11 +116,12 @@ def push():
     result = run_command(push_cmd)
     return result.returncode
 
+
 def run_command(cmd, input: str = None):
-    result = subprocess.run(cmd, 
-                        text=True,
-                        input = input if input is not None else '',
-                        cwd=PROJECT_DIR)
-                        # stdout=subprocess.PIPE, 
-                        # stderr=subprocess.PIPE)
+    result = subprocess.run(cmd,
+                            text=True,
+                            #input=input if input is not None else '',
+                            cwd=PROJECT_DIR)
+    # stdout=subprocess.PIPE,
+    # stderr=subprocess.PIPE)
     return result
