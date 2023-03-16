@@ -9,11 +9,13 @@
                 "apiName": "signUp",
                 "responseType": "success",
                 "response": {
-                    "codeDeliveryDetails": {
-                        "destination": "user@domain.com",
-                        "deliveryMedium": "EMAIL",
-                        "attributeName": "attributeName"
-                    }
+                    "CodeDeliveryDetails": {
+                        "Destination": "user@domain.com",
+                        "DeliveryMedium": "EMAIL",
+                        "AttributeName": "attributeName"
+                    },
+                    "UserConfirmed": false,
+                    "UserSub": "xyz"
                 }
             }
         ]

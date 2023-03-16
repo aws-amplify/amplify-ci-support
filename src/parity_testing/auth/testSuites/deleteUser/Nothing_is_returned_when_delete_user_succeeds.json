@@ -10,6 +10,20 @@
                 "responseType": "success",
                 "response": {
                 }
+            },
+            {
+                "type": "cognitoIdentityProvider",
+                "apiName": "revokeToken",
+                "responseType": "success",
+                "response": {
+                }
+            },
+            {
+                "type": "cognitoIdentityProvider",
+                "apiName": "globalSignOut",
+                "responseType": "success",
+                "response": {
+                }
             }
         ]
     },
@@ -21,13 +35,6 @@
         }
     },
     "validations": [
-        {
-            "type": "amplify",
-            "apiName": "deleteUser",
-            "responseType": "success",
-            "response": {
-            }
-        },
         {
             "type": "amplify",
             "apiName": "deleteUser",

@@ -21,16 +21,17 @@
             "response": {
                 "awsCredentialsResult": {
                     "accessKeyId": "someAccessKey",
-                    "expiration": 2342134,
+                    "expiration": 10690446268,
                     "secretAccessKey": "someSecretKey",
-                    "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VySWQiLCJ1c2VybmFtZSI6InVzZXJuYW1lIiwiZXhwIjoxNTE2MjM5MDIyLCJvcmlnaW5fanRpIjoib3JpZ2luX2p0aSJ9.Xqa-vjJe5wwwsqeRAdHf8kTBn_rYSkDn2lB7xj9Z1xU"
+                    "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyNjY4NzUzMDg5LjQ5NjYwMiIsInVzZXJuYW1lIjoiSm9obiBEb2UiLCJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoiMTUxNjIzOTAyMiJ9.f9tefevrIRRtfVK99jirKvnUu4lBohBEFwDWPPr9vTE"
                 },
                 "identityIdResult": "someIdentityId",
                 "isSignedIn": true,
                 "userPoolTokensResult": {
-                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VySWQiLCJ1c2VybmFtZSI6InVzZXJuYW1lIiwiZXhwIjoxNTE2MjM5MDIyLCJvcmlnaW5fanRpIjoib3JpZ2luX2p0aSJ9.Xqa-vjJe5wwwsqeRAdHf8kTBn_rYSkDn2lB7xj9Z1xU",
-                    "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VySWQiLCJ1c2VybmFtZSI6InVzZXJuYW1lIiwiZXhwIjoxNTE2MjM5MDIyLCJvcmlnaW5fanRpIjoib3JpZ2luX2p0aSJ9.Xqa-vjJe5wwwsqeRAdHf8kTBn_rYSkDn2lB7xj9Z1xU",
-                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VySWQiLCJ1c2VybmFtZSI6InVzZXJuYW1lIiwiZXhwIjoxNTE2MjM5MDIyLCJvcmlnaW5fanRpIjoib3JpZ2luX2p0aSJ9.Xqa-vjJe5wwwsqeRAdHf8kTBn_rYSkDn2lB7xj9Z1xU"
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyNjY4NzUzMDg5LjQ5NjYwMiIsInVzZXJuYW1lIjoiSm9obiBEb2UiLCJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoiMTUxNjIzOTAyMiJ9.f9tefevrIRRtfVK99jirKvnUu4lBohBEFwDWPPr9vTE",
+                    "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyNjY4NzUzMDg5LjQ5NjYwMiIsInVzZXJuYW1lIjoiSm9obiBEb2UiLCJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoiMTUxNjIzOTAyMiJ9.f9tefevrIRRtfVK99jirKvnUu4lBohBEFwDWPPr9vTE",
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIyNjY4NzUzMDg5LjQ5NjYwMiIsInVzZXJuYW1lIjoiSm9obiBEb2UiLCJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoiMTUxNjIzOTAyMiJ9.f9tefevrIRRtfVK99jirKvnUu4lBohBEFwDWPPr9vTE",
+                    "expiration": 10690446268,
                 },
                 "userSubResult": "userId"
             }
