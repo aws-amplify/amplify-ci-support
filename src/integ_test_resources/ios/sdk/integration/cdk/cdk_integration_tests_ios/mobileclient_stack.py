@@ -345,7 +345,7 @@ class MobileClientStack(RegionAwareStack):
         create_auth_challenge = aws_lambda.Function(
             self,
             "custom_auth_lambda_create_auth_challenge",
-            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            runtime=aws_lambda.Runtime.NODEJS_16_X,
             code=aws_lambda.Code.asset("custom_resources/custom_auth"),
             handler="create_auth_challenge.handler",
             description="custom auth: create_auth_challenge",
@@ -360,7 +360,7 @@ class MobileClientStack(RegionAwareStack):
         define_auth_challenge = aws_lambda.Function(
             self,
             "custom_auth_lambda_define_auth_challenge",
-            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            runtime=aws_lambda.Runtime.NODEJS_16_X,
             code=aws_lambda.Code.asset("custom_resources/custom_auth"),
             handler="define_auth_challenge.handler",
             description="custom auth: define_auth_challenge",
@@ -375,7 +375,7 @@ class MobileClientStack(RegionAwareStack):
         pre_sign_up = aws_lambda.Function(
             self,
             "custom_auth_lambda_pre_sign_up",
-            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            runtime=aws_lambda.Runtime.NODEJS_16_X,
             code=aws_lambda.Code.asset("custom_resources/custom_auth"),
             handler="pre_sign_up.handler",
             description="custom auth: pre_sign_up",
@@ -390,7 +390,7 @@ class MobileClientStack(RegionAwareStack):
         verify_auth_challenge_response = aws_lambda.Function(
             self,
             "custom_auth_lambda_verify_auth_challenge_response",
-            runtime=aws_lambda.Runtime.NODEJS_10_X,
+            runtime=aws_lambda.Runtime.NODEJS_16_X,
             code=aws_lambda.Code.asset("custom_resources/custom_auth"),
             handler="verify_auth_challenge_response.handler",
             description="custom auth: verify_auth_challenge_response",
