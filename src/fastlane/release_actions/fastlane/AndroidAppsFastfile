@@ -249,6 +249,8 @@ platform :android do |options|
       }
     )
 
+    changelog = '' if changelog.nil?
+
     # Add links to anything that looks like a GitHub issue/PR number. This will replace e.g. #1234 with a link
     # to the corresponding issue. It links directly to /issues/# but that will redirect to pull/# if the link is for a pull request.
     repo = options[:repo]
