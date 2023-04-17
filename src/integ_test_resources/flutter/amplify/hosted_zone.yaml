@@ -1,0 +1,30 @@
+# SuperNova role + hosted zone for `flutter.amplify.aws.dev`
+# See: https://w.amazon.com/bin/view/SuperNova/PreOnboardingSteps
+Resources:
+  SuperNovaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: Nova-DO-NOT-DELETE
+      Description: SuperNova Route53 Access Role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+        - arn:aws:iam::aws:policy/AmazonRoute53FullAccess
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: nova.aws.internal
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: flutter.amplify.aws.dev
+      HostedZoneConfig:
+        Comment: SuperNova Route53 Hosted Zone
+
+Outputs:
+  SuperNovaRoleArn:
+    Value: !GetAtt SuperNovaRole.Arn
+  HostedZoneId:
+    Value: !GetAtt HostedZone.Id
