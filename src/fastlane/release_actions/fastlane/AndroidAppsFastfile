@@ -72,7 +72,8 @@ platform :android do |options|
     end
 
     # Default to opening a PR against "main" if not specified
-    base_branch = options.fetch(:base_branch, "main")
+    # If a branch ref is specified (e.g. "refs/heads/main") then just take the last part
+    base_branch = options.fetch(:base_branch, "main").split("/").last
 
     product_name = build_parameters[:product_name]
     repo = build_parameters[:repo]
