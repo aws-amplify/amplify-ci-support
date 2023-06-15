@@ -69,6 +69,13 @@ Resources:
                 Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref IntegrationTestSecrets
+        - PolicyName: PutMetricData
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: "*"
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
