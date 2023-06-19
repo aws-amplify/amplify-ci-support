@@ -75,7 +75,11 @@ Resources:
               -
                 Effect: Allow
                 Action: cloudwatch:PutMetricData
-                Resource: "*"
+                Resource: '*'
+                Condition:
+                  ForAllValues:StringEqualsIgnoreCase:
+                    cloudwatch:namespace:
+                      - GithubCanaryApps
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
