@@ -7,7 +7,7 @@ export class GithubCloudwatchCdkStack extends cdk.Stack {
     super(scope, id, props);
 
     // TODO(kylechen): 06/ Consolidate role creation into this CDK code.
-    // Its currently performed in a separate CloudFormation template:
+    // It's currently performed in a separate CloudFormation template:
     // https://github.com/aws-amplify/amplify-ci-support/blob/main/src/integ_test_resources/flutter/amplify/cloudformation_template.yaml
     createCanaryTestFailureAlarm(this);
 

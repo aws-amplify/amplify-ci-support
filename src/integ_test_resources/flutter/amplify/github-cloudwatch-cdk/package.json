@@ -1,6 +1,7 @@
 {
   "name": "github-cloudwatch-cdk",
   "version": "0.1.0",
+  "private": true,
   "bin": {
     "github-cloudwatch-cdk": "bin/github-cloudwatch-cdk.js"
   },

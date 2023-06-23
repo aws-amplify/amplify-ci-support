@@ -5,22 +5,73 @@ import { Alarm, ComparisonOperator, GraphWidget, Metric, TextWidget, TreatMissin
 // Create the metric and alarms for tracking Github Canary failures.
 // These metrics are sent in Github action: amplify-flutter/amplify_canaries
 export function createCanaryTestFailureAlarm(scope: Construct) {
-  const createCanaryTestFailureMetric = new Metric({
-    metricName: "CanaryTestFailure",
+
+  const buildFailureMetric = new Metric({
+    metricName: "BuildCanaryTestFailure",
     namespace: "GithubCanaryApps",
     statistic: "Max",
-    // TODO(kylechen): DO NOT MERGE until clarified runtime frequency
-    // GithubAction's Mac minutes multiplier is x10 vs. Unix
-    period: Duration.minutes(200),
+    period: Duration.hours(24),
+    dimensions: {
+        "channel" : "stable"
+    }
   });
 
-  const createCanaryTestFailureAlarm = new Alarm(scope, `create-canary-test-failure-alarm`, {
-    alarmName: "Create Canary Test Failure Alarm",
-    alarmDescription: `Alarm triggered when the Github Action Canaries workflow fails`,
-    metric: createCanaryTestFailureMetric,
+  const e2eAndroidMetric = new Metric({
+    metricName: "e2eCanaryTestFailure",
+    namespace: "GithubCanaryApps",
+    statistic: "Max",
+    period: Duration.hours(24),
+    dimensions: {
+        "channel" : "stable",
+        "platform" : "android"
+    }
+  });
+
+  const e2eIosMetric = new Metric({
+    metricName: "e2eCanaryTestFailure",
+    namespace: "GithubCanaryApps",
+    statistic: "Max",
+    period: Duration.hours(24),
+    dimensions: {
+        "channel" : "stable",
+        "platform" : "ios"
+    }
+  });
+
+  // TODO(kylechen): Create metrics for channel: beta
+  // TODO(kylehcen): Create Github issues as alarm actions
+
+  const buildFailureAlarm = new Alarm(scope, `build-canary-test-failure-alarm`, {
+    alarmName: "Build Canary Test Failure Alarm",
+    alarmDescription: `Alarm triggered when the Github Action Canaries build step fails`,
+    metric: buildFailureMetric,
     threshold: 0,
-    evaluationPeriods: 2,
-    datapointsToAlarm: 2,
+    evaluationPeriods: 1,
+    datapointsToAlarm: 1,
+    comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+    actionsEnabled: true,
+    treatMissingData: TreatMissingData.MISSING,
+  });
+
+  const e2eAndroidMetric = new Alarm(scope, `e2e-android-canary-test-failure-alarm`, {
+    alarmName: "e2e Android Canary Test Failure Alarm",
+    alarmDescription: `Alarm triggered when the Github Action Canaries e2e android step fails`,
+    metric: e2eAndroidMetric,
+    threshold: 0,
+    evaluationPeriods: 1,
+    datapointsToAlarm: 1,
+    comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
+    actionsEnabled: true,
+    treatMissingData: TreatMissingData.MISSING,
+  });
+
+  const e2eIosMetric = new Alarm(scope, `e2e-ios-canary-test-failure-alarm`, {
+    alarmName: "e2e iOS Canary Test Failure Alarm",
+    alarmDescription: `Alarm triggered when the Github Action Canaries e2e ios step fails`,
+    metric: e2eIosMetric,
+    threshold: 0,
+    evaluationPeriods: 1,
+    datapointsToAlarm: 1,
     comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
     actionsEnabled: true,
     treatMissingData: TreatMissingData.MISSING,
