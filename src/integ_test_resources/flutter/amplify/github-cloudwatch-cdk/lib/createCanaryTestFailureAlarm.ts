@@ -11,7 +11,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     namespace: "GithubCanaryApps",
     statistic: "Max",
     period: Duration.hours(24),
-    dimensions: {
+    dimensionsMap: {
         "channel" : "stable"
     }
   });
@@ -21,7 +21,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     namespace: "GithubCanaryApps",
     statistic: "Max",
     period: Duration.hours(24),
-    dimensions: {
+    dimensionsMap: {
         "channel" : "stable",
         "platform" : "android"
     }
@@ -32,7 +32,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     namespace: "GithubCanaryApps",
     statistic: "Max",
     period: Duration.hours(24),
-    dimensions: {
+    dimensionsMap: {
         "channel" : "stable",
         "platform" : "ios"
     }
@@ -53,7 +53,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     treatMissingData: TreatMissingData.MISSING,
   });
 
-  const e2eAndroidMetric = new Alarm(scope, `e2e-android-canary-test-failure-alarm`, {
+  const e2eAndroidAlarm = new Alarm(scope, `e2e-android-canary-test-failure-alarm`, {
     alarmName: "e2e Android Canary Test Failure Alarm",
     alarmDescription: `Alarm triggered when the Github Action Canaries e2e android step fails`,
     metric: e2eAndroidMetric,
@@ -65,7 +65,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     treatMissingData: TreatMissingData.MISSING,
   });
 
-  const e2eIosMetric = new Alarm(scope, `e2e-ios-canary-test-failure-alarm`, {
+  const e2eIosAlarm = new Alarm(scope, `e2e-ios-canary-test-failure-alarm`, {
     alarmName: "e2e iOS Canary Test Failure Alarm",
     alarmDescription: `Alarm triggered when the Github Action Canaries e2e ios step fails`,
     metric: e2eIosMetric,
