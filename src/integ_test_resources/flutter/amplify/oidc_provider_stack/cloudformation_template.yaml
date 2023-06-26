@@ -69,6 +69,17 @@ Resources:
                 Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref IntegrationTestSecrets
+        - PolicyName: PutMetricData
+          PolicyDocument:
+            Statement:
+              -
+                Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: '*'
+                Condition:
+                  ForAllValues:StringEqualsIgnoreCase:
+                    cloudwatch:namespace:
+                      - GithubCanaryApps
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
