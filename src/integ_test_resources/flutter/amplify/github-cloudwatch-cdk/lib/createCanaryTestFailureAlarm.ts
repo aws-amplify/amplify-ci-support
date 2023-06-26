@@ -8,7 +8,7 @@ const metricNamespace = "GithubCanaryApps";
 // These metrics are sent in Github action: amplify-flutter/amplify_canaries
 export function createCanaryTestFailureAlarm(scope: Construct) {
 
-  const buildFailureMetric = createMetric(
+  const BuildFailureStableMetric = createMetric(
     "BuildCanaryTestFailure",
     {
       "channel": "stable",
@@ -16,7 +16,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     }
   );
 
-  const E2EAndroidMetric = createMetric(
+  const E2EAndroidStableMetric = createMetric(
     "E2ECanaryTestFailure",
     {
       "channel": "stable",
@@ -25,7 +25,8 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     }
   );
 
-  const E2EIosMetric = createMetric(
+  const E2EIosStableMetric =
+
     "E2ECanaryTestFailure",
     {
       "channel": "stable",
@@ -34,11 +35,11 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     }
   );
 
-  createAlarm(scope, `build-canary-test-failure-alarm`, "Build Canary Test Failure Alarm", "Alarm triggered when the Github Action Canaries build step fails", buildFailureMetric);
+  createAlarm(scope, `build-canary-test-failure-alarm`, "Build Canary (stable)", "Alarm triggered when the Github Action Canaries build step fails", BuildFailureStableMetric);
 
-  createAlarm(scope, `e2e-android-canary-test-failure-alarm`, "E2E Android Canary Test Failure Alarm", "Alarm triggered when the Github Action Canaries E2E android step fails", E2EAndroidMetric);
+  createAlarm(scope, `e2e-android-canary-test-failure-alarm`, "E2E Android Canary (stable)", "Alarm triggered when the Github Action Canaries E2E android step fails", E2EAndroidStableMetric);
 
-  createAlarm(scope, `e2e-ios-canary-test-failure-alarm`, "E2E iOS Canary Test Failure Alarm", "Alarm triggered when the Github Action Canaries E2E ios step fails", E2EIosMetric);
+  createAlarm(scope, `e2e-ios-canary-test-failure-alarm`, "E2E iOS Canary (stable)", "Alarm triggered when the Github Action Canaries E2E iOS step fails", E2EIosStableMetric);
 
   // TODO: Create Github issues as alarm actions
 
@@ -52,7 +53,7 @@ function createMetric(metricName: string, dimensions: DimensionsMap): Metric {
     metricName,
     namespace: metricNamespace,
     statistic: Stats.MAXIMUM,
-    period: Duration.hours(24),
+    period: Duration.minutes(5),
     dimensionsMap: dimensions,
   });
 }
