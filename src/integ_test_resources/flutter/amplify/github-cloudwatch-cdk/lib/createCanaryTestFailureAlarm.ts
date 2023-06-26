@@ -12,7 +12,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     "BuildCanaryTestFailure",
     {
       "channel": "stable",
-      "label": "Canary Build Failures",
+      "label": "CanaryBuildFailures",
     }
   );
 
@@ -21,7 +21,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     {
       "channel": "stable",
       "platform": "android",
-      "label": "E2E Canary Failures",
+      "label": "E2ECanaryFailures",
     }
   );
 
@@ -30,7 +30,7 @@ export function createCanaryTestFailureAlarm(scope: Construct) {
     {
       "channel": "stable",
       "platform": "ios",
-      "label": "E2E Canary Failures",
+      "label": "E2ECanaryFailures",
     }
   );
 
