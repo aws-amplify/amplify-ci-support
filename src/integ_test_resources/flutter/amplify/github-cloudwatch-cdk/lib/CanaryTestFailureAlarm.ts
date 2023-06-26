@@ -2,16 +2,16 @@ import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Alarm, ComparisonOperator, Metric, TreatMissingData, DimensionsMap, Stats } from 'aws-cdk-lib/aws-cloudwatch';
 
-const metricNamespace = 'GithubCanaryApps';
-
 // Create the metric and alarms for tracking Github Canary failures.
 // These metrics are sent in Github action: amplify-flutter/amplify_canaries
 export class CanaryTestFailureAlarm extends Construct {
 
+  static metricNamespace = 'GithubCanaryApps';
+
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    const BuildFailureStableMetric = this.createMetric(
+    const buildFailureStableMetric = this.createMetric(
       'BuildCanaryTestFailure',
       'CanaryBuildFailures',
       {
@@ -19,7 +19,7 @@ export class CanaryTestFailureAlarm extends Construct {
       }
     );
 
-    const E2EAndroidStableMetric = this.createMetric(
+    const e2eAndroidStableMetric = this.createMetric(
       'E2ECanaryTestFailure',
       'E2ECanaryFailures',
       {
@@ -28,7 +28,7 @@ export class CanaryTestFailureAlarm extends Construct {
       }
     );
 
-    const E2EIosStableMetric = this.createMetric(
+    const e2eIosStableMetric = this.createMetric(
       'E2ECanaryTestFailure',
       'E2ECanaryFailures',
       {
@@ -41,21 +41,21 @@ export class CanaryTestFailureAlarm extends Construct {
       `build-canary-test-failure-alarm`,
       'Build Canary (stable)',
       'Alarm triggered when the Github Action Canaries build step fails',
-      BuildFailureStableMetric
+      buildFailureStableMetric
     );
 
     this.createAlarm(
       `e2e-android-canary-test-failure-alarm`,
       'E2E Android Canary (stable)',
       'Alarm triggered when the Github Action Canaries E2E android step fails',
-      E2EAndroidStableMetric
+      e2eAndroidStableMetric
     );
 
     this.createAlarm(
       `e2e-ios-canary-test-failure-alarm`,
       'E2E iOS Canary (stable)',
       'Alarm triggered when the Github Action Canaries E2E iOS step fails',
-      E2EIosStableMetric
+      e2eIosStableMetric
     );
 
     // TODO: Create Github issues as alarm actions
@@ -67,9 +67,9 @@ export class CanaryTestFailureAlarm extends Construct {
   private createMetric(metricName: string, label: string, dimensions: DimensionsMap): Metric {
     return new Metric({
       metricName,
-      namespace: metricNamespace,
+      namespace: CanaryTestFailureAlarm.metricNamespace,
       statistic: Stats.MAXIMUM,
-      period: Duration.minutes(5),
+      period: Duration.hours(1),
       dimensionsMap: dimensions,
       label: label,
     });

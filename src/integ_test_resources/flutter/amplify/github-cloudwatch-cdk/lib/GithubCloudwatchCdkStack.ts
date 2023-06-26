@@ -10,7 +10,6 @@ export class GithubCloudwatchCdkStack extends cdk.Stack {
     // It's currently performed in a separate CloudFormation template:
     // https://github.com/aws-amplify/amplify-ci-support/blob/main/src/integ_test_resources/flutter/amplify/cloudformation_template.yaml
 
-    // @ts-ignore
     new CanaryTestFailureAlarm(this, 'CanaryTestFailureAlarm');
 
   }
