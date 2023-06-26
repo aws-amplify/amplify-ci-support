@@ -6,7 +6,7 @@ import { Alarm, ComparisonOperator, Metric, TreatMissingData, DimensionsMap, Sta
 // These metrics are sent in Github action: amplify-flutter/amplify_canaries
 export class CanaryTestFailureAlarm extends Construct {
 
-  static metricNamespace = 'GithubCanaryApps';
+  private static metricNamespace = 'GithubCanaryApps';
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
