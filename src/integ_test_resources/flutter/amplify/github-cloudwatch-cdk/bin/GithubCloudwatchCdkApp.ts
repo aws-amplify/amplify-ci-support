@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { GithubCloudwatchCdkStack } from '../lib/github-cloudwatch-cdk-stack';
+import { GithubCloudwatchCdkStack } from '../lib/GithubCloudwatchCdkStack';
 
 const app = new cdk.App();
 new GithubCloudwatchCdkStack(app, 'GithubCloudwatchCdkStack', {
