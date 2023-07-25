@@ -23,7 +23,6 @@ credential_rotation_stack = CredentialRotationStack(
     bucket_arn=bucket_arn,
     cloudfront_distribution_id=cloudfront_distribution_id,
     cloudfront_arn=cloudfront_arn,
-    github_oidc_principal=distribution_stack.github_action_role.principal
 )
 
 app.synth()
