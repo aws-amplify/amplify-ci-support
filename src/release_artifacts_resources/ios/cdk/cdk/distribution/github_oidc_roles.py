@@ -27,12 +27,7 @@ class GithubOIDCRoles(core.Construct):
                         actions=[
                             "s3:PutObject"
                         ],
-                        resources=[f"{bucket.bucket_arn}/*"],
-                        conditions={
-                            "Bool": {
-                                "aws:SecureTransport": "true"
-                            }
-                        }
+                        resources=[f"{bucket.bucket_arn}/*"]
                     )]
                 )
             }
