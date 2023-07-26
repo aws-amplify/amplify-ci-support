@@ -12,10 +12,8 @@ class GithubActionOIDC(core.Construct):
         aws_sdk_ios_integration_test_principal = aws_iam.OpenIdConnectPrincipal(self.provider,
             conditions={
                 "StringEquals": {
-                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-                },
-                "StringLike": {
-                    "token.actions.githubusercontent.com:sub": "repo:aws-amplify/aws-sdk-ios:*"
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                    "token.actions.githubusercontent.com:sub": "repo:aws-amplify/aws-sdk-ios:environment:IntegrationTest"
                 }
             }
         )
