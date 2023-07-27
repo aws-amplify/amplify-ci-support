@@ -4,7 +4,7 @@ class GithubActionOIDC(core.Construct):
     def __init__(self, scope: core.Construct, construct_id: str):
         super().__init__(scope, construct_id)
 
-        self.provider = aws_iam.OpenIdConnectProvider(self, "Provider",
+        self.provider = aws_iam.OpenIdConnectProvider(self, "provider",
             url="https://token.actions.githubusercontent.com",
             client_ids=["sts.amazonaws.com"]
         )
@@ -18,6 +18,8 @@ class GithubActionOIDC(core.Construct):
             }
         )
 
-        self.aws_sdk_ios_integration_test_role = aws_iam.Role(self, "AwsSDKiOSIntegrationTestOIDCRole",
+        self.aws_sdk_ios_integration_test_role = aws_iam.Role(
+            self,
+            "aws_sdk_ios_integration_test_role",
             assumed_by=aws_sdk_ios_integration_test_principal
         )
