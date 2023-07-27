@@ -3,7 +3,7 @@ from aws_cdk import aws_cognito, aws_iam, core
 from common.auth_utils import construct_identity_pool
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
-
+from common.github_action_oidc import GithubActionOIDC
 
 class CommonStack(RegionAwareStack):
     def __init__(self, scope: core.Construct, id: str, platform: Platform, **kwargs) -> None:
@@ -36,6 +36,9 @@ class CommonStack(RegionAwareStack):
             self.create_common_identity_pool()
 
         self.save_parameters_in_parameter_store(platform=platform)
+        if platform == Platform.IOS:
+            self.github_action_oidc = GithubActionOIDC(self, "github_action_oidc")
+            self.github_action_oidc.aws_sdk_ios_integration_test_role.add_to_policy(policy_to_add)
 
     def is_cognito_supported_in_region(self, region_name: str = None) -> bool:
         return self.is_service_supported_in_region("cognito-identity", region_name=region_name)
@@ -51,6 +54,9 @@ class CommonStack(RegionAwareStack):
             )
 
         self._circleci_execution_role.add_to_policy(policy_to_add)
+        if self.github_action_oidc is not None:
+            self.github_action_oidc.aws_sdk_ios_integration_test_role.add_to_policy(policy_to_add)
+
 
         if self._cognito_support_in_region:
             self._cognito_identity_pool_auth_role.add_to_policy(policy_to_add)
