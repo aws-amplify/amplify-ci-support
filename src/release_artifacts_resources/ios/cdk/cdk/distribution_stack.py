@@ -1,7 +1,7 @@
 from aws_cdk import core as cdk
 from cdk.distribution.cloudfront_construct import CloudFrontConstruct
 from cdk.distribution.s3_construct import S3Construct
-
+from cdk.distribution.github_oidc_roles import GithubOIDCRoles
 
 class DistributionStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:
@@ -9,3 +9,4 @@ class DistributionStack(cdk.Stack):
 
         self.s3 = S3Construct(self, "distribution_s3_construct")
         self.cloudfront = CloudFrontConstruct(self, "distribution_cloudfront_construct", self.s3)
+        GithubOIDCRoles(self, "github_oidc_roles", bucket=self.s3.bucket)

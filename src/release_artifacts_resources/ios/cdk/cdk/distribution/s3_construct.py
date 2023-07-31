@@ -1,4 +1,4 @@
-from aws_cdk import aws_s3, core
+from aws_cdk import aws_iam, aws_s3, core
 
 
 class S3Construct(core.Construct):
@@ -26,3 +26,20 @@ class S3Construct(core.Construct):
             versioned=True,
             encryption=aws_s3.BucketEncryption.S3_MANAGED,
         )
+
+        # resource policy complies with s3-bucket-ssl-requests-only rule
+        # https://repost.aws/knowledge-center/s3-bucket-policy-for-config-rule
+        self.bucket.add_to_resource_policy(aws_iam.PolicyStatement(
+            principals=[aws_iam.StarPrincipal()],
+            effect=aws_iam.Effect.DENY,
+            actions=["s3:*"],
+            resources=[
+                self.bucket.bucket_arn,
+                f"{self.bucket.bucket_arn}/*"
+            ],
+            conditions={
+                "Bool": {
+                    "aws:SecureTransport": "false"
+                }
+            }
+        ))

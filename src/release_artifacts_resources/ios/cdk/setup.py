@@ -14,7 +14,12 @@ setuptools.setup(
     package_dir={"": "cdk"},
     packages=setuptools.find_packages(where="cdk"),
     install_requires=[
-        "aws-cdk.core==1.94.1",
+        "aws-cdk.core==1.204.0",
+        "aws-cdk.aws-iam",
+        "aws-cdk.aws-events",
+        "aws-cdk.aws-events-targets",
+        "aws-cdk.aws-lambda-python",
+        "aws-cdk.aws-cloudfront-origins",
     ],
     python_requires=">=3.6",
     classifiers=[
