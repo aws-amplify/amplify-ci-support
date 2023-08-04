@@ -17,7 +17,6 @@ SIGNING_ALGORITHM = "RSASSA_PKCS1_V1_5_SHA_256"
 
 
 def on_event(event, __):
-    print(f"### on_event: {event}")
     request_type = event["RequestType"]
     if request_type == "Create":
         return on_create(event)
@@ -29,37 +28,31 @@ def on_event(event, __):
 
 
 def on_create(event):
-    print(f"### on_create({event})")
     token_value = event["ResourceProperties"]["token_value"]
     key_id = create_key()
     return get_create_and_update_response(key_id, token_value)
 
 
 def on_update(event):
-    print(f"### on_update({event})")
     token_value = event["ResourceProperties"]["token_value"]
     key_id = event["PhysicalResourceId"]
     return get_create_and_update_response(key_id, token_value)
 
 
 def on_delete(event):
-    print(f"### on_delete({event})")
     key_id = event["PhysicalResourceId"]
     delete_key(key_id)
     response = {"PhysicalResourceId": key_id}
-    print(f"### on_delete response: {response}")
     return response
 
 
 def create_key():
-    print("### create_key")
     client = boto3.client("kms")
     create_key_response = client.create_key(
         Description="Key used to sign token values for the IoT custom authorizer",
         KeyUsage="SIGN_VERIFY",
         CustomerMasterKeySpec="RSA_2048",
     )
-    print(f"### create_key_response: {create_key_response}")
     key_id = create_key_response["KeyMetadata"]["KeyId"]
     # Newly-created CMKs are enabled by default, so there shouldn't be any need to wait for it to
     # become active before using it.
@@ -79,7 +72,6 @@ def get_create_and_update_response(key_id, token_value):
     :param token_value: The token to sign
     :return: a CustomResource response
     """
-    print(f"### get_create_and_update_response({key_id, token_value})")
     public_key = get_public_key(key_id)
     token_signature = sign(key_id, token_value)
 
@@ -90,15 +82,12 @@ def get_create_and_update_response(key_id, token_value):
             "custom_authorizer_token_signature": token_signature,
         },
     }
-    print(f"### get_create_and_update_response response: {response}")
     return response
 
 
 def get_public_key(key_id):
-    print(f"### get_public_key({key_id})")
     client = boto3.client("kms")
     get_public_key_response = client.get_public_key(KeyId=key_id)
-    print(f"### get_public_key_response: {get_public_key_response}")
     data = get_public_key_response["PublicKey"]
     base64_bytes = base64.b64encode(data)
     base64_string = base64_bytes.decode("utf8")
@@ -106,7 +95,6 @@ def get_public_key(key_id):
 
 
 def sign(key_id, token_value):
-    print(f"### sign({key_id, token_value})")
     client = boto3.client("kms")
     token_bytes = bytes(token_value, "utf8")
     sign_response = client.sign(
@@ -115,7 +103,6 @@ def sign(key_id, token_value):
         MessageType="RAW",
         SigningAlgorithm=SIGNING_ALGORITHM,
     )
-    print(f"### sign_response: {sign_response}")
     data = sign_response["Signature"]
     base64_bytes = base64.b64encode(data)
     base64_string = base64_bytes.decode("utf8")
@@ -123,9 +110,7 @@ def sign(key_id, token_value):
 
 
 def delete_key(key_id):
-    print(f"### delete_key({key_id})")
     client = boto3.client("kms")
     schedule_key_deletion_response = client.schedule_key_deletion(
         KeyId=key_id, PendingWindowInDays=7
     )
-    print(f"### schedule_key_deletion_response: {schedule_key_deletion_response}")

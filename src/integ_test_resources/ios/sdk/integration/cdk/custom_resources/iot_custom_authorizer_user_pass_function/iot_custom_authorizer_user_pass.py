@@ -4,7 +4,6 @@ import os
 
 
 def handler(event, __):
-    print(f"### handler: {event}")
     token = event["token"].lower()
 
     mqtt_user = event["protocolData"]["mqtt"]["username"]
@@ -23,7 +22,6 @@ def handler(event, __):
 
     response = make_auth_response(effect)
     response_string = json.dumps(response)
-    print(f"### returning response: {response_string}")
     return response_string
 
 
