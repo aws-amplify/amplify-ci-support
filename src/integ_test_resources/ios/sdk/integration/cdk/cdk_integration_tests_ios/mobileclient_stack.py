@@ -25,6 +25,12 @@ class MobileClientStack(RegionAwareStack):
 
         super().__init__(scope, id, **kwargs)
 
+        self.user_pool_email_ses_identity_arn = core.CfnParameter(self, "emailSesIdentityArn",
+            type="String",
+            description="The ARN of SES identity used for sending email messages",
+            allowed_pattern="^arn:aws:ses:[a-z0-9\-]+:\d{12}:identity\/.+"
+        )
+
         self._supported_in_region = self.are_services_supported_in_region(
             ["cognito-identity", "cognito-idp"]
         )
@@ -203,6 +209,10 @@ class MobileClientStack(RegionAwareStack):
                 ),
             ],
             lambda_config=lambda_config,
+            email_configuration=aws_cognito.CfnUserPool.EmailConfigurationProperty(
+                source_arn=self.user_pool_email_ses_identity_arn.value_as_string,
+                email_sending_account="DEVELOPER"
+            ),
         )
         return user_pool
 
