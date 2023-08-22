@@ -1,8 +1,14 @@
-from aws_cdk import core, aws_iam, aws_s3
+from aws_cdk import core, aws_iam, aws_s3, aws_cloudfront
 
 # This construct is dedicated for Github workflows to retrieve AWS credential with OIDC
 class GithubOIDCRoles(core.Construct):
-    def __init__(self, scope: core.Construct, construct_id: str, bucket: aws_s3.Bucket):
+    def __init__(
+        self,
+        scope: core.Construct,
+        construct_id: str,
+        bucket: aws_s3.Bucket,
+        cloudfront_distribution: aws_cloudfront.Distribution
+    ):
         super().__init__(scope, construct_id)
 
         self.provider = aws_iam.OpenIdConnectProvider(self, "github_oidc",
@@ -28,6 +34,12 @@ class GithubOIDCRoles(core.Construct):
                             "s3:PutObject"
                         ],
                         resources=[f"{bucket.bucket_arn}/*"]
+                    )]
+                ),
+                "invalidateCloudFrontDistribution": aws_iam.PolicyDocument(
+                    statements=[aws_iam.PolicyStatement(
+                        actions=["cloudfront:CreateInvalidation"],
+                        resources=[f"arn:aws:cloudfront::{core.Stack.of(self).account}:distribution/{cloudfront_distribution.distribution_id}"]
                     )]
                 )
             }

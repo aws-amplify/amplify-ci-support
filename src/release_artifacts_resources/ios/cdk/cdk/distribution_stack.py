@@ -9,4 +9,4 @@ class DistributionStack(cdk.Stack):
 
         self.s3 = S3Construct(self, "distribution_s3_construct")
         self.cloudfront = CloudFrontConstruct(self, "distribution_cloudfront_construct", self.s3)
-        GithubOIDCRoles(self, "github_oidc_roles", bucket=self.s3.bucket)
+        GithubOIDCRoles(self, "github_oidc_roles", bucket=self.s3.bucket, cloudfront_distribution=self.cloudfront.distribution)
