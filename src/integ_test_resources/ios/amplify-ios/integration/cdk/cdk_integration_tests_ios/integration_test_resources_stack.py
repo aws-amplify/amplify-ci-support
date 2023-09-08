@@ -1,11 +1,12 @@
-from aws_cdk import core as cdk
+from constructs import Construct
+from aws_cdk import Stack
 from cdk_integration_tests_ios.integration_test_resources.s3_construct import S3Construct
 from cdk_integration_tests_ios.integration_test_resources.iam_construct import IAMConstruct
 
-class IntegrationTestResourcesStack(cdk.Stack):
+class IntegrationTestResourcesStack(Stack):
     def __init__(
         self,
-        scope: cdk.Construct,
+        scope: Construct,
         construct_id: str,
         bucketPrefix: str,
         **kwargs
@@ -13,15 +14,14 @@ class IntegrationTestResourcesStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         s3_construct = S3Construct(
-            self, 
+            self,
             "integration_test_resources_s3",
             bucketPrefix=bucketPrefix
         )
 
         IAMConstruct(
-            self, "integration_test_resources_iam", 
+            self, "integration_test_resources_iam",
             bucket_arn=s3_construct.bucket.bucket_arn
         )
 
 
-            

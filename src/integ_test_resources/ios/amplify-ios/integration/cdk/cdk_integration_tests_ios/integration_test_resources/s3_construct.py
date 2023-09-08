@@ -1,31 +1,33 @@
-from aws_cdk import aws_s3, core
+from constructs import Construct
+from aws_cdk import RemovalPolicy
+from aws_cdk import aws_s3 as s3
 
-class S3Construct(core.Construct):
+class S3Construct(Construct):
     def __init__(
-        self, 
-        scope: core.Construct, 
-        construct_id: str, 
+        self,
+        scope: Construct,
+        construct_id: str,
         bucketPrefix: str,
         **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         logging_bucket_name = bucketPrefix + "amplify-ios-integ-access-logging"
-        access_log_bucket = aws_s3.Bucket(
+        access_log_bucket = s3.Bucket(
             self,
             "amplify-ios-integ-access-logging",
             bucket_name=logging_bucket_name,
-            block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=RemovalPolicy.DESTROY,
         )
 
         bucket_name = bucketPrefix + "amplify-ios-integ"
-        self.bucket = aws_s3.Bucket(
+        self.bucket = s3.Bucket(
             self,
             "amplify-ios-integ-configuration_bucket",
             bucket_name=bucket_name,
-            block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy=RemovalPolicy.DESTROY,
             server_access_logs_bucket=access_log_bucket,
             versioned=True,
-            encryption=aws_s3.BucketEncryption.S3_MANAGED,
+            encryption=s3.BucketEncryption.S3_MANAGED,
         )
