@@ -1,4 +1,6 @@
-from aws_cdk import aws_cognito, aws_iam, core
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_cognito as cognito
+from constructs import Construct
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
@@ -7,7 +9,7 @@ from common.secrets_manager import get_integ_tests_secrets
 
 
 class CoreStack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
 
@@ -45,8 +47,8 @@ class CoreStack(RegionAwareStack):
 
         self.create_wic_provider_test_role()
 
-        stack_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
+        stack_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW, actions=["cognito-identity:*"], resources=["*"]
         )
 
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
@@ -62,7 +64,7 @@ class CoreStack(RegionAwareStack):
 
     def construct_identity_pool_with_facebook_as_idp(
         self,
-    ) -> (aws_cognito.CfnIdentityPool, aws_iam.Role, aws_iam.Role):
+    ) -> (cognito.CfnIdentityPool, iam.Role, iam.Role):
 
         supported_login_providers = {"graph.facebook.com": self._facebook_app_id}
         (identity_pool, auth_role, unauth_role) = construct_identity_pool(
@@ -78,18 +80,18 @@ class CoreStack(RegionAwareStack):
             "StringEquals": {"graph.facebook.com:app_id": self._facebook_app_id}
         }
 
-        wic_provider_test_role = aws_iam.Role(
+        wic_provider_test_role = iam.Role(
             self,
             "wic_provider_test_role",
-            assumed_by=aws_iam.FederatedPrincipal(
+            assumed_by=iam.FederatedPrincipal(
                 "graph.facebook.com",
                 wic_provider_test_role_condition,
                 "sts:AssumeRoleWithWebIdentity",
             ),
         )
         wic_provider_test_role.add_to_policy(
-            aws_iam.PolicyStatement(
-                effect=aws_iam.Effect.ALLOW, actions=["translate:TranslateText"], resources=["*"]
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW, actions=["translate:TranslateText"], resources=["*"]
             )
         )
 

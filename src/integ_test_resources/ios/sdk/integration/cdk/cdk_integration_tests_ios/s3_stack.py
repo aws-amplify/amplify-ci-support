@@ -1,11 +1,15 @@
-from aws_cdk import aws_iam, aws_s3, core
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_s3 as s3
+from aws_cdk import RemovalPolicy
+from constructs import Construct
+
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
 
 
 class S3Stack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region()
@@ -15,8 +19,8 @@ class S3Stack(RegionAwareStack):
         bucket_name_periods = self.create_period_bucket()
         bucket_name_transfer_acceleration = self.create_transfer_accelerated_bucket()
 
-        bucket_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        bucket_resources_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:*"],
             resources=[
                 f"arn:aws:s3:::{bucket_name_prefix}*",
@@ -31,8 +35,8 @@ class S3Stack(RegionAwareStack):
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=bucket_resources_policy)
 
-        all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW, actions=["s3:ListAllMyBuckets"], resources=["*"]
+        all_resources_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW, actions=["s3:ListAllMyBuckets"], resources=["*"]
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
@@ -45,22 +49,22 @@ class S3Stack(RegionAwareStack):
 
     def create_basic_bucket(self) -> str:
         bucket_name = self.get_bucket_name("basic")
-        aws_s3.Bucket(
+        s3.Bucket(
             self,
             "integ_test_s3_bucket_basic",
             bucket_name=bucket_name,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["bucket_name_basic"] = bucket_name
         return bucket_name
 
     def create_period_bucket(self) -> str:
         bucket_name = self.get_bucket_name("period.test")
-        aws_s3.Bucket(
+        s3.Bucket(
             self,
             "integ_test_s3_bucket_periods",
             bucket_name=bucket_name,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["bucket_name_with_periods"] = bucket_name
         return bucket_name
@@ -68,12 +72,12 @@ class S3Stack(RegionAwareStack):
     def create_transfer_accelerated_bucket(self) -> str:
         bucket_name = self.get_bucket_name("accel")
         # As of this writing (2020-05-11), The Bucket object does not expose transfer acceleration
-        bucket = aws_s3.CfnBucket(
+        bucket = s3.CfnBucket(
             self,
             "integ_test_s3_bucket_transfer_acceleration",
             bucket_name=bucket_name,
             accelerate_configuration={"accelerationStatus": "Enabled"},
         )
         self._parameters_to_save["bucket_name_transfer_acceleration"] = bucket_name
-        bucket.apply_removal_policy(core.RemovalPolicy.DESTROY)
+        bucket.apply_removal_policy(RemovalPolicy.DESTROY)
         return bucket_name

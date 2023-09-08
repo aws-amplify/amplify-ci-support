@@ -1,19 +1,22 @@
-from aws_cdk import aws_iam, aws_s3, core
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_s3 as s3
+from aws_cdk import RemovalPolicy
+from constructs import Construct
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
 
 
 class PollyStack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region()
 
         self.create_bucket(common_stack)
 
-        all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        all_resources_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=[
                 "polly:DeleteLexicon",
                 "polly:GetSpeechSynthesisTask",
@@ -30,15 +33,15 @@ class PollyStack(RegionAwareStack):
 
     def create_bucket(self, common_stack):
         bucket_name = self.get_bucket_name("output")
-        bucket = aws_s3.Bucket(
+        bucket = s3.Bucket(
             self,
             "integ_test_polly_output_bucket",
             bucket_name=bucket_name,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
         )
         self._parameters_to_save["s3_output_bucket_name"] = bucket.bucket_name
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:PutObject"],
             resources=[f"arn:aws:s3:::{bucket_name}/*"],
         )

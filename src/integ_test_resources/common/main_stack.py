@@ -1,10 +1,10 @@
-from aws_cdk import core
+from constructs import Construct
 
 from common.region_aware_stack import RegionAwareStack
 
 
 class MainStack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
     def add_dependency_with_region_filter(self, stack: RegionAwareStack):

@@ -1,15 +1,14 @@
 from typing import List, Optional
 
-from aws_cdk import (
-    aws_cloudfront,
-    aws_cloudfront_origins,
-    aws_cognito,
-    aws_iam,
-    aws_lambda,
-    aws_s3,
-    core,
-    custom_resources,
-)
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_cloudfront as cloudfront
+from aws_cdk import aws_cloudfront_origins as cloudfront_origins
+from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_lambda as lambda_
+from aws_cdk import aws_s3 as s3
+from aws_cdk import custom_resources as custom_resources
+from aws_cdk import CfnParameter, RemovalPolicy
+from constructs import Construct
 from common.auth_utils import construct_identity_pool
 from common.common_stack import CommonStack
 from common.platforms import Platform
@@ -21,11 +20,11 @@ class MobileClientStack(RegionAwareStack):
     DEVELOPER_PROVIDER_NAME = "login.test.awsmobileclient"
     """Used as the name of the developer-authenticated identity provider"""
 
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
 
-        self.user_pool_email_ses_identity_arn = core.CfnParameter(self, "emailSesIdentityArn",
+        self.user_pool_email_ses_identity_arn = CfnParameter(self, "emailSesIdentityArn",
             type="String",
             description="The ARN of SES identity used for sending email messages",
             allowed_pattern="^arn:aws:ses:[a-z0-9\-]+:\d{12}:identity\/.+"
@@ -84,7 +83,7 @@ class MobileClientStack(RegionAwareStack):
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def create_custom_auth_user_pool(
-        self, user_pool: aws_cognito.CfnUserPool, user_pool_client: aws_cognito.CfnUserPoolClient
+        self, user_pool: cognito.CfnUserPool, user_pool_client: cognito.CfnUserPoolClient
     ):
         # This is a special case parameter for custom auth tests
         self._parameters_to_save[
@@ -141,20 +140,20 @@ class MobileClientStack(RegionAwareStack):
         :return: the CloudFront Origin to be used for the value of the `Endpoint` in the custom
         config
         """
-        origin = aws_cloudfront_origins.HttpOrigin(f"cognito-idp.{self.region}.amazonaws.com")
-        distribution = aws_cloudfront.Distribution(
+        origin = cloudfront_origins.HttpOrigin(f"cognito-idp.{self.region}.amazonaws.com")
+        distribution = cloudfront.Distribution(
             self,
             f"cloudfront_userpool_{tag}",
-            default_behavior=aws_cloudfront.BehaviorOptions(
-                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL, origin=origin
+            default_behavior=cloudfront.BehaviorOptions(
+                allowed_methods=cloudfront.AllowedMethods.ALLOW_ALL, origin=origin
             ),
         )
 
         return distribution.domain_name
 
     def create_s3_bucket_and_policies(
-        self, auth_role: aws_iam.Role, unauth_role: aws_iam.Role
-    ) -> aws_s3.Bucket:
+        self, auth_role: iam.Role, unauth_role: iam.Role
+    ) -> s3.Bucket:
         """
         Creates an S3 bucket and storage policies that mimic Amplify configurations
 
@@ -162,8 +161,8 @@ class MobileClientStack(RegionAwareStack):
         :param unauth_role: The IAM role adopted by unauthenticated users the Identity Pool
         :return: the S3 Bucket
         """
-        bucket = aws_s3.Bucket(
-            self, "integ_test_mobileclient_bucket", removal_policy=core.RemovalPolicy.DESTROY
+        bucket = s3.Bucket(
+            self, "integ_test_mobileclient_bucket", removal_policy=RemovalPolicy.DESTROY
         )
         MobileClientStack.add_public_policy(bucket, unauth_role, False)
         MobileClientStack.add_read_policy(bucket, unauth_role)
@@ -179,29 +178,29 @@ class MobileClientStack(RegionAwareStack):
         return bucket
 
     def create_user_pool(
-        self, tag: str, lambda_config: Optional[aws_cognito.CfnUserPool.LambdaConfigProperty]
-    ) -> aws_cognito.CfnUserPool:
-        user_pool = aws_cognito.CfnUserPool(
+        self, tag: str, lambda_config: Optional[cognito.CfnUserPool.LambdaConfigProperty]
+    ) -> cognito.CfnUserPool:
+        user_pool = cognito.CfnUserPool(
             self,
             f"userpool_{tag}",
             auto_verified_attributes=["email"],
-            device_configuration=aws_cognito.CfnUserPool.DeviceConfigurationProperty(
+            device_configuration=cognito.CfnUserPool.DeviceConfigurationProperty(
                 challenge_required_on_new_device=False, device_only_remembered_on_user_prompt=True
             ),
             schema=[
-                aws_cognito.CfnUserPool.SchemaAttributeProperty(
+                cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
                     mutable=False,
                     name="email",
                     required=True,
                 ),
-                aws_cognito.CfnUserPool.SchemaAttributeProperty(
+                cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
                     mutable=True,
                     name="mutableStringAttr1",
                     required=False,
                 ),
-                aws_cognito.CfnUserPool.SchemaAttributeProperty(
+                cognito.CfnUserPool.SchemaAttributeProperty(
                     attribute_data_type="String",
                     mutable=True,
                     name="mutableStringAttr2",
@@ -209,7 +208,7 @@ class MobileClientStack(RegionAwareStack):
                 ),
             ],
             lambda_config=lambda_config,
-            email_configuration=aws_cognito.CfnUserPool.EmailConfigurationProperty(
+            email_configuration=cognito.CfnUserPool.EmailConfigurationProperty(
                 source_arn=self.user_pool_email_ses_identity_arn.value_as_string,
                 email_sending_account="DEVELOPER"
             ),
@@ -217,9 +216,9 @@ class MobileClientStack(RegionAwareStack):
         return user_pool
 
     def add_federation_to_user_pool(
-        self, user_pool: aws_cognito.CfnUserPool, tag: str
-    ) -> List[aws_cognito.CfnUserPoolIdentityProvider]:
-        facebook_identity_provider = aws_cognito.CfnUserPoolIdentityProvider(
+        self, user_pool: cognito.CfnUserPool, tag: str
+    ) -> List[cognito.CfnUserPoolIdentityProvider]:
+        facebook_identity_provider = cognito.CfnUserPoolIdentityProvider(
             self,
             f"user_pool_idp_facebook_{tag}",
             provider_name="Facebook",
@@ -234,7 +233,7 @@ class MobileClientStack(RegionAwareStack):
             attribute_mapping={"email": "email", "username": "id"},
         )
 
-        google_identity_provider = aws_cognito.CfnUserPoolIdentityProvider(
+        google_identity_provider = cognito.CfnUserPoolIdentityProvider(
             self,
             f"user_pool_idp_google_{tag}",
             provider_name="Google",
@@ -251,12 +250,12 @@ class MobileClientStack(RegionAwareStack):
 
     def create_user_pool_client(
         self,
-        user_pool: aws_cognito.CfnUserPool,
+        user_pool: cognito.CfnUserPool,
         tag: str,
-        federation_providers: List[aws_cognito.CfnUserPoolIdentityProvider],
-    ) -> aws_cognito.CfnUserPoolClient:
+        federation_providers: List[cognito.CfnUserPoolIdentityProvider],
+    ) -> cognito.CfnUserPoolClient:
         if not federation_providers:
-            user_pool_client = aws_cognito.CfnUserPoolClient(
+            user_pool_client = cognito.CfnUserPoolClient(
                 self,
                 f"userpool_client_{tag}",
                 generate_secret=True,
@@ -264,7 +263,7 @@ class MobileClientStack(RegionAwareStack):
             )
             return user_pool_client
 
-        user_pool_client = aws_cognito.CfnUserPoolClient(
+        user_pool_client = cognito.CfnUserPoolClient(
             self,
             f"userpool_client_{tag}",
             generate_secret=True,
@@ -298,8 +297,8 @@ class MobileClientStack(RegionAwareStack):
 
     def create_userpool_client_secret(
         self,
-        user_pool: aws_cognito.CfnUserPool,
-        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool: cognito.CfnUserPool,
+        user_pool_client: cognito.CfnUserPoolClient,
         tag: str,
     ) -> custom_resources.AwsCustomResource:
         """
@@ -312,8 +311,8 @@ class MobileClientStack(RegionAwareStack):
             resource_type="Custom::UserPoolClientSecret",
             policy=custom_resources.AwsCustomResourcePolicy.from_statements(
                 [
-                    aws_iam.PolicyStatement(
-                        effect=aws_iam.Effect.ALLOW,
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
                         actions=["cognito-idp:DescribeUserPoolClient"],
                         resources=[
                             f"arn:aws:cognito-idp:{self.region}:{self.account}:userpool/{user_pool.ref}"  # noqa: E501
@@ -325,22 +324,22 @@ class MobileClientStack(RegionAwareStack):
                 physical_resource_id=custom_resources.PhysicalResourceId.of(user_pool_client.ref),
                 service="CognitoIdentityServiceProvider",
                 action="describeUserPoolClient",
-                output_path="UserPoolClient.ClientSecret",
+                output_paths=["UserPoolClient.ClientSecret"],
                 parameters={"ClientId": user_pool_client.ref, "UserPoolId": user_pool.ref},
             ),
             on_update=custom_resources.AwsSdkCall(
                 physical_resource_id=custom_resources.PhysicalResourceId.of(user_pool_client.ref),
                 service="CognitoIdentityServiceProvider",
                 action="describeUserPoolClient",
-                output_path="UserPoolClient.ClientSecret",
+                output_paths=["UserPoolClient.ClientSecret"],
                 parameters={"ClientId": user_pool_client.ref, "UserPoolId": user_pool.ref},
             ),
         )
         return resource
 
-    def create_user_pool_domain(self, user_pool: aws_cognito.CfnUserPool, tag: str):
+    def create_user_pool_domain(self, user_pool: cognito.CfnUserPool, tag: str):
         domain_prefix = self._secrets["hostedui.domain_prefix"]
-        domain = aws_cognito.CfnUserPoolDomain(
+        domain = cognito.CfnUserPoolDomain(
             self,
             f"user_pool_domain_{tag}",
             domain=domain_prefix,
@@ -350,69 +349,69 @@ class MobileClientStack(RegionAwareStack):
 
     def create_custom_auth_lambda_configuration(
         self,
-    ) -> aws_cognito.CfnUserPool.LambdaConfigProperty:
-        cognito_service_principal = aws_iam.ServicePrincipal("cognito-idp.amazonaws.com")
-        create_auth_challenge = aws_lambda.Function(
+    ) -> cognito.CfnUserPool.LambdaConfigProperty:
+        cognito_service_principal = iam.ServicePrincipal("cognito-idp.amazonaws.com")
+        create_auth_challenge = lambda_.Function(
             self,
             "custom_auth_lambda_create_auth_challenge",
-            runtime=aws_lambda.Runtime.NODEJS_16_X,
-            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            runtime=lambda_.Runtime.NODEJS_16_X,
+            code=lambda_.AssetCode.from_asset("custom_resources/custom_auth"),
             handler="create_auth_challenge.handler",
             description="custom auth: create_auth_challenge",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
         )
         create_auth_challenge.add_permission(
             "create_auth_challenge_invoke_permission", principal=cognito_service_principal
         )
 
-        define_auth_challenge = aws_lambda.Function(
+        define_auth_challenge = lambda_.Function(
             self,
             "custom_auth_lambda_define_auth_challenge",
-            runtime=aws_lambda.Runtime.NODEJS_16_X,
-            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            runtime=lambda_.Runtime.NODEJS_16_X,
+            code=lambda_.AssetCode.from_asset("custom_resources/custom_auth"),
             handler="define_auth_challenge.handler",
             description="custom auth: define_auth_challenge",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
         )
         define_auth_challenge.add_permission(
             "define_auth_challenge_invoke_permission", principal=cognito_service_principal
         )
 
-        pre_sign_up = aws_lambda.Function(
+        pre_sign_up = lambda_.Function(
             self,
             "custom_auth_lambda_pre_sign_up",
-            runtime=aws_lambda.Runtime.NODEJS_16_X,
-            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            runtime=lambda_.Runtime.NODEJS_16_X,
+            code=lambda_.AssetCode.from_asset("custom_resources/custom_auth"),
             handler="pre_sign_up.handler",
             description="custom auth: pre_sign_up",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
         )
         pre_sign_up.add_permission(
             "pre_sign_up_invoke_permission", principal=cognito_service_principal
         )
 
-        verify_auth_challenge_response = aws_lambda.Function(
+        verify_auth_challenge_response = lambda_.Function(
             self,
             "custom_auth_lambda_verify_auth_challenge_response",
-            runtime=aws_lambda.Runtime.NODEJS_16_X,
-            code=aws_lambda.Code.asset("custom_resources/custom_auth"),
+            runtime=lambda_.Runtime.NODEJS_16_X,
+            code=lambda_.AssetCode.from_asset("custom_resources/custom_auth"),
             handler="verify_auth_challenge_response.handler",
             description="custom auth: verify_auth_challenge_response",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
         )
         verify_auth_challenge_response.add_permission(
             "verify_auth_challenge_response_invoke_permission", principal=cognito_service_principal
         )
 
-        return aws_cognito.CfnUserPool.LambdaConfigProperty(
+        return cognito.CfnUserPool.LambdaConfigProperty(
             create_auth_challenge=create_auth_challenge.function_arn,
             define_auth_challenge=define_auth_challenge.function_arn,
             pre_sign_up=pre_sign_up.function_arn,
@@ -420,14 +419,14 @@ class MobileClientStack(RegionAwareStack):
         )
 
     def update_common_stack_with_test_policy(self, common_stack: CommonStack):
-        stack_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        stack_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["cognito-identity:*", "cognito-idp:AdminCreateUser"],
             resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=stack_policy)
 
-    def update_parameters_for_identity_pool(self, identity_pool: aws_cognito.CfnIdentityPool):
+    def update_parameters_for_identity_pool(self, identity_pool: cognito.CfnIdentityPool):
         self._parameters_to_save.update(
             {
                 "developer_provider_name": MobileClientStack.DEVELOPER_PROVIDER_NAME,
@@ -438,10 +437,10 @@ class MobileClientStack(RegionAwareStack):
 
     def update_parameters_for_userpool(
         self,
-        user_pool: aws_cognito.CfnUserPool,
-        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool: cognito.CfnUserPool,
+        user_pool_client: cognito.CfnUserPoolClient,
         user_pool_client_secret: custom_resources.AwsCustomResource,
-        user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
+        user_pool_domain: Optional[cognito.CfnUserPoolDomain],
         tag: str,
         custom_endpoint: Optional[str] = None,
     ):
@@ -483,7 +482,7 @@ class MobileClientStack(RegionAwareStack):
                 }
             )
 
-    def update_parameters_for_s3_bucket(self, bucket: aws_s3.Bucket):
+    def update_parameters_for_s3_bucket(self, bucket: s3.Bucket):
         self._parameters_to_save.update(
             {
                 "awsconfiguration/S3TransferUtility/Default/Bucket": bucket.bucket_name,
@@ -493,9 +492,9 @@ class MobileClientStack(RegionAwareStack):
 
     def update_parameters_for_auth_section(
         self,
-        user_pool_client: aws_cognito.CfnUserPoolClient,
+        user_pool_client: cognito.CfnUserPoolClient,
         user_pool_client_secret: custom_resources.AwsCustomResource,
-        user_pool_domain: Optional[aws_cognito.CfnUserPoolDomain],
+        user_pool_domain: Optional[cognito.CfnUserPoolDomain],
         tag: str,
     ):
         """
@@ -527,30 +526,30 @@ class MobileClientStack(RegionAwareStack):
         )
 
     @staticmethod
-    def add_public_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, is_auth_role: bool):
+    def add_public_policy(bucket: s3.Bucket, role: iam.Role, is_auth_role: bool):
         actions = ["s3:GetObject"]
         if is_auth_role:
             actions.extend(["s3:PutObject", "s3:DeleteObject"])
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=actions,
             resources=[f"arn:aws:s3:::{bucket.bucket_name}/public/*"],
         )
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_read_policy(bucket: aws_s3.Bucket, role: aws_iam.Role):
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+    def add_read_policy(bucket: s3.Bucket, role: iam.Role):
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:GetObject"],
             resources=[f"arn:aws:s3:::{bucket.bucket_name}/protected/*"],
         )
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_list_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, is_auth_role: bool):
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+    def add_list_policy(bucket: s3.Bucket, role: iam.Role, is_auth_role: bool):
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:ListBucket"],
             resources=[f"arn:aws:s3:::{bucket.bucket_name}"],
         )
@@ -567,9 +566,9 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_user_specific_policy(bucket: aws_s3.Bucket, role: aws_iam.Role, prefix: str):
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+    def add_user_specific_policy(bucket: s3.Bucket, role: iam.Role, prefix: str):
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
             resources=[
                 f"arn:aws:s3:::{bucket.bucket_name}/{prefix}/${{cognito-identity.amazonaws.com:sub}}/*"  # noqa: E501
@@ -578,9 +577,9 @@ class MobileClientStack(RegionAwareStack):
         role.add_to_policy(policy)
 
     @staticmethod
-    def add_uploads_policy(bucket: aws_s3.Bucket, role: aws_iam.Role):
-        policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+    def add_uploads_policy(bucket: s3.Bucket, role: iam.Role):
+        policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["s3:PutObject"],
             resources=[f"arn:aws:s3:::{bucket.bucket_name}/uploads/*"],
         )
