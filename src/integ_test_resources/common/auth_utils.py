@@ -1,16 +1,17 @@
-from aws_cdk import aws_cognito, aws_iam, core
-
+from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_iam as iam
+from constructs import Construct
 
 def construct_identity_pool(
-    scope: core.Construct,
+    scope: Construct,
     resource_id_prefix: str,
     cognito_identity_providers: list = [],
     supported_login_providers: dict = {},
     developer_provider_name: str = None,
     **kwargs
-) -> (aws_cognito.CfnIdentityPool, aws_iam.Role, aws_iam.Role):
+) -> (cognito.CfnIdentityPool, iam.Role, iam.Role):
 
-    identity_pool = aws_cognito.CfnIdentityPool(
+    identity_pool = cognito.CfnIdentityPool(
         scope,
         resource_id_prefix + "_identity_pool",
         allow_unauthenticated_identities=True,
@@ -41,7 +42,7 @@ def construct_identity_pool(
         ),
     )
 
-    aws_cognito.CfnIdentityPoolRoleAttachment(
+    cognito.CfnIdentityPoolRoleAttachment(
         scope,
         resource_id_prefix + "identity_pool_role_attach",
         identity_pool_id=identity_pool.ref,
@@ -60,11 +61,11 @@ def get_default_role_condition(identity_pool_id: str, auth: bool = True,) -> dic
     }
 
 
-def get_default_role_policy(auth: bool = True, kwargs={}) -> aws_iam.PolicyStatement:
+def get_default_role_policy(auth: bool = True, kwargs={}) -> iam.PolicyStatement:
     return kwargs.get(
         "identity_pool_{}_role_policy".format("auth" if auth else "unauth"),
-        aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["mobileanalytics:PutEvents", "cognito-sync:*", "cognito-idenity:*"],
             resources=["*"],
         ),
@@ -72,18 +73,18 @@ def get_default_role_policy(auth: bool = True, kwargs={}) -> aws_iam.PolicyState
 
 
 def get_default_role_for_identity_pool(
-    scope: core.Construct,
+    scope: Construct,
     identity_pool_id: str,
     role_resource_id_prefix: str,
     auth: bool = True,
     kwargs={},
-) -> aws_iam.Role:
+) -> iam.Role:
     role_policy = get_default_role_policy(auth=auth, kwargs=kwargs)
     role_condition = get_default_role_condition(identity_pool_id=identity_pool_id, auth=auth)
-    role = aws_iam.Role(
+    role = iam.Role(
         scope,
         role_resource_id_prefix + ("auth" if auth else "unauth"),
-        assumed_by=aws_iam.FederatedPrincipal(
+        assumed_by=iam.FederatedPrincipal(
             "cognito-identity.amazonaws.com", role_condition, "sts:AssumeRoleWithWebIdentity"
         ),
     )

@@ -1,14 +1,15 @@
 import hashlib
 
-from aws_cdk import core
+from aws_cdk import Stack
+from constructs import Construct
 from boto3.session import Session
 
 from common.parameter_store import save_parameter
 from common.platforms import Platform
 
 
-class RegionAwareStack(core.Stack):
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+class RegionAwareStack(Stack):
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region: bool

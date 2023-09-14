@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from aws_cdk import core
+from aws_cdk import App
 from cdk_integration_tests_ios.apigateway_stack import ApigatewayStack
 from cdk_integration_tests_ios.autoscaling_stack import AutoScalingStack
 from cdk_integration_tests_ios.cloudwatch_stack import CloudWatchStack
@@ -35,7 +35,7 @@ from common.main_stack import MainStack
 from common.platforms import Platform
 from common.stack_utils import add_stack_dependency_on_common_stack
 
-app = core.App()
+app = App()
 
 region = app.node.try_get_context("region")
 account = app.node.try_get_context("account")

@@ -1,7 +1,11 @@
 import hashlib
 import json
-
-from aws_cdk import aws_iam, aws_iot, aws_lambda, core, custom_resources
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_iot as iot
+from aws_cdk import aws_lambda as lambda_
+from aws_cdk import custom_resources as custom_resources
+from aws_cdk import CustomResource, RemovalPolicy
+from constructs import Construct
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
@@ -14,7 +18,7 @@ class IotStack(RegionAwareStack):
     custom_auth_user_pass_default_authorizer_name = "iot_custom_authorizer_user_pass"
     custom_auth_user_pass_domain_configuration_name = "aws_test_iot_custom_authorizer_user_pass"
 
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region("iot")
@@ -32,22 +36,22 @@ class IotStack(RegionAwareStack):
         self.save_parameters_in_parameter_store(platform=Platform.IOS)
 
     def setup_iot_endpoint_provider(self):
-        describe_endpoint_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        describe_endpoint_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:DescribeEndpoint"],
             resources=["*"],
         )
 
-        provider_lambda = aws_lambda.SingletonFunction(
+        provider_lambda = lambda_.SingletonFunction(
             self,
             "iot_data_ats_endpoint_provider_lambda",
             uuid="iot_data_ats_endpoint_provider_lambda_20200507150213",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_endpoint"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("custom_resources/iot_endpoint"),
             handler="iot_endpoint_provider.on_event",
             description="Returns iot:Data-ATS endpoint for this account",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
             initial_policy=[describe_endpoint_policy],
         )
@@ -56,7 +60,7 @@ class IotStack(RegionAwareStack):
             self, "iot_data_ats_endpoint_provider", on_event_handler=provider_lambda
         )
 
-        iot_endpoint = core.CustomResource(
+        iot_endpoint = CustomResource(
             self,
             "iot_data_ats_endpoint",
             resource_type="Custom::IotDataAtsEndpoint",
@@ -68,43 +72,43 @@ class IotStack(RegionAwareStack):
         self._parameters_to_save["iot_endpoint_address"] = endpoint_address
 
     def setup_test_policies(self, common_stack):
-        cert_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        cert_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:AttachPrincipalPolicy"],
             resources=[f"arn:aws:iot:{self.region}:{self.account}:cert/*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=cert_policy)
 
-        client_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        client_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:Connect"],
             resources=[f"arn:aws:iot:{self.region}:{self.account}:client*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=client_policy)
 
-        thing_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        thing_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:DeleteThingShadow", "iot:GetThingShadow", "iot:UpdateThingShadow"],
             resources=[f"arn:aws:iot:{self.region}:{self.account}:thing*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=thing_policy)
 
-        topic_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        topic_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:Publish", "iot:Receive"],
             resources=[f"arn:aws:iot:{self.region}:{self.account}:topic*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=topic_policy)
 
-        topicfilter_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        topicfilter_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:Subscribe"],
             resources=[f"arn:aws:iot:{self.region}:{self.account}:topicfilter*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=topicfilter_policy)
 
-        all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        all_resources_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:CreateCertificateFromCsr"],
             resources=["*"],
         )
@@ -143,7 +147,7 @@ class IotStack(RegionAwareStack):
         md5_hash = hashlib.md5(policy_bytes).hexdigest()
         policy_name = f"iot_integ_test_policy_{md5_hash}"
 
-        aws_iot.CfnPolicy(
+        iot.CfnPolicy(
             self,
             "iot_integ_test_policy",
             policy_document=policy_document,
@@ -192,21 +196,21 @@ class IotStack(RegionAwareStack):
             self.region,
         )
 
-        create_authorizer_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        create_authorizer_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["iot:CreateAuthorizer", "iot:UpdateAuthorizer", "iot:DeleteAuthorizer"],
             resources=["*"],
         )
-        provider_lambda = aws_lambda.SingletonFunction(
+        provider_lambda = lambda_.SingletonFunction(
             self,
             "iot_custom_authorizer_provider_lambda",
             uuid=self.custom_auth_user_pass_uuid,
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_provider"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("custom_resources/iot_custom_authorizer_provider"),
             handler="iot_custom_authorizer_provider.on_event",
             description="Sets up an IoT custom authorizer",
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
             initial_policy=[create_authorizer_policy],
         )
@@ -219,7 +223,7 @@ class IotStack(RegionAwareStack):
             "custom_authorizer_public_key"
         ).to_string()
 
-        core.CustomResource(
+        CustomResource(
             self,
             "iot_custom_authorizer",
             resource_type="Custom::IoTCustomAuthorizer",
@@ -273,8 +277,8 @@ class IotStack(RegionAwareStack):
             },
             "us-east-1",
         )
-        create_authorizer_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        create_authorizer_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=[
                 "iot:CreateAuthorizer",
                 "iot:UpdateAuthorizer",
@@ -286,12 +290,12 @@ class IotStack(RegionAwareStack):
             ],
             resources=["*"],
         )
-        provider_lambda = aws_lambda.SingletonFunction(
+        provider_lambda = lambda_.SingletonFunction(
             self,
             "iot_custom_authorizer_user_pass_provider_lambda",
             uuid="iot_custom_authorizer_user_pass_provider_lambda_20200727123737",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_user_pass_provider"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("custom_resources/iot_custom_authorizer_user_pass_provider"),
             handler="iot_custom_authorizer_user_pass_provider.on_event",
             description="Sets up an IoT custom authorizer for user password & required domain "
             "config due to beta status",
@@ -304,8 +308,8 @@ class IotStack(RegionAwareStack):
                     self.custom_auth_user_pass_domain_configuration_name
                 ),
             },
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
             initial_policy=[create_authorizer_policy],
         )
@@ -318,7 +322,7 @@ class IotStack(RegionAwareStack):
             "custom_authorizer_public_key"
         ).to_string()
 
-        iot_endpoint = core.CustomResource(
+        iot_endpoint = CustomResource(
             self,
             "iot_custom_authorizer_user_pass",
             resource_type="Custom::IoTCustomAuthorizer",
@@ -344,25 +348,25 @@ class IotStack(RegionAwareStack):
         """
         merged_environment_vars = {"RESOURCE_ARN": f"arn:aws:iot:{region}:{self.account}:*"}
         merged_environment_vars.update(environment)
-        authorizer_function = aws_lambda.Function(
+        authorizer_function = lambda_.Function(
             self,
             f"iot_custom_authorizer_function_{unique_id}",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset(code_asset),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset(code_asset),
             handler=code_handler,
             description=description,
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
             environment=merged_environment_vars,
         )
 
-        authorizer_function.grant_invoke(aws_iam.ServicePrincipal("iot.amazonaws.com"))
+        authorizer_function.grant_invoke(iam.ServicePrincipal("iot.amazonaws.com"))
         return authorizer_function.function_arn
 
     def create_custom_authorizer_signing_key_generic(
         self, unique_id, description, token_value
-    ) -> core.CustomResource:
+    ) -> CustomResource:
         """
         Uses a Lambda to create an asymmetric key pair, since neither CFn nor CDK support that as of
         this writing (2020-05-09)
@@ -373,21 +377,21 @@ class IotStack(RegionAwareStack):
 
         :return: the CustomResource for the signing key
         """
-        create_authorizer_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        create_authorizer_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["kms:CreateKey", "kms:GetPublicKey", "kms:ScheduleKeyDeletion", "kms:Sign"],
             resources=["*"],
         )
-        provider_lambda = aws_lambda.SingletonFunction(
+        provider_lambda = lambda_.SingletonFunction(
             self,
             f"iot_custom_authorizer_key_provider_lambda_{unique_id}",
             uuid=f"iot_custom_authorizer_key_provider_lambda_20200507150213_{unique_id}",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("custom_resources/iot_custom_authorizer_key_provider"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("custom_resources/iot_custom_authorizer_key_provider"),
             handler="iot_custom_authorizer_key_provider.on_event",
             description=description,
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
             initial_policy=[create_authorizer_policy],
         )
@@ -398,7 +402,7 @@ class IotStack(RegionAwareStack):
             on_event_handler=provider_lambda,
         )
 
-        iot_custom_authorizer_key = core.CustomResource(
+        iot_custom_authorizer_key = CustomResource(
             self,
             f"iot_custom_authorizer_key_{unique_id}",
             resource_type="Custom::IoTCustomAuthorizer",

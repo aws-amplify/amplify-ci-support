@@ -1,4 +1,7 @@
-from aws_cdk import aws_cognito, aws_iam, core
+from aws_cdk import aws_cognito as cognito
+from aws_cdk import aws_iam as iam
+from aws_cdk import Duration, Stack
+from constructs import Construct
 
 from common.auth_utils import construct_identity_pool
 from common.platforms import Platform
@@ -6,18 +9,18 @@ from common.region_aware_stack import RegionAwareStack
 from common.github_action_oidc import GithubActionOIDC
 
 class CommonStack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, platform: Platform, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, platform: Platform, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        circleci_execution_role = aws_iam.Role(
+        circleci_execution_role = iam.Role(
             self,
             "circleci_execution_role",
-            assumed_by=aws_iam.AccountPrincipal(self.account),
-            max_session_duration=core.Duration.hours(4),
+            assumed_by=iam.AccountPrincipal(self.account),
+            max_session_duration=Duration.hours(4),
         )
 
-        policy_to_add = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        policy_to_add = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["ssm:GetParameter", "ssm:GetParametersByPath"],
             resources=["*"],
         )
@@ -44,11 +47,11 @@ class CommonStack(RegionAwareStack):
         return self.is_service_supported_in_region("cognito-identity", region_name=region_name)
 
     def add_to_common_role_policies(
-        self, scope: core.Stack, policy_to_add: aws_iam.PolicyStatement = None
+        self, scope: Stack, policy_to_add: iam.PolicyStatement = None
     ) -> None:
         if policy_to_add is None:
-            policy_to_add = aws_iam.PolicyStatement(
-                effect=aws_iam.Effect.ALLOW,
+            policy_to_add = iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 actions=["{}:*".format(scope.stack_name)],
                 resources=["*"],
             )
@@ -77,17 +80,17 @@ class CommonStack(RegionAwareStack):
         self.parameters_to_save["region"] = self.node.try_get_context("region")
 
     @property
-    def circleci_execution_role(self) -> aws_iam.Role:
+    def circleci_execution_role(self) -> iam.Role:
         return self._circleci_execution_role
 
     @property
-    def cognito_identity_pool(self) -> aws_cognito.CfnIdentityPool:
+    def cognito_identity_pool(self) -> cognito.CfnIdentityPool:
         return self._cognito_identity_pool
 
     @property
-    def cognito_identity_pool_auth_role(self) -> aws_iam.Role:
+    def cognito_identity_pool_auth_role(self) -> iam.Role:
         return self._cognito_identity_pool_auth_role
 
     @property
-    def cognito_identity_pool_unauth_role(self) -> aws_iam.Role:
+    def cognito_identity_pool_unauth_role(self) -> iam.Role:
         return self._cognito_identity_pool_unauth_role

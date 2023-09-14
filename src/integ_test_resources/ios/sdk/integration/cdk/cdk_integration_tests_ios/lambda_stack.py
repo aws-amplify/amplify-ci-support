@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from aws_cdk import aws_lambda, core
+from aws_cdk import aws_lambda as lambda_
+from aws_cdk import RemovalPolicy
+from constructs import Construct
 from common.common_stack import CommonStack
 from common.file_utils import replace_in_file
 from common.platforms import Platform
@@ -8,21 +10,21 @@ from common.region_aware_stack import RegionAwareStack
 
 
 class LambdaStack(RegionAwareStack):
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
 
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region()
 
-        echo = aws_lambda.Function(
+        echo = lambda_.Function(
             self,
             "echo",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("lambda"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("lambda"),
             handler="echo.handler",
             description=datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)"),
-            current_version_options=aws_lambda.VersionOptions(
-                removal_policy=core.RemovalPolicy.DESTROY
+            current_version_options=lambda_.VersionOptions(
+                removal_policy=RemovalPolicy.DESTROY
             ),
         )
 
@@ -30,11 +32,11 @@ class LambdaStack(RegionAwareStack):
             echo.current_version
         )
 
-        echo2 = aws_lambda.Function(
+        echo2 = lambda_.Function(
             self,
             "echo2",
-            runtime=aws_lambda.Runtime.PYTHON_3_7,
-            code=aws_lambda.Code.asset("lambda"),
+            runtime=lambda_.Runtime.PYTHON_3_7,
+            code=lambda_.AssetCode.from_asset("lambda"),
             handler="echo.handler",
         )
 
@@ -51,14 +53,14 @@ class LambdaStack(RegionAwareStack):
         common_stack.add_to_common_role_policies(self)
 
     @property
-    def lambda_echo_function(self) -> aws_lambda.IFunction:
+    def lambda_echo_function(self) -> lambda_.IFunction:
         return self._lambda_echo_function
 
     @lambda_echo_function.setter
     def lambda_echo_function(self, value):
         self._lambda_echo_function = value
 
-    def attach_alias_to_version(self, version_obj: aws_lambda.Version) -> (str, str):
+    def attach_alias_to_version(self, version_obj: lambda_.Version) -> (str, str):
         """
         Creates a version alias for the given version of the lambda
 
@@ -66,7 +68,7 @@ class LambdaStack(RegionAwareStack):
         """
         version_alias_associated_version = version_obj.version
         version_alias_name = "integ_test_current_version_alias"
-        aws_lambda.Alias(
+        lambda_.Alias(
             self,
             "integ_test_lambda_current_version_alias",
             version=version_obj,
@@ -74,7 +76,7 @@ class LambdaStack(RegionAwareStack):
         )
         return version_alias_associated_version, version_alias_name
 
-    def create_version(self, lambda_function: aws_lambda.IFunction, version: str):
+    def create_version(self, lambda_function: lambda_.IFunction, version: str):
         # MARK: this feature is deprecated and each stack deploy operation
         # can create only a single version. We might have to deploy lambda stack twice
         # to add version 2 that is required by the tests. See

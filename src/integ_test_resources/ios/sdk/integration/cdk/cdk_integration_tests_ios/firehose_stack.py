@@ -1,4 +1,9 @@
-from aws_cdk import aws_iam, aws_kinesisfirehose, aws_logs, aws_s3, core
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_kinesisfirehose as kinesisfirehose
+from aws_cdk import aws_logs as logs
+from aws_cdk import aws_s3 as s3
+from aws_cdk import RemovalPolicy
+from constructs import Construct
 from common.common_stack import CommonStack
 from common.platforms import Platform
 from common.region_aware_stack import RegionAwareStack
@@ -8,7 +13,7 @@ class FirehoseStack(RegionAwareStack):
     LOG_GROUP_NAME = "integ_test_firehose_log_group"
     LOG_STREAM_NAME = "integ_test_firehose_log_stream"
 
-    def __init__(self, scope: core.Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, common_stack: CommonStack, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         self._supported_in_region = self.is_service_supported_in_region()
@@ -25,26 +30,26 @@ class FirehoseStack(RegionAwareStack):
 
         self.save_parameters_in_parameter_store(Platform.IOS)
 
-    def create_s3_delivery_bucket(self) -> aws_s3.Bucket:
-        delivery_bucket = aws_s3.Bucket(
-            self, "integ_test_firehose_delivery_bucket", removal_policy=core.RemovalPolicy.DESTROY
+    def create_s3_delivery_bucket(self) -> s3.Bucket:
+        delivery_bucket = s3.Bucket(
+            self, "integ_test_firehose_delivery_bucket", removal_policy=RemovalPolicy.DESTROY
         )
         return delivery_bucket
 
-    def create_log_group_and_stream(self) -> aws_logs.LogGroup:
-        log_group = aws_logs.LogGroup(
+    def create_log_group_and_stream(self) -> logs.LogGroup:
+        log_group = logs.LogGroup(
             self,
             "integ_test_firehose_delivery_log_group",
             log_group_name=FirehoseStack.LOG_GROUP_NAME,
-            removal_policy=core.RemovalPolicy.DESTROY,
-            retention=aws_logs.RetentionDays.FIVE_DAYS,
+            removal_policy=RemovalPolicy.DESTROY,
+            retention=logs.RetentionDays.FIVE_DAYS,
         )
-        aws_logs.LogStream(
+        logs.LogStream(
             self,
             "integ_test_firehose_delivery_log_stream",
             log_group=log_group,
             log_stream_name=FirehoseStack.LOG_STREAM_NAME,
-            removal_policy=core.RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
         )
         return log_group
 
@@ -56,15 +61,15 @@ class FirehoseStack(RegionAwareStack):
         :param delivery_bucket: The destination bucket
         :return: IAM Role ARN
         """
-        firehose_role = aws_iam.Role(
+        firehose_role = iam.Role(
             self,
             "integ_test_firehose_delivery_role",
-            assumed_by=aws_iam.ServicePrincipal("firehose.amazonaws.com"),
+            assumed_by=iam.ServicePrincipal("firehose.amazonaws.com"),
         )
 
         firehose_role.add_to_policy(
-            aws_iam.PolicyStatement(
-                effect=aws_iam.Effect.ALLOW,
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 actions=[
                     "s3:AbortMultipartUpload",
                     "s3:GetBucketLocation",
@@ -78,8 +83,8 @@ class FirehoseStack(RegionAwareStack):
         )
 
         firehose_role.add_to_policy(
-            aws_iam.PolicyStatement(
-                effect=aws_iam.Effect.ALLOW,
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 actions=[
                     "kinesis:DescribeStream",
                     "kinesis:GetShardIterator",
@@ -102,8 +107,8 @@ class FirehoseStack(RegionAwareStack):
             ]
         )
         firehose_role.add_to_policy(
-            aws_iam.PolicyStatement(
-                effect=aws_iam.Effect.ALLOW,
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 actions=["logs:PutLogEvents"],
                 resources=[log_stream_arn],
             )
@@ -112,7 +117,7 @@ class FirehoseStack(RegionAwareStack):
 
     def create_firehose(
         self, delivery_bucket, firehose_role_arn
-    ) -> aws_kinesisfirehose.CfnDeliveryStream:
+    ) -> kinesisfirehose.CfnDeliveryStream:
         """
         Creates a Firehose DeliveryStream configured to deliver to the S3 Bucket `delivery_bucket`,
         and log errors to a log stream named 'S3Delivery' in `log_group`. Firehose will adopt the
@@ -122,7 +127,7 @@ class FirehoseStack(RegionAwareStack):
         :param firehose_role_arn: The role to adopt
         :return: a CfnDeliveryStream
         """
-        firehose = aws_kinesisfirehose.CfnDeliveryStream(
+        firehose = kinesisfirehose.CfnDeliveryStream(
             self,
             "integ_test_firehose",
             extended_s3_destination_configuration={
@@ -140,15 +145,15 @@ class FirehoseStack(RegionAwareStack):
         return firehose
 
     def create_test_policies(self, common_stack):
-        all_resources_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        all_resources_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["firehose:ListDeliveryStreams"],
             resources=["*"],
         )
         common_stack.add_to_common_role_policies(self, policy_to_add=all_resources_policy)
 
-        deliverystream_policy = aws_iam.PolicyStatement(
-            effect=aws_iam.Effect.ALLOW,
+        deliverystream_policy = iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
             actions=["firehose:PutRecord", "firehose:PutRecordBatch"],
             resources=[f"arn:aws:firehose:{self.region}:{self.account}:deliverystream/*"],
         )

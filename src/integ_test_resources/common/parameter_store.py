@@ -1,12 +1,12 @@
 from typing import List, Union
 
-from aws_cdk import aws_ssm, core
-
+from aws_cdk import aws_ssm as ssm
+from aws_cdk import Stack
 from common.platforms import Platform
 
 
 def save_parameter(
-    scope: core.Stack, key: str, value: Union[str, List[str]], platform: Platform
+    scope: Stack, key: str, value: Union[str, List[str]], platform: Platform
 ) -> None:
     """
     Saves a parameter to the Amazon Systems Manager Parameter Store. The value
@@ -26,7 +26,7 @@ def save_parameter(
         save_string_parameter(scope, key, value, platform)
 
 
-def save_string_parameter(scope: core.Stack, key: str, value: str, platform: Platform) -> None:
+def save_string_parameter(scope: Stack, key: str, value: str, platform: Platform) -> None:
     """
     Saves a string parameter to the Amazon Systems Manager Parameter Store.
     This method saves the given value under a key. Scopes passed to this method
@@ -42,13 +42,13 @@ def save_string_parameter(scope: core.Stack, key: str, value: str, platform: Pla
     resource_id = "param_" + key
     parameter_name = _get_parameter_name(platform, scope, key)
 
-    aws_ssm.StringParameter(
+    ssm.StringParameter(
         scope, resource_id, string_value=value, parameter_name=parameter_name, simple_name=False
     )
 
 
 def save_string_list_parameter(
-    scope: core.Stack, key: str, value: [str], platform: Platform
+    scope: Stack, key: str, value: [str], platform: Platform
 ) -> None:
     """
     Saves a string list parameter to the Amazon Systems Manager Parameter Store.
@@ -65,7 +65,7 @@ def save_string_list_parameter(
     resource_id = "param_" + key
     parameter_name = _get_parameter_name(platform, scope, key)
 
-    aws_ssm.StringListParameter(
+    ssm.StringListParameter(
         scope,
         resource_id,
         string_list_value=value,
@@ -74,7 +74,7 @@ def save_string_list_parameter(
     )
 
 
-def _get_parameter_name(platform: Platform, scope: core.Stack, key: str) -> str:
+def _get_parameter_name(platform: Platform, scope: Stack, key: str) -> str:
     # Parameter names cannot be prefixed with the token 'aws', thus it is
     # conspicuously absent from the namespace. See: https://amzn.to/2VDaqtC
     namespace = ("mobile-sdk", platform.value)
