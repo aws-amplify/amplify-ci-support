@@ -9,3 +9,6 @@ cdk.out
 
 # config
 config.json
+
+.pnp.cjs
+.pnp.loader.mjs

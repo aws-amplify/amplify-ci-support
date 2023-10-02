@@ -1,9 +1,7 @@
 {
   "name": "token-rotation",
   "version": "0.1.0",
-  "bin": {
-    "token-rotation": "bin/token-rotation.js"
-  },
+  "bin": "bin/token-rotation.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -37,5 +35,8 @@
     "esbuild": "^0.12.15",
     "source-map-support": "^0.5.19",
     "totp-generator": "^0.0.9"
+  },
+  "resolutions": {
+    "@aws-cdk/aws-eks": "^1.202.0"
   }
 }
