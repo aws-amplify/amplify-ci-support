@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "github-cloudwatch-cdk": "bin/github-cloudwatch-cdk.js"
+    "github-cloudwatch-cdk": "bin/GithubCloudwatchCdkApp.ts"
   },
   "scripts": {
     "build": "tsc",
