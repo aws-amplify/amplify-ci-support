@@ -38,7 +38,7 @@ export const updateCircleCIEnvironmentVariables = async (
         envName,
         envValue
       );
-    } else if ((variables.type = "Environment")) {
+    } else if (variables.type === "Environment") {
       await updateCircleCIEnvironmentVariable(
         variables.slug,
         variables.projectName,
