@@ -90,6 +90,12 @@ platform :android do |options|
     files_to_commit = []
     build_index = 0
     build_parameters[:releases].each do |params| 
+
+      if options[:release_component_target] && params[:component_name] && options[:release_component_target] != params[:component_name]
+        build_index +=1
+        next
+      end
+      
       params[:repo] = repo
       if release_tag_override
         params[:release_tag_override] = release_tag_override[build_index]
