@@ -37,7 +37,7 @@ platform :android do |options|
   #       doc_files_to_update: [],
   #       release_title: 'Amplify Android Kotlin Facade',
   #       changelog_path: "#{project_root}/somethingelse/CHANGELOG.md",
-  #       component_name: "Kotlin Face"
+  #       component_name: "Kotlin Facade"
   #       top_level_docs_to_update: [],
   #       sample_build__files_to_update: []
   #     }
