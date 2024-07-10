@@ -29,7 +29,9 @@ platform :android do |options|
   #       changelog_path: "#{project_root}/CHANGELOG.md",
   #       component_name: "my component name"
   #       top_level_docs_to_update: [],
-  #       sample_build__files_to_update: []
+  #       sample_build__files_to_update: [],
+  #       changelog_include_scopes: [],
+  #       changelog_exclude_scopes: []
   #     },
   #     {
   #       release_tag_prefix: 'release-somethingelse_v',
@@ -37,9 +39,9 @@ platform :android do |options|
   #       doc_files_to_update: [],
   #       release_title: 'Amplify Android Kotlin Facade',
   #       changelog_path: "#{project_root}/somethingelse/CHANGELOG.md",
-  #       component_name: "Kotlin Facade"
-  #       top_level_docs_to_update: [],
-  #       sample_build__files_to_update: []
+  #       component_name: "Kotlin Facade",
+  #       changelog_include_scopes: [],
+  #       changelog_exclude_scopes: []
   #     }
   #   ]
   # }
@@ -175,7 +177,9 @@ platform :android do |options|
     component_name = options[:component_name]
     top_level_docs_to_update = options.has_key?(:top_level_docs_to_update) ? options[:top_level_docs_to_update] : []
     sample_build_files_to_update = options.has_key?(:sample_build_files_to_update) ? options[:sample_build_files_to_update] : []
-        
+    include_scopes = options.has_key?(:changelog_include_scopes) ? options[:changelog_include_scopes] : []
+    ignore_scopes = options.has_key?(:changelog_ignore_scopes) ? options[:changelog_ignore_scopes] : []  
+
     # Find the tag for the last release
     last_release_tag = last_git_tag(pattern: "#{release_tag_prefix}*")
     if options[:release_tag_override]
@@ -192,7 +196,13 @@ platform :android do |options|
     UI.message("Version change #{last_version} => #{next_version}")
 
     # Get the changelog body and append to the change log.
-    changelog_body = generate_changelog(last_release_tag: last_release_tag, repo: options[:repo])
+    changelog_body = generate_changelog(
+      last_release_tag: last_release_tag, 
+      repo: options[:repo],
+      include_scopes: include_scopes,
+      ignore_scopes: ignore_scopes
+    )
+
     update_changelog(
       changelog_path: changelog_path,
       changelog_body: changelog_body,
@@ -317,6 +327,8 @@ platform :android do |options|
     changelog = conventional_changelog(
       display_title: false,
       display_links: false,
+      include_scopes: options[:include_scopes],
+      ignore_scopes: options[:ignore_scopes],
       order: ["feat", "fix", "no_type"],
       sections: {
          feat: 'Features',
