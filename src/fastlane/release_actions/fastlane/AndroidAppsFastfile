@@ -27,6 +27,11 @@ platform :android do |options|
   #       doc_files_to_update: ["#{project_root}/README.md", "#{project_root}/rxbindings/README.md"],
   #       release_title: 'My main library',
   #       changelog_path: "#{project_root}/CHANGELOG.md",
+  #       component_name: "my component name"
+  #       top_level_docs_to_update: [],
+  #       sample_build__files_to_update: [],
+  #       changelog_include_scopes: [],
+  #       changelog_exclude_scopes: []
   #     },
   #     {
   #       release_tag_prefix: 'release-somethingelse_v',
@@ -34,6 +39,9 @@ platform :android do |options|
   #       doc_files_to_update: [],
   #       release_title: 'Amplify Android Kotlin Facade',
   #       changelog_path: "#{project_root}/somethingelse/CHANGELOG.md",
+  #       component_name: "Kotlin Facade",
+  #       changelog_include_scopes: [],
+  #       changelog_exclude_scopes: []
   #     }
   #   ]
   # }
@@ -84,6 +92,12 @@ platform :android do |options|
     files_to_commit = []
     build_index = 0
     build_parameters[:releases].each do |params| 
+
+      if options[:release_component_target] && params[:component_name] && options[:release_component_target] != params[:component_name]
+        build_index +=1
+        next
+      end
+      
       params[:repo] = repo
       if release_tag_override
         params[:release_tag_override] = release_tag_override[build_index]
@@ -159,8 +173,13 @@ platform :android do |options|
     release_tag_prefix = options[:release_tag_prefix]
     gradle_properties_path = options[:gradle_properties_path]
     changelog_path = options[:changelog_path]
-    files_to_commit = [gradle_properties_path] 
-    
+    files_to_commit = [gradle_properties_path]
+    component_name = options[:component_name]
+    top_level_docs_to_update = options.has_key?(:top_level_docs_to_update) ? options[:top_level_docs_to_update] : []
+    sample_build_files_to_update = options.has_key?(:sample_build_files_to_update) ? options[:sample_build_files_to_update] : []
+    include_scopes = options.has_key?(:changelog_include_scopes) ? options[:changelog_include_scopes] : []
+    ignore_scopes = options.has_key?(:changelog_ignore_scopes) ? options[:changelog_ignore_scopes] : []  
+
     # Find the tag for the last release
     last_release_tag = last_git_tag(pattern: "#{release_tag_prefix}*")
     if options[:release_tag_override]
@@ -177,7 +196,13 @@ platform :android do |options|
     UI.message("Version change #{last_version} => #{next_version}")
 
     # Get the changelog body and append to the change log.
-    changelog_body = generate_changelog(last_release_tag: last_release_tag, repo: options[:repo])
+    changelog_body = generate_changelog(
+      last_release_tag: last_release_tag, 
+      repo: options[:repo],
+      include_scopes: include_scopes,
+      ignore_scopes: ignore_scopes
+    )
+
     update_changelog(
       changelog_path: changelog_path,
       changelog_body: changelog_body,
@@ -194,6 +219,28 @@ platform :android do |options|
       update_docs(file_path:file_path, version: next_version, maven_group_name:maven_group_name)
       files_to_commit << file_path
     }
+
+    top_level_docs_to_update.each { |file_path| 
+      UI.message("Updating top-level doc file #{file_path}")
+      update_top_level_docs(
+        file_path:file_path, 
+        last_version: last_version, 
+        next_version: next_version, 
+        component_name:component_name, 
+        release_tag_prefix:release_tag_prefix)
+      files_to_commit << file_path
+    }
+
+    sample_build_files_to_update.each { |file_path| 
+      UI.message("Updating sample build files #{file_path}")
+      update_sample_build_files(
+        file_path:file_path, 
+        last_version: last_version, 
+        next_version: next_version,
+        component_name:component_name)
+      files_to_commit << file_path
+    }
+
     # Return these values to the main lane.
     {
       files_to_commit: files_to_commit,
@@ -209,8 +256,46 @@ platform :android do |options|
     readme_contents = File.read(readme_path)
     maven_group_name = options[:maven_group_name] 
 
-    # Regex voodoo. \\1 refers to the module name which is the first capture group of the regex. We need that to rebuild the string with the new version.
-    readme_contents = readme_contents.gsub(/implementation\s'#{maven_group_name}:(.*):(.*)'/,"implementation \'#{maven_group_name}:\\1:#{options[:version]}\'")
+    if readme_contents.include? "implementation("
+       # Regex voodoo. \\1 refers to the module name which is the first capture group of the regex. We need that to rebuild the string with the new version.
+      readme_contents = readme_contents.gsub(/implementation\W"#{maven_group_name}:(.*):(.*)/,"implementation(\"#{maven_group_name}:\\1:#{options[:version]}\")")
+    else
+      readme_contents = readme_contents.gsub(/implementation\s'#{maven_group_name}:(.*):(.*)'/,"implementation \'#{maven_group_name}:\\1:#{options[:version]}\'")
+    end
+    
+    open(readme_path, 'w') { |f|
+      f.puts readme_contents
+    }
+  end
+
+  private_lane :update_top_level_docs do |options|
+    readme_path = options[:file_path]
+    readme_contents = File.read(readme_path)
+    last_version = options[:last_version]
+    next_version = options[:next_version]
+    component_name = options[:component_name]
+    release_tag_prefix = options[:release_tag_prefix]
+
+    # Update release links
+    readme_contents = readme_contents.gsub(/\[#{last_version}\]/,"[#{next_version}]")
+    readme_contents = readme_contents.gsub(/#{release_tag_prefix}#{last_version}/,"#{release_tag_prefix}#{next_version}")
+
+    # Update supported version
+    readme_contents = readme_contents.gsub(/#{component_name}\s\W\s#{last_version}/,"#{component_name} | #{next_version}")
+    open(readme_path, 'w') { |f|
+      f.puts readme_contents
+    }
+  end
+
+  private_lane :update_sample_build_files do |options|
+    readme_path = options[:file_path]
+    readme_contents = File.read(readme_path)
+    last_version = options[:last_version]
+    next_version = options[:next_version]
+    component_name = options[:component_name]
+    # Update release links
+    readme_contents = readme_contents.gsub(/#{component_name}Version\s\W\s\W#{last_version}/,"#{component_name}Version = '#{next_version}")
+
     open(readme_path, 'w') { |f|
       f.puts readme_contents
     }
@@ -242,6 +327,8 @@ platform :android do |options|
     changelog = conventional_changelog(
       display_title: false,
       display_links: false,
+      include_scopes: options[:include_scopes],
+      ignore_scopes: options[:ignore_scopes],
       order: ["feat", "fix", "no_type"],
       sections: {
          feat: 'Features',
