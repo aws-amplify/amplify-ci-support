@@ -123,9 +123,9 @@ platform :android do |options|
         is_draft: true
       }
 
-      pr_title = "release: #{product_name} #{next_version}" unless !pr_title.nil?
-      commit_slug = "release: #{product_name} #{next_version}" unless !commit_slug.nil?
-      pr_body_details << "#{product_name} #{next_version}"
+      pr_title = "release: #{release_title} #{next_version}" unless !pr_title.nil?
+      commit_slug = "release: #{release_title} #{next_version}" unless !commit_slug.nil?
+      pr_body_details << "#{release_title} #{next_version}"
     end
     pr_body = <<~END
       #{pr_body_checklist}
