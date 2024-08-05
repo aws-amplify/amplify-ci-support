@@ -17,13 +17,15 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.3
+        ruby-version: 2.7
     - name: Install dependencies
       run: bundle check || bundle install --jobs=4 --retry=3 --path vendor/bundle
       working-directory: src/fastlane/release_actions
     - name: Run tests
       run: bundle exec rake
       working-directory: src/fastlane/release_actions
+      env:
+        RUBYOPT: '-rostruct' # Remove when https://github.com/fastlane/fastlane/pull/21950 gets released
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
