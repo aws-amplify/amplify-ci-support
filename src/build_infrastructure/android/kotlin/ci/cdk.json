@@ -1,0 +1,7 @@
+{
+  "app": "./gradlew build run",
+  "context": {
+    "@aws-cdk/core:stackRelativeExports": "true",
+    "@aws-cdk/aws-ecs-patterns:removeDefaultDesiredCount": true
+  }
+}

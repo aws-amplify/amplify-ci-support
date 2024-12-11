@@ -1,0 +1,5 @@
+[versions]
+cdk = "2.129.0"
+
+[libraries]
+aws-cdk = { module = "software.amazon.awscdk:aws-cdk-lib", version.ref = "cdk" }
