@@ -37,6 +37,7 @@
     "totp-generator": "^0.0.9"
   },
   "resolutions": {
-    "@aws-cdk/aws-eks": "^1.202.0"
+    "@aws-cdk/aws-eks": "^1.202.0",
+    "form-data": "^4.0.4"
   }
 }
