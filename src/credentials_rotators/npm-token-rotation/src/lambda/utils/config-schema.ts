@@ -89,7 +89,7 @@ export const schema = {
           type: "string",
         },
       },
-      required: ["arn", "publishConfig", "secretKey", "slackWebHookConfig"],
+      required: ["arn", "publishConfig", "secretKey"],
     },
     TokenPublishCircleCIContextConfig: {
       type: "object",
